@@ -1,13 +1,14 @@
 ---
 title: "STAT 340: Lecture 1 - Introduction"
 author: "Aliaksandr Hubin"
-date: 'Updated: `r Sys.Date()`'
+date: "February 10 2025"
 output:
   beamer_presentation: default
   slidy_presentation: default
+  ioslides_presentation: default
 header-includes:
-  - \setbeamertemplate{navigation symbols}{}
-  - \setbeamertemplate{footline}[frame number]
+- \setbeamertemplate{navigation symbols}{}
+- \setbeamertemplate{footline}[frame number]
 editor_options:
   markdown:
     wrap: 72
@@ -27,8 +28,6 @@ knitr::opts_chunk$set(echo = TRUE)
 **Date:** 03.02.2025\
 **Institution:** NMBU - Norges miljø- og biovitenskapelige universitet
 
-------------------------------------------------------------------------
-
 # Course Teachers
 
 ## Lecturer
@@ -42,8 +41,6 @@ building (Meieribygningen)
 ## Assistant Teacher
 
 **Elias Bye Rossetnes**
-
-------------------------------------------------------------------------
 
 # Class Schedule
 
@@ -65,8 +62,6 @@ building (Meieribygningen)
 -   **Where:** Room T132
 -   **First Session:** Feb 9
 
-------------------------------------------------------------------------
-
 # Practical Information
 
 ## Mandatory Activity
@@ -84,8 +79,6 @@ building (Meieribygningen)
 -   **Date & Time:** **May 18, 09:00--12:00**
 -   **Important:** No date changes possible
 
-------------------------------------------------------------------------
-
 # Learning Activities (Weekly)
 
 -   **Lectures:** 2 hours
@@ -93,8 +86,6 @@ building (Meieribygningen)
 -   **Individual Work:** 2 hours
 
 **Total:** 6 hours per week
-
-------------------------------------------------------------------------
 
 # Assumed Background: STAT 100
 
@@ -114,8 +105,6 @@ Students should be familiar with:
 -   Simple linear regression (one predictor variable)
 -   Contingency tables
 
-------------------------------------------------------------------------
-
 # Software & Data
 
 ## Software
@@ -129,8 +118,6 @@ Students should be familiar with:
 
 -   Mainly R library: **BIAS.data** (GitHub)
     <https://github.com/thoree/BIAS.data>
-
-------------------------------------------------------------------------
 
 # STAT 340 Course Content
 
@@ -156,8 +143,6 @@ Students should be familiar with:
     -   Poisson regression
     -   Mixed models (GLMM): Random effects, repeated measurements
 
-------------------------------------------------------------------------
-
 # Required Learning Resources
 
 ## Primary Materials
@@ -175,17 +160,11 @@ Chapters: 1--9 (as needed), 10--13, 17, 19, 25 - Freely available
 Introduction to Statistical Learning'' - Chapters: 1--4, 6.1, 7.1, 10 -
 Freely available <https://www.statlearning.com>
 
-------------------------------------------------------------------------
-
 # Typical Week Structure
 
 ![](images/clipboard-1095312855.png){width="400"}
 
-------------------------------------------------------------------------
-
 # ![](images/clipboard-3756721643.png){width="524"}
-
-------------------------------------------------------------------------
 
 # Reflection Activity
 
@@ -197,16 +176,12 @@ Freely available <https://www.statlearning.com>
     relevant for your research?
 -   Are they mentioned in the table in the previous page?
 
-------------------------------------------------------------------------
-
 # Now, Let's Begin!
 
 ## Lecture 1, Part B: Review of Basic Statistics
 
 We'll start with basics of **probability theory** - the mathematical
 foundation for **uncertainty** and **statistical inference**.
-
-------------------------------------------------------------------------
 
 # Part 0: Foundations of Probability
 
@@ -234,19 +209,19 @@ Together: $(\Omega, \mathcal{F}, P)$ is a **probability space**.
 rigorous mathematical
 foundations](images/clipboard-2975052282.png){width="65"}
 
--   Established the **foundations of probability** (1933) through
-    measure theory
+-   Established the **foundations of probability** (1933)
 
 -   Formalized the concept of probability space
-    $(\Omega, \mathcal{F}, P)$ that we use today.
+    $(\Omega, \mathcal{F}, P)$.
 
-**Kolmogorov's Axioms** (the foundation of modern probability): 1.
-$P(\Omega) = 1$ (certainty has probability 1) 2. $P(A) \geq 0$ for all
-outcomes $A$ (non-negativity) 3. Countable additivity: If
-$A_1, A_2, \ldots$ are disjoint events, then
-$P(\bigcup_i A_i) = \sum_i P(A_i)$
+**Kolmogorov's Axioms**:
 
-------------------------------------------------------------------------
+1.  $P(\Omega) = 1$ (certainty has probability 1)
+
+2.  $P(A) \geq 0$ for all outcomes $A$ (non-negativity)
+
+3.  Countable additivity: If $A_1, A_2, \ldots$ are disjoint events,
+    then $P(\bigcup_i A_i) = \sum_i P(A_i)$
 
 # Part 1: Random Variables
 
@@ -264,13 +239,9 @@ patterns.
 **Example:** Coin flip outcome $\to$ Number: - Heads $\to Y = 1$ - Tails
 $\to Y = 0$
 
-------------------------------------------------------------------------
-
 # Discrete vs. Continuous Random Variables
 
 ![](images/clipboard-1552167255.png){width="351"}
-
-------------------------------------------------------------------------
 
 # Discrete Random Variables
 
@@ -288,8 +259,6 @@ $\to Y = 0$
 -   Also exist quantile functions, moment generating functions,
     characteristic functions (beyond this course).
 
-------------------------------------------------------------------------
-
 # Continuous Random Variables
 
 -   Values in an **interval** (uncountably many)
@@ -304,8 +273,6 @@ $\to Y = 0$
 
 -   **Cumulative distribution function (CDF):**
     $F(y) = P(Y \leq y) = \int_{-\infty}^y f(x) \, dx$
-
-------------------------------------------------------------------------
 
 # CRITICAL DIFFERENCE: Single Point Probability
 
@@ -322,8 +289,6 @@ $\to Y = 0$
 (infinity!), so each single point contributes zero probability.
 
 Only **intervals with area** have non-zero probability.
-
-------------------------------------------------------------------------
 
 ```{r, echo=FALSE, fig.height=2.8, fig.width=8}
 par(mfrow=c(2,2), mar=c(3,3,2.5,1))
@@ -360,8 +325,6 @@ par(mfrow=c(1,1))
 
 **Key insight:** PMF and PDF describe probability distributions; CDF
 accumulates probabilities up to a point.
-
-------------------------------------------------------------------------
 
 # Part 2: Probability Distributions
 
@@ -400,8 +363,6 @@ par(mfrow=c(1,1))
 
 **Key insight:** Probability = area under density curve!
 
-------------------------------------------------------------------------
-
 # Part 3: Expectation and Variance
 
 # Expectation: Discrete Case
@@ -415,8 +376,6 @@ $$E(Y) = 1 \cdot \frac{1}{6} + 2 \cdot \frac{1}{6} + \cdots + 6 \cdot \frac{1}{6
 
 **Interpretation:** Long-run average over many rolls.
 
-------------------------------------------------------------------------
-
 # CHECKPOINT: Understanding E(Y) for the Fair Die
 
 **Question:** Why is $E(Y) = 3.5$, not 3 or 4? What does 3.5 mean?
@@ -429,8 +388,6 @@ $$E(Y) = 1 \cdot \frac{1}{6} + 2 \cdot \frac{1}{6} + \cdots + 6 \cdot \frac{1}{6
 **Key insight:** $E(Y)$ is the **balance point** of the distribution.
 Imagine the die outcomes as weights on a seesaw—3.5 is where it
 balances!
-
-------------------------------------------------------------------------
 
 # Expectation: Continuous Case
 
@@ -458,8 +415,6 @@ text(8.3, 0.08, 'E(Y)', cex=0.9, col='red', font=2)
 par(mfrow=c(1,1))
 ```
 
-------------------------------------------------------------------------
-
 # Variance: Discrete Case
 
 For a **discrete** $Y$:
@@ -468,8 +423,6 @@ $$Var(Y) = \sigma^2 = E((y-\mu)^2) = \sum_{\text{all } y} (y - \mu)^2 \cdot p(y)
 
 **Fair die with** $\mu = 3.5$:
 $$Var(Y) = (1-3.5)^2 \cdot \frac{1}{6} + \cdots + (6-3.5)^2 \cdot \frac{1}{6} \approx 2.92$$
-
-------------------------------------------------------------------------
 
 # Variance: Continuous Case
 
@@ -499,8 +452,6 @@ par(mfrow=c(1,1))
 
 **Larger variance = more spread!**
 
-------------------------------------------------------------------------
-
 # CHECKPOINT: Practical Variance Interpretation
 
 **Question:** Which is less risky: Stock A with $\sigma^2 = 4$ or Stock
@@ -511,8 +462,6 @@ B with $\sigma^2 = 16$?
 
 **Key lesson:** Variance = **spread of outcomes**. Smaller variance =
 more predictable!
-
-------------------------------------------------------------------------
 
 # Part 4: Sample Statistics
 
@@ -529,8 +478,6 @@ $$s = \sqrt{\frac{1}{n-1} \sum_{t=1}^n (y_t - \bar{y})^2}$$
 We divide by $(n-1)$ for unbiased variance estimation (**Bessel's
 correction**).
 
-------------------------------------------------------------------------
-
 # Part 5: Rules for Transformations
 
 # Linear Transformations: $E(cY)$ and $Var(cY)$
@@ -543,14 +490,10 @@ $$ Var(cY) = c^2 \cdot Var(Y)$$
 **Key insight:** Variance scales with $c^2$. Doubling a variable
 multiplies variance by 4!
 
-------------------------------------------------------------------------
-
 # CHECKPOINT: can someone say how to prove Var(cY) = c²Var(Y), not cVar(Y)?
 
 **Question:** If we triple the values (multiply by 3), variance
 multiplies by 9. Why the square?
-
-------------------------------------------------------------------------
 
 # Sums of Independent Variables
 
@@ -562,8 +505,6 @@ $$E\left(\sum_{i=1}^n c_iY_i\right) = \sum_{i=1}^n c_i\mu_i$$
 
 **Variance of sum (independent only):**
 $$Var\left(\sum_{i=1}^n c_iY_i\right) = \sum_{i=1}^n c_i^2\sigma_i^2$$
-
-------------------------------------------------------------------------
 
 # Part 6: Key Distributions
 
@@ -577,8 +518,6 @@ $f(y) = \frac{1}{\sigma\sqrt{2\pi}} \exp\left\{-\frac{1}{2}\left(\frac{y-\mu}{\s
 **Empirical Rule & Visual:**
 ![](images/clipboard-4241543309.png){width="340"}
 
-------------------------------------------------------------------------
-
 # CHECKPOINT: SAT Scores and the 68-95 Rule
 
 **Application:** SAT scores follow $N(\mu=500, \sigma=100)$.
@@ -587,8 +526,6 @@ $f(y) = \frac{1}{\sigma\sqrt{2\pi}} \exp\left\{-\frac{1}{2}\left(\frac{y-\mu}{\s
 
 -   What % score between **300-700**? (2 standard deviations away from
     mean)
-
-------------------------------------------------------------------------
 
 # CHECKPOINT: SAT Scores and the 68-95 Rule
 
@@ -602,8 +539,6 @@ $f(y) = \frac{1}{\sigma\sqrt{2\pi}} \exp\left\{-\frac{1}{2}\left(\frac{y-\mu}{\s
 
 **Why this matters:** Standardized tests are designed using normal
 distributions. Knowing the 68-95 rule helps interpret scores!
-
-------------------------------------------------------------------------
 
 # Carl Friedrich Gauss (1777–1855)
 
@@ -633,8 +568,6 @@ $$aY_1 + bY_2 \sim N(a\mu_1 + b\mu_2, \, a^2\sigma_1^2 + b^2\sigma_2^2)$$
 
 This is **fundamental** for inference about sample means and regression.
 
-------------------------------------------------------------------------
-
 # The Chi-Square Distribution
 
 **Notation:** $Y \sim \chi^2_k$ where $k$ = degrees of freedom
@@ -656,8 +589,6 @@ legend('topright', legend=c('k=3', 'k=8', 'k=15'), col=c('darkred', 'darkgreen',
 
 par(mfrow=c(1,1))
 ```
-
-------------------------------------------------------------------------
 
 # The Student's $t$ Distribution
 
@@ -688,24 +619,16 @@ par(mfrow=c(1,1))
 **Properties:** Symmetric, heavier tails than normal, converges to
 $N(0,1)$ as $k \to \infty$
 
-------------------------------------------------------------------------
-
 # William Sealy Gosset (1876–1937): "Student"
 
-**The statistician behind the** $t$ distribution.
+![English scientist working as a chemist for Guinness Brewery. Developed
+the t distribution to handle small samples when variance is unknown
+(1908)](images/clipboard-1638406457.png){width="65" height="94"}
 
--   **English statistician** working as a chemist for Guinness Brewery
 -   Faced a practical problem: small sample inference for quality
     control
 -   Published under the pseudonym **"Student"** because Guinness forbade
     employee publications
--   Developed the $t$ distribution to handle small samples when variance
-    is unknown (1908)
-
-**Key insight:** With small samples, we can't assume the normal
-distribution works---we need "Student's $t$" with heavier tails!
-
-------------------------------------------------------------------------
 
 # The $t$ Distribution: Practical Use
 
@@ -717,28 +640,6 @@ $S^2 = \frac{1}{n-1}\sum_{t=1}^n (Y_t - \bar{Y})^2$:
 $$T = \frac{\bar{Y} - \mu}{\sqrt{S^2/n}} \sim t_{n-1}$$
 
 This is the **one-sample** $t$ test statistic.
-
-------------------------------------------------------------------------
-
-# Ronald Aylmer Fisher (1890–1962)
-
-**The founder of modern statistics** and namesake of the $F$
-distribution.
-
--   **British statistician and geneticist** with revolutionary impact on
-    statistics and evolutionary biology
--   Invented the **F distribution**, **ANOVA** (analysis of variance),
-    and **maximum likelihood estimation**
--   Pioneered **experimental design** principles (randomization,
-    blocking, replication)
--   Won the prestigious **Weldon Medal** for his contributions to
-    statistical science
-
-**Legacy:** Fisher's work transformed statistics from a descriptive tool
-to a framework for scientific inference. His "Lady Tasting Tea"
-experiment is a classic example!
-
-------------------------------------------------------------------------
 
 # The $F$ Distribution
 
@@ -768,9 +669,23 @@ legend('topright', legend=c('F(10,5)', 'F(20,20)', 'F(100,100)'),
 par(mfrow=c(1,1))
 ```
 
-Used for ANOVA and comparing variances (Fisher's major contributions).
+# Ronald Aylmer Fisher (1890–1962)
 
-------------------------------------------------------------------------
+![British statistician and geneticist with revolutionary impact on
+statistics and evolutionary biology. The founder of modern statistics
+and namesake of the
+F-distribution.](images/clipboard-465988204.png){alt="British statistician and geneticist with revolutionary impact on statistics and evolutionary biology. The founder of modern statistics and namesake of the F-distribution."
+width="127"}
+
+-   Invented the **F distribution**, **ANOVA** (analysis of variance),
+    and **maximum likelihood estimation**
+-   Pioneered **experimental design** principles (randomization,
+    blocking, replication)
+-   Won the prestigious **Weldon Medal** for his contributions to
+    statistical science
+
+**Legacy:** Fisher's work transformed statistics from a descriptive tool
+to a framework for scientific inference.
 
 # Many more distributions of course
 

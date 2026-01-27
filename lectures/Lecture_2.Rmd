@@ -1,0 +1,378 @@
+---
+title: "Regression 1"
+author: "Aliaksandr Hubin"
+date: "February 10 2025"
+output:
+  ioslides_presentation: default
+  slidy_presentation: default
+  beamer_presentation: default
+ # output: word_document
+---
+
+## The body data
+
+A motivating example - The body data
+
+```{r, echo=FALSE, message=FALSE}
+library(BIAS.data)
+library(car)
+pairs(bodydata, panel=panel.smooth)
+```
+
+## The Weight versus Height
+
+Is there a linear relationship between Weight and Height?
+
+```{r, echo=FALSE}
+plot(Weight ~ Height, data=bodydata)
+```
+
+If so, what is the "best" fitting line?
+
+## A graphical presentation of a simple linear model
+
+Let's use a web applet to discuss the "best" fitting line: <http://solve.shinyapps.io/LeastSquaresApp>
+
+## The main idea
+
+A continuous response variable, $y$, is assumed to be linearly dependent on one or several predictor variables, $x_1, x_2, \ldots, x_k$?
+
+A simple regression model (one predictor) $$ y = \beta_0 + \beta_1 x + \epsilon $$
+
+A multiple regression model (multiple predictors) $$ y = \beta_0 + \beta_1 x_1 + \beta_2 x_2 + \cdots+ \beta_k x_k +\epsilon $$
+
+where we typically assume $$ \epsilon \sim N(0, \sigma^2) $$
+
+## Estimation of regression coefficients
+
+Unknown regression coefficients of a simple regression model are $\beta_0$ and $\beta_1$
+
+Estimation of parameters is equivalent to finding the "best fitting" model.
+
+Different estimation methods $\Leftrightarrow$ Different definitions of "best".
+
+-   Least squares estimator : The estimates minimize $\sum (y_i - (\widehat{\beta}_0 + \widehat{\beta}_1 x_i))^2$
+-   Robust estimator : The estimates minimize $\sum |y_i - (\widehat{\beta}_0 + \widehat{\beta}_1 x_i)|$
+-   Maximum likelihood estimator: The estimates make the observed data "most likely"
+
+## Estimation of unexplained variance
+
+As soon as we have defined the "best" fitting model, we have also defined all distances between the observations and the estimated model.
+
+These distances are the residuals: $$d_i = y_i - (\widehat{\beta}_0 + \widehat{\beta}_1 x_i)$$ for $i=1,\ldots,n$
+
+An unbiased estimator for the error variance $\sigma^2$ depends on these distances through $$ \widehat{\sigma}^2 = \sum d_i^2/(n-p) = \frac{SSE}{(n-p)} = MSE$$
+
+where $p$ is the number of estimated regression coeffiscients.
+
+## Example: Regression in R (Model 1)
+
+We use samples 1 to 20 of the bodydata as example data (training set)
+
+$$ y_i = \beta_0 +\beta_1 x_{1i} + \epsilon_i $$ where $y$ is Weight, $x_1$ is Height and $i=1,\ldots, 20$.
+
+## Example of model fit in R Studio
+
+```{r, echo=TRUE, eval=FALSE}
+options(contrasts=c('contr.sum','contr.poly'))
+LinearModel.1 <- lm(Weight ~ Height, data=bodydata, subset=1:20)
+sum.model1 <- summary(LinearModel.1)
+print(sum.model1)
+```
+
+## Output
+
+```{r, echo=FALSE}
+options(contrasts=c('contr.sum','contr.poly'))
+LinearModel.1 <- lm(Weight ~ Height, data=bodydata, subset=1:20)
+sum.model1 <- summary(LinearModel.1)
+print(sum.model1)
+```
+
+## The fitted line plot
+
+```{r, echo=TRUE, eval=TRUE}
+plot(Weight~Height, data=bodydata, subset=1:20, pch=20, cex=2)
+abline(LinearModel.1, lwd=2, col="red")
+```
+
+## Weight versus Circumference (Model 2)
+
+Now let:
+
+$$ y_i = \beta_0 +\beta_1 x_{2i} + \epsilon_i $$
+
+where $y$ still is Weight, $x_2$ is Circumference and $i=1,\ldots, 20$.
+
+## R Commander output
+
+```{r, echo=FALSE}
+options(contrasts=c('contr.sum','contr.poly'))
+LinearModel.2 <- lm(Weight ~ Circumference, data=bodydata, subset=1:20)
+sum.model2 <- summary(LinearModel.2)
+print(sum.model2)
+```
+
+How can we claim that this model gives a better fit than model1?
+
+## A measure of goodness of fit, the $R^2$
+
+The unconditional (sample) variance of Weight is: $$\sum (y_i - \bar{y})^2/(n-1) = \frac{SST}{(n-1)}$$ Hence, $SST$ (in some literature $SSY$) is a mesure of total variability in y, the response
+
+Further, $SSE$ is a measure of unexplained variability in y
+
+So, a measure of explained variability is $$R^2 = \frac{SST-SSE}{SST} = \frac{SSR}{SST}$$
+
+## The ANOVA table
+
+The sums of squares are often presented in an ANOVA table:
+
+We use the 'Anova'-function in the car-library to get the ANOVA table
+
+```{r, echo=TRUE}
+Anova(LinearModel.1, type="II")
+```
+
+The Residuals-line gives the SSE and the total sums of squares, SST, equals the sum of all elements in the "Sum sq" column.
+
+## Multiple linear regression (Model 3)
+
+$$y_i = \beta_0 + \beta_1 x_{1i} + \beta_2x_{2i} + \epsilon_i$$
+
+where $y$ is Weight, $x_1$ is Height $x_2$ is Circumference and $i=1,\ldots, 20$.
+
+## R Studio output (Model 3)
+
+```{r, echo=FALSE}
+LinearModel.3 <- lm(Weight ~ Height + Circumference, data=bodydata, 
+  subset=1:20)
+sum.model3 <- summary(LinearModel.3)
+print(sum.model3)
+```
+
+## Three predictors...(Model 4)
+
+```{r, echo=FALSE}
+LinearModel.4 <- lm(Weight ~ Height + Circumference + Age, data=bodydata, 
+  subset=1:20)
+sum.model4 <- summary(LinearModel.4)
+print(sum.model4)
+```
+
+## $R^2$-adjusted
+
+$$R^2 = 1 - \frac{SSE}{SST} \text{The Problem: $R^2$ always increases when adding predictors}$$
+
+$$R^2_{\text{adj}} = 1 - \frac{MSE}{Var(y)} = 1 - \frac{SSE/(n-p)}{SST/(n-1)}$$ The Solution: $R^2_{\text{adjusted}}$ penalizes adding parameters
+
+```{r, echo=FALSE, out.width=400}
+r2 <- c(sum.model1$r.squared, sum.model2$r.squared,
+  sum.model3$r.squared, sum.model4$r.squared)
+r2adj <- c(sum.model1$adj.r.squared, sum.model2$adj.r.squared,
+  sum.model3$adj.r.squared, sum.model4$adj.r.squared)
+par(mar=c(4,4,0,0))
+plot(1:4, r2adj, type="b", lwd=2, col=2, ylab="R2-adjusted", 
+     xlab="Model complexity", xlim=c(1,7), ylim=c(0.3, 1))
+points(1:4, r2, type="b", lwd=2, col=4)
+```
+
+## Hypothesis Test for Regression Coefficients
+
+We may test the **conditional significance** of any predictor using a t-test
+
+**Hypotheses:**
+
+-   $H_0: \beta_j = 0$ (predictor has **no effect** on response)
+
+-   $H_1: \beta_j \neq 0$ (predictor **does have an effect**)
+
+**Test statistic:** $$T_j = \frac{\widehat{\beta}_j}{SE(\widehat{\beta}_j)} \sim t_{n-p}$$
+
+## Visual explanation
+
+```{r, echo=FALSE, fig.height=5.5, fig.width=6.25}
+par(mar=c(4,4,2,1))
+
+# Parameters
+df <- 17                      # n - p
+t_obs <- 3.77                 # example observed T (e.g. for Height)
+p_val <- 2 * (1 - pt(abs(t_obs), df))
+
+# Create t-distribution
+x <- seq(-5, 5, length.out = 1000)
+y <- dt(x, df = df)
+
+plot(x, y, type="l", lwd=2.5, col="black",
+     ylab="f(T)", xlab="T statistic",
+     main="Two-Sided t-Test: α = 0.05, df = n-p = 17")
+
+# Rejection regions (fixed, alpha = 0.05)
+x_left  <- seq(-5, -2.11, length.out=100)  # t_{0.025,17} ≈ 2.11
+x_right <- seq(2.11,  5,   length.out=100)
+
+polygon(c(-5, x_left, -2.11),  c(0, dt(x_left,  df=df), 0),
+        col=rgb(1, 0.3, 0.3, 0.4), border=NA)
+polygon(c(2.11, x_right, 5),   c(0, dt(x_right, df=df), 0),
+        col=rgb(1, 0.3, 0.3, 0.4), border=NA)
+
+# Acceptance region
+x_accept <- seq(-2.11, 2.11, length.out=100)
+polygon(c(-2.11, x_accept, 2.11), c(0, dt(x_accept, df=df), 0),
+        col=rgb(0.3, 0.8, 1, 0.3), border=NA)
+
+# Critical values
+abline(v=c(-2.11, 2.11), col="red", lwd=2, lty=2)
+text(-2.11, 0.25, expression(t[0.025]), cex=0.95, pos=2, col="red", font=2)
+text( 2.11, 0.25, expression(t[0.975]), cex=0.95, pos=4, col="red", font=2)
+
+# ---- p-value shading (two-sided) ----
+# Right tail from t_obs
+x_p_right <- seq(t_obs, 5, length.out=100)
+polygon(c(t_obs, x_p_right, 5),
+        c(0,     dt(x_p_right, df=df), 0),
+        col=rgb(0, 0.6, 0, 0.45), border=NA)
+
+# Left tail from -t_obs (mirror)
+x_p_left <- seq(-5, -t_obs, length.out=100)
+polygon(c(-5, x_p_left, -t_obs),
+        c(0,   dt(x_p_left, df=df), 0),
+        col=rgb(0, 0.6, 0, 0.45), border=NA)
+
+# Observed T line and point (positive side)
+abline(v = t_obs, col="darkgreen", lwd=3)
+points(t_obs, 0, pch=19, col="darkgreen", cex=1.4)
+
+# Mirror observed T (negative side)
+abline(v = -t_obs, col="darkgreen", lwd=3, lty=1)
+points(-t_obs, 0, pch=19, col="darkgreen", cex=1.4)
+
+# Labels
+text(-3.5, 0.15, "Reject H0\n(Significant)", cex=0.85, col="darkred", font=2)
+text(0,    0.35, "Fail to reject H0\n(Not significant)", cex=0.85,
+     col="darkblue", font=2)
+text(3.5,  0.15, "Reject H0\n(Significant)", cex=0.85, col="darkred", font=2)
+
+# Shading labels
+text(-4.2, 0.02, "p-value/2", cex=0.75, col="orange", font=2)
+text( 4.2, 0.02, "p-value/2", cex=0.75, col="orange", font=2)
+
+# Text box with numeric p-value
+text(0, 0.22,
+     labels = bquote(T == .(round(t_obs, 2)) ~ " (or " ~ .(round(-t_obs, 2)) ~ ") → two-sided p = " ~
+                     .(round(p_val, 4))),
+     cex=0.85, col="darkgreen", font=2)
+
+```
+
+## Decision rule
+
+The **p-value** is the probability of observing a test statistic as extreme or more extreme than the observed value, **assuming** $H_0$ is true
+
+$$\text{p-value} = P(|T| \geq |T_{\text{obs}}|) = 2 \times P(T > |T_{\text{obs}}|)$$
+
+-   **p-value is small** (e.g., 0.002): It's **very unlikely** to observe such an extreme T if $H_0$ were true → Strong evidence against $H_0$ → **Reject** $H_0$ ✓
+
+**At significance level of 0.05:**
+
+-   Reject $H_0$ if $|T_j| > t_{\alpha/2, n-p}$ (i.e., p-value $< 0.05$)
+-   Fail to reject $H_0$ if $|T_j| \leq t_{\alpha/2, n-p}$ (i.e., p-value $\geq 0.05$)
+
+## Example: Model 4 Significance tests
+
+```{r, echo=FALSE}
+sum.model4$coef
+```
+
+**Key insight:**
+
+-   Age is not significant (p = 0.260 \>\> 0.05)
+
+-   Explains why adding Age slightly reduces $R^2_{\text{adj}}$ - Model 3 (without Age) is **better choice** than Model 4
+
+-   Other predictors are significant
+
+## Confidence interval for regression coefficients
+
+A $(1-\alpha)\cdot 100 \%$ for $\beta_j$ is mathematically given by: $$ \left[ \widehat{\beta}_j\pm t_{\alpha/2, (n-p)} SE(\widehat{\beta}_j) \right]$$
+
+In RStudio we can get these (ex. for model 4) by
+
+```{r, echo=TRUE, eval=TRUE}
+confint(LinearModel.4, level=0.95)
+```
+
+## Prediction
+
+A fitted model can be used for prediction of new observations
+
+According to model 4, what is the predicted Weight of some person with these values?
+
+```{r, echo=FALSE}
+newObs <- data.frame(Height=171, Circumference=76, Age=30)
+print(newObs)
+```
+
+$$
+\begin{split}
+\widehat{y} &= -66.579 + 0.4768\cdot171 + 0.7769\cdot76 - 0.2094\cdot30 \\
+& = 67.72
+\end{split}
+$$
+
+```{r, echo=TRUE}
+newobs <- data.frame('Height'=171, 'Circumference'=76, 'Age'=30)
+predict.lm(LinearModel.4, newdata=newobs, level=0.95)
+```
+
+## Other intervals in Prediction output
+
+Confidence interval for $E(y|x_1, \ldots, x_p)$
+
+```{r, echo=TRUE}
+predict.lm(LinearModel.4, newdata=newobs, 
+           level=0.95, interval=c("confidence"))
+```
+
+Prediction interval for $y|x_1, \ldots, x_p$
+
+```{r, echo=TRUE}
+predict.lm(LinearModel.4, newdata=newobs, 
+           level=0.95, interval=c("prediction"))
+```
+
+## Compare real and predicted values
+
+Let's predict the 387 extra observations and compare with actual observations!
+
+```{r, echo=FALSE}
+pred <- predict(LinearModel.4, newdata=bodydata[-c(1:20),], 
+  interval="prediction", level=0.95)
+head(pred,12)
+```
+
+## Predicted vs observed - plot
+
+```{r, echo=FALSE, out.width=700, out.height=400}
+newWeight <- bodydata[-c(1:20),1]
+plot(newWeight,pred[,1], xlab="Observed", ylab="Predicted")
+curve(1*x, add=TRUE, col=2, lwd=2)
+```
+
+## Checking the prediction intervals
+
+How many observations fell within the prediction intervals?
+
+```{r, echo=TRUE}
+largerthanlower <- (newWeight > pred[,2])
+smallerthanupper <- (newWeight < pred[,3])
+inInterval <- which(largerthanlower & smallerthanupper)
+print(length(inInterval))
+```
+
+Proportion of observations within prediction intervals:
+
+```{r, echo=TRUE}
+length(inInterval)/length(newWeight)
+```
+
+What should we expect?

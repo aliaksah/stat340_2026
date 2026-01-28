@@ -1,7 +1,7 @@
 ---
-title: "STAT 340: Lecture 1 - Introduction"
+title: "STAT 340 Applied Methods in Statistics Course: Lecture 1 - Introduction"
 author: "Aliaksandr Hubin"
-date: "February 10 2025"
+date: "February 3 2025"
 output:
   beamer_presentation: default
   slidy_presentation: default
@@ -25,22 +25,19 @@ knitr::opts_chunk$set(echo = TRUE)
 **Lecturer:** Ass. Prof. Aliaksandr Hubin, KBM\
 **Assistant Teacher:** Elias Bye Rossetnes
 
-**Date:** 03.02.2025\
-**Institution:** NMBU - Norges miljø- og biovitenskapelige universitet
+Email:
+[aliaksandr.hubin\@nmbu.no](mailto:aliaksandr.hubin@nmbu.no){.email}
 
-# Course Teachers
+**Research interests:**
 
-## Lecturer
+-   Bayesian statistics and machine learning;
 
-**Ass. Prof. Aliaksandr Hubin, KBM** - Office: M252 - Old diary science
-building (Meieribygningen)
+-   Latent binary Bayesian neural networks;
 
--   Email:
-    [aliaksandr.hubin\@nmbu.no](mailto:aliaksandr.hubin@nmbu.no){.email}
+-   Bayesian generalized nonlinear models;
 
-## Assistant Teacher
-
-**Elias Bye Rossetnes**
+-   Advanced mode jumping samplers and other approximation schemes for
+    Bayesian inference.
 
 # Class Schedule
 
@@ -123,21 +120,17 @@ Students should be familiar with:
 
 ## Main Topics
 
-1.  **Introduction to R and RStudio**
+1.  **Multiple Linear Regression**
 
-    -   Practical analysis using various statistical methods
-
-2.  **Multiple Linear Regression**
-
-3.  **Multivariate Analysis**
+2.  **Multivariate Analysis**
 
     -   Principal Component Analysis (PCA)
 
-4.  **Classification Methods**
+3.  **Classification Methods**
 
-5.  **Clustering Methods**
+4.  **Clustering Methods**
 
-6.  **Generalized Linear Models (GLM)**
+5.  **Generalized Linear Models (GLM)**
 
     -   Binomial/Bernoulli (logistic) regression
     -   Poisson regression
@@ -194,12 +187,15 @@ Before studying random variables, we need to define randomness formally.
 1.  **Sample space** $\Omega$: all possible outcomes
     -   *Discrete:* Coin flip: $\Omega = \{\text{H}, \text{T}\}$
     -   *Continuous:* Adult height: $\Omega = [120, 250] \text{ cm}$
-2.  **Events** $\mathcal{F}$: subsets of outcomes we observe
-    -   *Discrete:* $\{\text{H}\}$ = \`\`heads''
-    -   *Continuous:* $\{h : 175.3\}$
+2.  **Events** $\mathcal{F}$: set of subsets of outcomes we observe
+    -   *Discrete:* $\{\text{H}\}$ = \`\`heads'' or $\{\text{H}\}$
+        =\`\`tail''
+    -   *Continuous:* $\{h : \text{ between } 160 \text{ and } 180\}$ or
+        $\{h : \text{ between } 240 \text{ and } 250\}$
 3.  **Probabilities** $P$: assigns to events a number in $[0,1]$
     -   *Discrete:* $P(\text{H}) = 0.5$
-    -   *Continuous:* $P(160 \leq h \leq 180) = 0.68$
+    -   *Continuous:* $P(160 \leq h \leq 180) = 0.68$ or
+        $P(240 \leq h \leq 250) = 0.001$
 
 Together: $(\Omega, \mathcal{F}, P)$ is a **probability space**.
 
@@ -259,13 +255,32 @@ $\to Y = 0$
 -   Also exist quantile functions, moment generating functions,
     characteristic functions (beyond this course).
 
+    ```{r, echo=FALSE, fig.height=2.8, fig.width=8}
+    par(mfrow=c(2,2), mar=c(3,3,2.5,1))
+
+    # Discrete PMF
+    y_vals <- 1:6
+    pmf_vals <- dbinom(y_vals, size=5, prob=0.5)
+    barplot(pmf_vals, names.arg=y_vals, ylim=c(0, 0.35), 
+            main='Discrete: PMF', ylab='p(y)', xlab='y', 
+            col='steelblue', space=0.3, cex.axis=0.9)
+
+
+    # Discrete CDF
+    cdf_vals <- pbinom(y_vals, size=5, prob=0.5)
+    plot(y_vals, cdf_vals, type='s', lwd=2.5, col='darkblue',
+         main='Discrete: CDF', ylab='F(y)', xlab='y', 
+         ylim=c(0, 1), pch=16, cex=0.8, cex.axis=0.9)
+    mtext('P(Y ≤ y) — Jumps at points', side=2, line=2, cex=0.8)
+    ```
+
 # Continuous Random Variables
 
 -   Values in an **interval** (uncountably many)
 
 -   Examples: Height, weight, blood pressure, time
 
--   Use **probability density function (PDF)** $f(y)$
+-   Use **probability density function (PDF)** $f(y)\geq 0$
 
 -   Probabilities: $P(a \leq Y \leq b) = \int_a^b f(y) \, dy$ and
 
@@ -273,6 +288,24 @@ $\to Y = 0$
 
 -   **Cumulative distribution function (CDF):**
     $F(y) = P(Y \leq y) = \int_{-\infty}^y f(x) \, dx$
+
+```{r, echo=FALSE, fig.height=2.8, fig.width=8}
+par(mfrow=c(2,2), mar=c(3,3,2.5,1))
+
+# Continuous PDF
+curve(dnorm(x, 175, 10), xlim=c(120, 250), ylim=c(0, 0.045),
+      main='Continuous: PDF', ylab='f(y)', xlab='y',
+      lwd=2.5, col='darkred', cex.axis=0.9)
+
+
+# Continuous CDF
+curve(pnorm(x, 175, 10), xlim=c(120, 250), ylim=c(0, 1),
+      main='Continuous: CDF (Normal)', ylab='F(y)', xlab='y',
+      lwd=2.5, col='darkred', cex.axis=0.9)
+mtext('P(Y ≤ y) — Smooth curve', side=2, line=2, cex=0.8)
+
+par(mfrow=c(1,1))
+```
 
 # CRITICAL DIFFERENCE: Single Point Probability
 
@@ -286,84 +319,8 @@ $\to Y = 0$
 | How to find probability | Use $P(Y=y)$    | Use $P(a \leq Y \leq b)$   |
 
 **Intuition:** Continuous distributions have *uncountably many* points
-(infinity!), so each single point contributes zero probability.
-
-Only **intervals with area** have non-zero probability.
-
-```{r, echo=FALSE, fig.height=2.8, fig.width=8}
-par(mfrow=c(2,2), mar=c(3,3,2.5,1))
-
-# Discrete PMF
-y_vals <- 0:5
-pmf_vals <- dbinom(y_vals, size=5, prob=0.5)
-barplot(pmf_vals, names.arg=y_vals, ylim=c(0, 0.35), 
-        main='Discrete: PMF', ylab='p(y)', xlab='y', 
-        col='steelblue', space=0.3, cex.axis=0.9)
-
-
-# Discrete CDF
-cdf_vals <- pbinom(y_vals, size=5, prob=0.5)
-plot(y_vals, cdf_vals, type='s', lwd=2.5, col='darkblue',
-     main='Discrete: CDF', ylab='F(y)', xlab='y', 
-     ylim=c(0, 1), pch=16, cex=0.8, cex.axis=0.9)
-mtext('P(Y ≤ y) — Jumps at points', side=2, line=2, cex=0.8)
-
-# Continuous PDF
-curve(dnorm(x, 5, 1.5), xlim=c(1, 9), ylim=c(0, 0.3),
-      main='Continuous: PDF', ylab='f(y)', xlab='y',
-      lwd=2.5, col='darkred', cex.axis=0.9)
-
-
-# Continuous CDF
-curve(pnorm(x, 5, 1.5), xlim=c(1, 9), ylim=c(0, 1),
-      main='Continuous: CDF (Normal)', ylab='F(y)', xlab='y',
-      lwd=2.5, col='darkred', cex.axis=0.9)
-mtext('P(Y ≤ y) — Smooth curve', side=2, line=2, cex=0.8)
-
-par(mfrow=c(1,1))
-```
-
-**Key insight:** PMF and PDF describe probability distributions; CDF
-accumulates probabilities up to a point.
-
-# Part 2: Probability Distributions
-
-# Probability Density Function (Continuous)
-
-For a **continuous** $Y$ with density $f(y)$:
-
-$$f(y) \geq 0 \quad \text{for all } y \quad ; \quad \int_{-\infty}^{\infty} f(y) \, dy = 1$$
-
-For any interval $[a, b]$:
-$$P(a \leq Y \leq b) = \int_{a}^{b} f(y) \, dy \quad \text{(shaded area below)}$$
-
-```{r, echo=FALSE, fig.height=2.4, fig.width=6}
-par(mfrow=c(1,2), mar=c(3,3,2.5,1))
-
-# Normal distribution with shaded area
-curve(dnorm(x), xlim=c(-4, 4), ylim=c(0.015, 0.45), ylab='f(y)', xlab='y',
-      main='Normal: P(a ≤ Y ≤ b)', lwd=2.5, col='black')
-x_fill <- seq(-1.5, 0.5, length.out=100)
-polygon(c(-1.5, x_fill, 0.5), c(0, dnorm(x_fill), 0), 
-        col=rgb(0.2, 0.5, 1, 0.5))
-abline(v=c(-1.5, 0.5), col='red', lwd=1.5, lty=2)
-#text(-0.5, 0.25, 'Area = P(a ≤ Y ≤ b)', cex=0.85, col='darkblue', font=2)
-
-# Chi-square distribution with shaded area
-curve(dchisq(x, df=5), xlim=c(0, 15), ylim=c(0.015, 0.25), ylab='f(y)', xlab='y',
-      main='Chi-Square: P(a ≤ Y ≤ b)', lwd=2.5, col='darkred')
-x_fill2 <- seq(2, 8, length.out=100)
-polygon(c(2, x_fill2, 8), c(0, dchisq(x_fill2, df=5), 0), 
-        col=rgb(1, 0.3, 0.2, 0.5))
-abline(v=c(2, 8), col='red', lwd=1.5, lty=2)
-#text(5, 0.15, 'Area = P(a ≤ Y ≤ b)', cex=0.85, col='darkred', font=2)
-
-par(mfrow=c(1,1))
-```
-
-**Key insight:** Probability = area under density curve!
-
-# Part 3: Expectation and Variance
+(infinity!), so each single point contributes zero probability. Only
+**intervals with area** have non-zero probability.
 
 # Expectation: Discrete Case
 
@@ -452,19 +409,6 @@ par(mfrow=c(1,1))
 
 **Larger variance = more spread!**
 
-# CHECKPOINT: Practical Variance Interpretation
-
-**Question:** Which is less risky: Stock A with $\sigma^2 = 4$ or Stock
-B with $\sigma^2 = 16$?
-
--   Stock A: $\sigma = 2$ (tightly concentrated returns)?
--   Stock B: $\sigma = 4$ (widely dispersed returns)?
-
-**Key lesson:** Variance = **spread of outcomes**. Smaller variance =
-more predictable!
-
-# Part 4: Sample Statistics
-
 # Sample Mean and Standard Deviation
 
 Given $n$ observations $y_1, \ldots, y_n$:
@@ -520,12 +464,12 @@ $f(y) = \frac{1}{\sigma\sqrt{2\pi}} \exp\left\{-\frac{1}{2}\left(\frac{y-\mu}{\s
 
 # CHECKPOINT: SAT Scores and the 68-95 Rule
 
-**Application:** SAT scores follow $N(\mu=500, \sigma=100)$.
+**Application:** SAT scores follow $N(\mu=500, \sigma^2=100^2)$.
 
 -   What % score between **400-600**? (within 1 standard deviation)
 
--   What % score between **300-700**? (2 standard deviations away from
-    mean)
+-   What % score between **600-700**? (1 to 2 standard deviations away
+    from mean)
 
 # CHECKPOINT: SAT Scores and the 68-95 Rule
 
@@ -535,7 +479,7 @@ $f(y) = \frac{1}{\sigma\sqrt{2\pi}} \exp\left\{-\frac{1}{2}\left(\frac{y-\mu}{\s
     -   **Answer: 68.2%**
 -   What % score between **300-700**? (2 standard deviations away from
     mean)
-    -   **Answer: 95.4%**
+    -   **Answer: 13.6%**
 
 **Why this matters:** Standardized tests are designed using normal
 distributions. Knowing the 68-95 rule helps interpret scores!
@@ -573,7 +517,7 @@ This is **fundamental** for inference about sample means and regression.
 **Notation:** $Y \sim \chi^2_k$ where $k$ = degrees of freedom
 
 **Key derivation:** $Z^2 \sim \chi^2_1$ if $Z \sim N(0,1)$; additive
-property: $\sum_{i=1}^k Z_i^2 \sim \chi^2_k$
+property: $Y = \sum_{i=1}^k Z_i^2 \sim \chi^2_k$
 
 **Properties:** $E(Y) = k$, $Var(Y) = 2k$
 
@@ -592,9 +536,9 @@ par(mfrow=c(1,1))
 
 # The Student's $t$ Distribution
 
-**Definition:** For independent $Z \sim N(0,1)$ and $\chi^2_k$:
+**Definition:** For independent $Z \sim N(0,1)$ and $Y\sim\chi^2_k$:
 
-$$T = \frac{Z}{\sqrt{\chi^2_k / k}} \sim t_k$$
+$$T = \frac{Z}{\sqrt{Y / k}} \sim t_k$$
 
 ```{r, echo=FALSE, fig.height=2.6, fig.width=6}
 par(mfrow=c(1,2), mar=c(3,3,2,1))
@@ -634,8 +578,8 @@ the t distribution to handle small samples when variance is unknown
 
 **Test statistic for population mean:**
 
-If $Y_1, \ldots, Y_n$ i.i.d. $N(\mu, \sigma^2)$ and
-$S^2 = \frac{1}{n-1}\sum_{t=1}^n (Y_t - \bar{Y})^2$:
+If $y_1, \ldots, y_n$ i.i.d. $N(\mu, \sigma^2)$ and
+$S^2 = \frac{1}{n-1}\sum_{t=1}^n (y_t - \bar{y})^2$:
 
 $$T = \frac{\bar{Y} - \mu}{\sqrt{S^2/n}} \sim t_{n-1}$$
 
@@ -648,6 +592,10 @@ This is the **one-sample** $t$ test statistic.
 **Definition:** For independent $\chi^2_u$ and $\chi^2_v$:
 
 $$F = \frac{\chi^2_u / u}{\chi^2_v / v} \sim F_{u,v}$$
+
+$$
+E(Y) = \frac{v}{v-2}, v>2 \quad Var(Y) = \frac{2v^2(u+v-2)}{u(v-2)^2(v-4)} v>4
+$$
 
 ```{r, echo=FALSE, fig.height=2.8, fig.width=6}
 par(mfrow=c(1,2), mar=c(3,3,2,1))
@@ -674,8 +622,7 @@ par(mfrow=c(1,1))
 ![British statistician and geneticist with revolutionary impact on
 statistics and evolutionary biology. The founder of modern statistics
 and namesake of the
-F-distribution.](images/clipboard-465988204.png){alt="British statistician and geneticist with revolutionary impact on statistics and evolutionary biology. The founder of modern statistics and namesake of the F-distribution."
-width="127"}
+F-distribution.](images/clipboard-465988204.png){width="127"}
 
 -   Invented the **F distribution**, **ANOVA** (analysis of variance),
     and **maximum likelihood estimation**

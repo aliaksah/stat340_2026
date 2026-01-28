@@ -1,0 +1,429 @@
+---
+title: "Exercises week 1 STAT340"
+output: 
+  html_document:
+    number_sections: true
+    toc: true
+    toc_float: true
+    code_folding: show
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+<br>
+<br>
+<br>
+
+
+
+# Getting started
+These are the exercises for week 1 of STAT340. You are encouraged to work together in groups, either by physical meeting or online. Sharing problems and solutions is often a much quicker way to learn, especially for problems of a more practical nature like we will see in these exercises.
+
+This first week we must first get starting using the tools we will be using throughout the semester. 
+<br>
+
+
+## Installing the basic tools
+If you haven't done this yet: 
+
+1. Install R on your computer.
+2. Then install RStudio on your computer.
+
+Here is a [short video from STIN100 where Jon Olav guides you through this (in norwegian)](https://www.youtube.com/watch?v=7TpMSfRo-Rs){target="blank"}
+
+The book that Jon Olav mentions in his video is found here: https://rstudio-education.github.io/hopr/packages.html
+<br>
+
+
+## Before installing R packages
+A fundamental idea in R is that what you get by the installation above is a set of *basic* functions for data handling and analysis. In addition to this, there are myriads of *R packages* with more specific functions and data, developed for a narrower audience. You will probably install (many) R packages once you start to use R.
+
+If you try to install an R package for the first time, your computer will suggest a folder in which everything will be installed. In some cases this will be a folder outside your computer! It could be a folder on OneDrive or some other cloud. This is a bad idea, and may cause problems later.
+
+Always install R packages in a folder on your local computer!
+
+To investigate how R packages will be installed on your computer, do the following:
+
+* Start RStudio
+* In the `Console` window, run the command `.libPaths()`, i.e. type it **exactly** like you see here (including the dot), with small and large letters, and then hit the Return button.
+
+This should display the folder(s) used by R for installing R packages. The first folder listed is the one used by default. Verify this *does not* contain a path involving OneDrive or any other cloud server. If it does, you need to fix this, see the links below.
+
+It seems that installing R packages on a remote folder is mostly a problem for Windows users (not Mac). Again we link to some resources from STIN100 telling you how to fix this:
+
+* [A document explaining how to proceed on a windows computer](https://docs.google.com/document/d/1r_J3Vp_EtNW5SzoSl0CKOEV4MSJCquIx829GXqrUKWI/edit){target="blank"}
+* [The video (in norwegian) linked to in the above document](https://www.youtube.com/watch?v=G6aJhMz7xxo){target="blank"}
+<br>
+
+
+<br>
+<br>
+<br>
+
+
+
+
+
+# Starting to use R and RStudio
+In this section, we will dive into R and RStudio and get used to it to some extent. We will continue learning about R and RStudio as we go on. R is an open source programming language basically used in data analysis. STAT340 is *not* a course in R programming, the courses STIN100 and STIN300 cover this. 
+<br>
+
+
+## Resources for learning R
+If you are new to R, you will need to devote a lot of time to learning some R basics at the beginning of this semester. Here are some resources that you may find helpful:
+
+[STIN300 - Statistical programming in R](https://docs.google.com/document/d/1DxpPsK2UEinZ7PSfKDG5rI-tq38zBJT8QYdeoyo-Uk8/edit){target="blank"}. This is our own R coding course given in the January block each year, and is an up-to-date introduction to R coding. This link is to a document, where you find further links to the daily tutorials.
+
+[The R Book](https://www.cs.upc.edu/~robert/teaching/estadistica/TheRBook.pdf){target="blank"}. The first chapters (1-4, 6-7) will introduce you to some basics of the R language.
+
+[Our old book from STIN300](http://arken.nmbu.no/~larssn/teach/stin300/SPiR.pdf){target="blank"} are also still of some value, especially the first 5 chapters.
+
+In the sections below we start using R. You should make scripts (files) with these codes in, and run these on your own. It is important that you understand what is being done in all steps. To learn more about the functions (commands) we use, look up its Help-page in R. The help page for a function like `plot()` is found by writing `?plot` in the `Console` window and Return. Or you can google! The important message is that you must invest some effort into understanding what you do. If your skills are only to copy the code from these documents, and you have no idea how to modify it to deal with another data set, it is a waste of time.
+<br>
+
+
+## Installing R packages
+In R there are many packages that are created for specific purposes and they have made R rich and powerful. In this course, we will use our own package `BIAS.data` a lot. This is not a standard R package found at the CRAN (Comprehensive R Archive Network) repository, in the lectures of week 1 you can see how we install it.
+
+Most R packages are found at the CRAN repository, which is the default location from which R will install an R package. As an example, install the package `car`. You can either run the following code in the Console window:
+```{r, eval=F}
+install.packages("car")
+```
+or you use the Tools menu in RStudio: Choose Tools -> Install Packages... and small window should appear, where you type in the name of the package you are seeking. This will install packages from CRAN (Comprehensive R Archive Network). We recommend using the RStudio menu when installing R packages.
+
+NOTE: Packages are installed only once. You do not have to install the package in RStudio each time you want to apply it. 
+
+When the installation is complete, you load the package using the following code:
+```{r, message=F}
+library(car)
+```
+NOTE: Loading the package with `library()` is something you must do each time you start a new session in R. Always put statements like this into your R scripts, to make certain the required packages are loaded prior to you start using them in your code.
+<br>
+
+
+## Install our `BIAS.data` package
+We have made an R package containing all the data sets we will be using in STAT340. This is found on GitHub, not on the CRAN where the 'official' R packages are found.
+
+To install any R package from GitHub you first need an R package named `devtools`. This is found at CRAN, and is installed in the ordinary way described above.
+
+Once you have `devtools` installed, the code to install from GitHub is:
+```{r, eval=F}
+library(devtools)
+install_github("thoree/BIAS.data")
+```
+
+After installation, locate you Packages tab in RStudio, and scroll down to verify the `BIAS.data` package was indeed installed.
+
+[Here is a short video on how you may do this](https://youtu.be/ic9i57Z7l2k){target="blank"}
+
+Some computers may require you to install **Rtools** when you try to install `devtools`, this depends on your computer. If installing `devtools` works fine, just ignore the following about **Rtools**!
+
+**Rtools** is a separate software package needed if you want to develop your own R packages. It contains some compilers and stuff. Many computers may have this already, but if not, install **Rtools** from the [CRAN website](https://cran.r-project.org/){target="blank"}. This is the same website you visited when  you installed R, see the first section above. I would:
+
+* Quit RStudio
+* Go to https://cran.r-project.org/
+* Download **Rtools**
+* Run the installer as for any software
+* Start RStudio, and install the `devtools` package
+
+Note again: No need to install **Rtools** unless your computer asks you to! Most computers will do fine without.
+
+
+
+## Importing data into R
+In this course we will mostly use data in our `BIAS.data` package. Here is how you import the data set called `bodydata` into R from this package:
+```{r}
+library(BIAS.data)
+data(bodydata)
+```
+Thus, you first load the package. This you do once per session. Then you import the data set using the `data()` function. You need to name the data set. It should now appear in your Environment tab in RStudio.
+
+In real life you need to import data from files. See the R resources mentioned above to learn more about this. In STAT340 we will minimize the time spent on file handling and similar data processing, our focus is on data analysis. However, data wrangling and its required coding is very important for all practical data work!
+<br>
+
+
+## Data Structures in R
+A data structure is an object that stores data in some structured way in the R memory. We will only briefly mention the most important data structures for STAT340.
+
+
+### The data.frame or tibble
+Data sets are most often stored in a table, and a table is called either a *data.frame* or a *tibble* in R.
+The `bodydata` data set we loaded above is an example of a data.frame. The tibble is an alternative to data.frame that you find in the `tidyverse` R packages (see below), but we will focus on data.frame here. For most of the methods we will use in STAT340 it has no impact whether your data is in a data.frame or a tibble.
+
+A data.frame should be seen as a series of columns, much like a spreadsheet. All the data in the same column must be of the same data type (i.e. numbers, texts or something else), but different columns may have different types of data. The columns should all have names. Let us have a look at the first few rows in the `bodydata` data.frame:
+```{r}
+head(bodydata)
+```
+The columns are listed, and in this case we notice all contain numbers. Data sets like this also sometimes contain the data type `factor`, describing categorical data. This may look like texts or integers, but is a separate data type. The `factor` is described in the [Day 3 tutorial from STIN300](https://arken.nmbu.no/~jonvi/stin300/day3.html){target="blank"}.
+
+The columns of a data.frame should always have *names*, and these names should be informative, i.e. indicate to us what is stored in the column. In STAT340 we often talk about *variables*, and in all cases this is the same as a column of some table.
+
+Read more about tables and how to handle them in
+
+* The [Day 2 tutorial from STIN300](https://arken.nmbu.no/~jonvi/stin300/day2.html){target="blank"}.
+* The [Day 4 tutorial from STIN300](https://arken.nmbu.no/~jonvi/stin300/day4.html){target="blank"}.
+* The [Day 5 tutorial from STIN300](https://arken.nmbu.no/~jonvi/stin300/day5.html){target="blank"}.
+
+The latter two focus on the `tidyverse` way of data wrangling.
+
+
+### The vector
+Each column in a data.frame is a *vector*. We may sometimes have to deal with vectors outside a data.frame. All elements in a vector must be of same data type, i.e. if one element is a number, then all must be numbers etc.
+
+Read more about the basic vectors in the [Day 1 tutorial from STIN300](https://arken.nmbu.no/~jonvi/stin300/day1.html){target="blank"}.
+
+We will sometimes also have data stored in a `matrix`. Think of this simply as  a vector ordered on both rows and columns instead of as one long column.
+
+
+### The list
+The most general data structure in R is a *list*. Both tables and vectors have restrictions on what to store in them, e.g. vectors must have only one data type, tables must have the same number of elements in all columns etc. In lists we can store anything!
+
+We typically meet lists as *output* from some functions in R that we use. You will soon see that whenever we fit a statistical model to data, the result of this is typically given to us as a list. The reason for this is that the output contains many different objects of various types and sizes, and if all this is to be stored into a single object, it must be in a list.
+
+Read more about lists in the [Day 7 tutorial from STIN300](https://arken.nmbu.no/~jonvi/stin300/day7.html){target="blank"}.
+<br>
+
+
+## Plotting data
+Before we start computing anything based on data, it is a good idea to inspect the data. We will do this as we go along, and making graphical plots from the data is essential.
+
+In The R Book you will see the use of the classical plotting functions in base R. In STAT340 we will, however, emphasize plotting using the `ggplot2` R package, which is one of the `tidyverse` packages. Plotting with `ggplot2` has become almost a standard in scientific computing, and it is strongly recommended that you invest some time in learning this.
+
+The basics of using the `ggplot2` plotting is found in
+
+* The [Day 2 tutorial from STIN300](https://arken.nmbu.no/~jonvi/stin300/day2.html){target="blank"}.
+* The [Day 3 tutorial from STIN300](https://arken.nmbu.no/~jonvi/stin300/day3.html){target="blank"}.
+
+<br>
+<br>
+<br>
+
+
+
+
+# Exploring data
+Let us start exploring some data.
+<br>
+
+
+## Load data
+Make a new R script. Start by loading the `Audi` data set from our `BIAS.data` R package:
+```{r, eval=F}
+library(BIAS.data)
+data(Audi)
+```
+<br>
+
+
+## Summary
+Below the code is hidden. Try to think how you would solve it before you open the hidden code chunks and have a look.
+
+Add to the script code to make a summary of the data as shown in the lectures. Also compute the number of missing data.
+```{r, eval=F, class.source = 'fold-hide'}
+summary(Audi)
+colSums(is.na(Audi))
+```
+
+We also have some other functions for quickly having a look at various aspects of a data set:
+
+* `str()`
+* `head()`
+* `tail()`
+* `names()` or `colnames()`
+* `nrow()`
+* `ncol()`
+* `dim()`
+
+Run all these with the `Audi` data as input, and learn what they do.
+
+```{r, eval=F, class.source = 'fold-hide'}
+str(Audi)   # lists data types
+head(Audi)  # lists the first rows or data objects
+tail(Audi)  # lists the last rows or data objects
+names(Audi) # lists the column names
+nrow(Audi)  # give us the number of rows
+ncol(Audi)  # give us the number of columns
+dim(Audi)   # give us both the previous, number of rows first
+```
+
+<br>
+
+
+## The six summary statistics
+When we use the `summary()` function, we get six quantities for each numerical variable. Learn how to compute these explicitly. Use the functions
+
+* `min()`
+* `max()`
+* `range()`
+* `mean()`
+* `median()`
+* `quantile()`
+
+Look up and read the Help texts by typing (for the `min()` function) `?min` in the Console and return. Compute the six statistics for the `Price` variable, and see if you get the same as `summary()` listed.
+
+
+```{r,  eval=F, class.source = 'fold-hide'}
+min(Audi$Price)
+max(Audi$Price)
+range(Audi$Price)           # gives both min and max
+mean(Audi$Price)
+median(Audi$Price)
+quantile(Audi$Price, 0.25)  # first quartile
+quantile(Audi$Price, 0.75)  # third quartile
+```
+
+<br>
+
+
+## Plotting the `Audi` data
+Make a scatter plot, using `ggplot2`, showing how `Price` depends on `Km`, i.e. how long the car has gone. Use round markers, and make them big (`size = 5`). Also, color them by `Fuel` such that we may see if prices are consistently different between cars running on gasoline (`G`) or diesel (`D`). Add proper texts on the axes.
+
+```{r, eval=F, class.source = 'fold-hide'}
+gg.obj1 <- ggplot(Audi) +
+  geom_point(aes(x = Km, y = Price, color = Fuel), size = 5) +
+  labs(x = "Km the car has gone", y = "Price", color = "Fuel type")
+print(gg.obj1)
+```
+
+Next, make a boxplot showing if `Price` distributes different between cars with Manual or Automatic `Transition`.
+
+```{r, eval=F, class.source = 'fold-hide'}
+gg.obj2 <- ggplot(Audi) +
+  geom_boxplot(aes(x = Transition, y = Price)) +
+  labs(x = "Transition (Manual or Automatic)", y = "Prices")
+print(gg.obj2)
+```
+
+What exactly is displayed in a boxplot? Look up the Help by `?geom_boxplot` in the Console window, scroll down to **Summary statistics**, and read.
+
+<br>
+<br>
+<br>
+
+
+
+# Data set `birth`
+Load the data set named `birth`. This contains 189 birth weights from Massachusetts, USA, and some additional variables. The variables are:
+
+Variable | Description
+---------|------------
+`LOW`    | Equals YES if birth weight is below 2500g and NO otherwise.
+`AGE`    | Age of the mother in years.
+`LWT`    | Weight in pounds of mother.
+`SMK`    | YES if mother smokes and NO otherwise.
+`BWT`    | Birth weight in g.
+
+<br>
+
+
+## Summary of data
+As always, use the `summary()` function to get a short summary of the variables.
+
+* What is the proportion of smoking mothers in the data set?
+* Are there any extreme ages or weights here?
+
+Next, we want to know: What is the average birth weight of children from non-smoking and smoking mothers? What is the standard deviation of birth weight of children from non-smoking and smoking mothers?
+
+To solve this, use the `group_by()` and `summarise()` functions from `tidyverse`. This will group the rows in a table by the categories in a factor variable, and then summarise for each group. For example, in the `Audi` data we can compute the mean price for cars of both fuel types by
+```{r, eval=F}
+Audi %>% 
+  group_by(Fuel) %>% 
+  summarise(mean_price = mean(Price))
+```
+Use the same idea for the `birth` data to answer the questions above.
+
+
+### Solution
+```{r, message=F}
+data(birth)
+summary(birth)
+
+library(tidyverse)
+birth %>%
+  group_by(SMK) %>%
+  summarise(average.birth.weight = mean(BWT), sd.birth.weight = sd(BWT))
+```
+
+
+<br>
+
+
+
+
+## Scatter-plot with trend
+Make a scatter plot of `LWT` vs `BWT`. Then, add a *trend curve* to the plot. You do this by adding `geom_smooth()` to the `ggplot` statement. To get a straight line trend curve use `geom_smooth(method = "lm")`.
+
+Does it look like the mothers weight affects the birth weight of the child?
+
+Would the trend be different if some extreme data points were left out? To check the latter, filter out some of the extreme data, and plot again, with the trend curve. Look up `filter()` for how to filter away rows from a data table. You need to specify an expression indicating the filtering criterion. Use `filter(LWT < 200)`, i.e. keep only data objects where the mothers weight is below 200 pounds.
+
+Next, color the plot by the smoking variable. From this figure, does it look like smoking has an effect on the birth weight of children? We will come back to this data set and do some more formal testing of this later, but keep in mind that if effects are so small that we cannot clearly see them in a plot they are often not very important even if they may be statistically significant.
+
+
+### Solution
+```{r}
+# Then the tidyverse way:
+library(tidyverse)
+gg.obj <- ggplot(birth, aes(x = LWT, y = BWT)) +
+  geom_point(size = 3) +
+  geom_smooth(method = "lm") +
+  labs(x = "Mother's weight (lb)", y = "Child's weight (grams)")
+print(gg.obj)
+```
+
+The trend curve indicates a weak positive trend, i.e. birth weight tends to increase with increase in mothers weight. Is this an effect of the heaviest mothers? We keep only data objects where `LWT < 200` and plot again, to see if this changes the picture:
+```{r}
+birth %>%
+  filter(LWT < 200) %>%
+  ggplot(aes(x = LWT, y = BWT)) +
+  geom_point(size = 3) +
+  geom_smooth(method = "lm") +
+  labs(x = "Mother's weight (lb)", y = "Child's weight (grams)")
+```
+
+The trend is more or less the same, i.e. the heaviest mothers did not affect the result much.
+
+We add coloring decided by the factor `SMK`
+```{r}
+birth %>%
+  filter(LWT < 200) %>%   # you may or may not keep this filtering now
+  ggplot(aes(x = LWT, y = BWT, color = SMK)) +
+  geom_point(size = 3) +
+  geom_smooth(method = "lm") +
+  labs(x = "Mother's weight (lb)", y = "Child's weight (grams)")
+```
+
+First, we see that birth weights vary substantially for both smokers and non-smokers. This is the main information we get from this plot. Based on the trend curves it looks like there is some tendency that non-smokers have slightly larger birth weights, and that the mothers weight has some more effect on the birth weight in this case. The shaded regions around the trend curves indicate uncertainties. See `?geom_smooth` for some more details on this, even if I would say the Help text does not explain in sufficient detail what the shaded regions actually are.
+
+<br>
+
+
+## Smoking and low birth weight
+In the data set some children have been categorized as having a `LOW` birth weight. Can you make a figure that indicates if smoking mothers have more or less of these children compared to non-smoking mothers?
+
+This is *categorical* data analysis, which is not really a topic in STAT340 (should have been?). However, we may still plot such data. It can be done in several ways. Try to google 'ggplot categorical data' and see if you can get some ideas!
+
+
+### Solution
+We may use a bar chart, but first count the number of occurrences, like this:
+```{r}
+birth %>%
+  group_by(SMK, LOW) %>%          # group by both variables
+  summarise(count = n()) %>%      # count data objects in each combination, store as variable 'count'
+  ggplot() +
+  geom_col(aes(x = SMK, y = count, fill = LOW), position = "fill")
+```
+
+We may also make a *mosaic plot*, but it requires you to install the `ggmosaic` package:
+```{r, message=F, warning=F}
+#devtools::install_github("haleyjeppson/ggmosaic")
+library(ggmosaic)
+ggplot(birth) +
+  geom_mosaic(aes(x = product(SMK), fill = LOW))
+```
+
+It looks like low birth weights are slightly over-represented for smoking mothers.
+
+
+

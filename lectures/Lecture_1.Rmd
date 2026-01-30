@@ -28,7 +28,7 @@ knitr::opts_chunk$set(echo = TRUE)
 Email:
 [aliaksandr.hubin\@nmbu.no](mailto:aliaksandr.hubin@nmbu.no){.email}
 
-**Research interests:**
+**Research interests (what are yours?):**
 
 -   Bayesian statistics and machine learning;
 
@@ -133,8 +133,22 @@ Students should be familiar with:
 5.  **Generalized Linear Models (GLM)**
 
     -   Binomial/Bernoulli (logistic) regression
+
     -   Poisson regression
+
     -   Mixed models (GLMM): Random effects, repeated measurements
+
+# **Multiple Linear Regression**
+
+# Principal Component Analysis
+
+# **Classification Methods**
+
+# **Clustering Methods**
+
+# **Generalized Linear Models**
+
+# **Mixed Effect Models**
 
 # Required Learning Resources
 
@@ -145,15 +159,21 @@ Students should be familiar with:
 
 ## Recommended Textbooks (available online)
 
-**Main Reference:** - **R Book:** Michael J Crawley, Wiley (2nd ed.) -
-Chapters: 1--9 (as needed), 10--13, 17, 19, 25 - Freely available
-<https://www.cs.upc.edu/~robert/teaching/estadistica/TheRBook.pdf>
+**Main Reference:** - **R Book:** Michael J Crawley, Wiley (2nd ed.)
+
+-   Chapters: 1--9 (as needed), 10--13, 17, 19, 25
+
+-   Freely available
+    <https://www.cs.upc.edu/~robert/teaching/estadistica/TheRBook.pdf>
 
 **Supplementary (mathematical details):** - **ISL:** James et al. \`\`An
-Introduction to Statistical Learning'' - Chapters: 1--4, 6.1, 7.1, 10 -
-Freely available <https://www.statlearning.com>
+Introduction to Statistical Learning'' -
 
-# Typical Week Structure
+-   Chapters: 1--4, 6.1, 7.1, 10
+
+-   Freely available <https://www.statlearning.com>
+
+    # Typical Week Structure
 
 ![](images/clipboard-1095312855.png){width="400"}
 
@@ -442,7 +462,7 @@ multiplies by 9. Why the square?
 # Sums of Independent Variables
 
 For independent $Y_1, \ldots, Y_n$ with expectations $\mu_i$ and
-variances $\sigma_i^2$ and some constants \$c_i\$:
+variances $\sigma_i^2$ and some constants $c_i$:
 
 **Expectation of sum:**
 $$E\left(\sum_{i=1}^n c_iY_i\right) = \sum_{i=1}^n c_i\mu_i$$
@@ -477,7 +497,7 @@ $f(y) = \frac{1}{\sigma\sqrt{2\pi}} \exp\left\{-\frac{1}{2}\left(\frac{y-\mu}{\s
 
 -   What % score between **400-600**? (within 1 standard deviation)
     -   **Answer: 68.2%**
--   What % score between **300-700**? (2 standard deviations away from
+-   What % score between **600-700**? (2 standard deviations away from
     mean)
     -   **Answer: 13.6%**
 
@@ -539,6 +559,10 @@ par(mfrow=c(1,1))
 **Definition:** For independent $Z \sim N(0,1)$ and $Y\sim\chi^2_k$:
 
 $$T = \frac{Z}{\sqrt{Y / k}} \sim t_k$$
+
+$$
+E(T) = 0 \quad \text{ and } \quad  Var(T) = \frac{v}{v-2}
+$$
 
 ```{r, echo=FALSE, fig.height=2.6, fig.width=6}
 par(mfrow=c(1,2), mar=c(3,3,2,1))

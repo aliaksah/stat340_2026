@@ -55,6 +55,10 @@ Different estimation methods $\Leftrightarrow$ Different definitions of "best".
 -   Robust estimator : The estimates minimize $\sum |y_i - (\widehat{\beta}_0 + \widehat{\beta}_1 x_i)|$
 -   Maximum likelihood estimator: The estimates make the observed data "most likely"
 
+## Maximum likelihood formulation
+
+## Derivations for maxima
+
 ## Estimation of unexplained variance
 
 As soon as we have defined the "best" fitting model, we have also defined all distances between the observations and the estimated model.

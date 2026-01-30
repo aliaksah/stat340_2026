@@ -587,17 +587,6 @@ par(mfrow=c(1,1))
 **Properties:** Symmetric, heavier tails than normal, converges to
 $N(0,1)$ as $k \to \infty$
 
-# William Sealy Gosset (1876–1937): "Student"
-
-![English scientist working as a chemist for Guinness Brewery. Developed
-the t distribution to handle small samples when variance is unknown
-(1908)](images/clipboard-1638406457.png){width="65" height="94"}
-
--   Faced a practical problem: small sample inference for quality
-    control
--   Published under the pseudonym **"Student"** because Guinness forbade
-    employee publications
-
 # The $t$ Distribution: Practical Use
 
 **Test statistic for population mean:**
@@ -605,9 +594,21 @@ the t distribution to handle small samples when variance is unknown
 If $y_1, \ldots, y_n$ i.i.d. $N(\mu, \sigma^2)$ and
 $S^2 = \frac{1}{n-1}\sum_{t=1}^n (y_t - \bar{y})^2$:
 
-$$T = \frac{\bar{Y} - \mu}{\sqrt{S^2/n}} \sim t_{n-1}$$
+$$T = \frac{\bar{y} - \mu}{\sqrt{S^2/n}} \sim t_{n-1}$$
 
 This is the **one-sample** $t$ test statistic.
+
+# William Sealy Gosset (1876–1937): "Student"
+
+![English scientist working as a chemist for Guinness Brewery. Developed
+the t distribution to handle small samples when variance is unknown
+(1908)](images/clipboard-1638406457.png){alt="English scientist working as a chemist for Guinness Brewery. Developed the t distribution to handle small samples when variance is unknown (1908)"
+width="65" height="94"}
+
+-   Faced a practical problem: small sample inference for quality
+    control
+-   Published under the pseudonym **"Student"** because Guinness forbade
+    employee publications
 
 # The $F$ Distribution
 
@@ -621,7 +622,7 @@ $$
 E(Y) = \frac{v}{v-2}, v>2 \quad Var(Y) = \frac{2v^2(u+v-2)}{u(v-2)^2(v-4)} v>4
 $$
 
-```{r, echo=FALSE, fig.height=2.8, fig.width=6}
+```{r, echo=FALSE, fig.height=2.5, fig.width=5}
 par(mfrow=c(1,2), mar=c(3,3,2,1))
 
 curve(df(x, df1=5, df2=10), xlim=c(0, 6), ylim=c(0, 1.2), ylab='f(y)', xlab='y',

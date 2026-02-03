@@ -482,10 +482,9 @@ $f(y) = \frac{1}{\sigma\sqrt{2\pi}} \exp\left\{-\frac{1}{2}\left(\frac{y-\mu}{\s
 
 **Application:** SAT scores follow $N(\mu=500, \sigma^2=100^2)$.
 
--   What % score between **400-600**? (within 1 standard deviation)
+-   What % score between **400-600**?
 
--   What % score between **600-700**? (1 to 2 standard deviations away
-    from mean)
+-   What % score between **600-700**?
 
 # CHECKPOINT: SAT Scores and the 68-95 Rule
 

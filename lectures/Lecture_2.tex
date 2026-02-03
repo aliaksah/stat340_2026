@@ -1,0 +1,659 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+\documentclass[
+  ignorenonframetext,
+]{beamer}
+\newif\ifbibliography
+\usepackage{pgfpages}
+\setbeamertemplate{caption}[numbered]
+\setbeamertemplate{caption label separator}{: }
+\setbeamercolor{caption name}{fg=normal text.fg}
+\beamertemplatenavigationsymbolsempty
+% remove section numbering
+\setbeamertemplate{part page}{
+  \centering
+  \begin{beamercolorbox}[sep=16pt,center]{part title}
+    \usebeamerfont{part title}\insertpart\par
+  \end{beamercolorbox}
+}
+\setbeamertemplate{section page}{
+  \centering
+  \begin{beamercolorbox}[sep=12pt,center]{section title}
+    \usebeamerfont{section title}\insertsection\par
+  \end{beamercolorbox}
+}
+\setbeamertemplate{subsection page}{
+  \centering
+  \begin{beamercolorbox}[sep=8pt,center]{subsection title}
+    \usebeamerfont{subsection title}\insertsubsection\par
+  \end{beamercolorbox}
+}
+% Prevent slide breaks in the middle of a paragraph
+\widowpenalties 1 10000
+\raggedbottom
+\AtBeginPart{
+  \frame{\partpage}
+}
+\AtBeginSection{
+  \ifbibliography
+  \else
+    \frame{\sectionpage}
+  \fi
+}
+\AtBeginSubsection{
+  \frame{\subsectionpage}
+}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math} % this also loads fontspec
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+\ifPDFTeX\else
+  % xetex/luatex font selection
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{248,248,248}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.94,0.16,0.16}{#1}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\BuiltInTok}[1]{#1}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.64,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\ImportTok}[1]{#1}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\usepackage{graphicx}
+\makeatletter
+\newsavebox\pandoc@box
+\newcommand*\pandocbounded[1]{% scales image to fit in text height/width
+  \sbox\pandoc@box{#1}%
+  \Gscale@div\@tempa{\textheight}{\dimexpr\ht\pandoc@box+\dp\pandoc@box\relax}%
+  \Gscale@div\@tempb{\linewidth}{\wd\pandoc@box}%
+  \ifdim\@tempb\p@<\@tempa\p@\let\@tempa\@tempb\fi% select the smaller of both
+  \ifdim\@tempa\p@<\p@\scalebox{\@tempa}{\usebox\pandoc@box}%
+  \else\usebox{\pandoc@box}%
+  \fi%
+}
+% Set default figure placement to htbp
+\def\fps@figure{htbp}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\usepackage{bookmark}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same}
+\hypersetup{
+  pdftitle={Regression 1},
+  pdfauthor={Aliaksandr Hubin},
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+
+\title{Regression 1}
+\author{Aliaksandr Hubin}
+\date{February 10 2025}
+
+\begin{document}
+\frame{\titlepage}
+
+\begin{frame}{The body data}
+\phantomsection\label{the-body-data}
+A motivating example - The body data
+
+\pandocbounded{\includegraphics[keepaspectratio]{Lecture_2_files/figure-beamer/unnamed-chunk-1-1.pdf}}
+\end{frame}
+
+\begin{frame}{The Weight versus Height}
+\phantomsection\label{the-weight-versus-height}
+Is there a linear relationship between Weight and Height?
+
+\pandocbounded{\includegraphics[keepaspectratio]{Lecture_2_files/figure-beamer/unnamed-chunk-2-1.pdf}}
+
+If so, what is the ``best'' fitting line?
+\end{frame}
+
+\begin{frame}{A graphical presentation of a simple linear model}
+\phantomsection\label{a-graphical-presentation-of-a-simple-linear-model}
+Let's use a web applet to discuss the ``best'' fitting line:
+\url{http://solve.shinyapps.io/LeastSquaresApp}
+\end{frame}
+
+\begin{frame}{The main idea}
+\phantomsection\label{the-main-idea}
+A continuous response variable, \(y\), is assumed to be linearly
+dependent on one or several predictor variables,
+\(x_1, x_2, \ldots, x_k\)?
+
+A simple regression model (one predictor)
+\[ y = \beta_0 + \beta_1 x + \epsilon \]
+
+A multiple regression model (multiple predictors)
+\[ y = \beta_0 + \beta_1 x_1 + \beta_2 x_2 + \cdots+ \beta_k x_k +\epsilon \]
+
+where we typically assume \[ \epsilon \sim N(0, \sigma^2) \]
+\end{frame}
+
+\begin{frame}{Estimation of regression coefficients}
+\phantomsection\label{estimation-of-regression-coefficients}
+Unknown regression coefficients of a simple regression model are
+\(\beta_0\) and \(\beta_1\)
+
+Estimation of parameters is equivalent to finding the ``best fitting''
+model.
+
+Different estimation methods \(\Leftrightarrow\) Different definitions
+of ``best''.
+
+\begin{itemize}
+\tightlist
+\item
+  Least squares estimator : The estimates minimize
+  \(\sum (y_i - (\widehat{\beta}_0 + \widehat{\beta}_1 x_i))^2\)
+\item
+  Robust estimator : The estimates minimize
+  \(\sum |y_i - (\widehat{\beta}_0 + \widehat{\beta}_1 x_i)|\)
+\item
+  Maximum likelihood estimator: The estimates make the observed data
+  ``most likely''
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Maximum likelihood formulation}
+\phantomsection\label{maximum-likelihood-formulation}
+\end{frame}
+
+\begin{frame}{Derivations for maxima}
+\phantomsection\label{derivations-for-maxima}
+\end{frame}
+
+\begin{frame}{Estimation of unexplained variance}
+\phantomsection\label{estimation-of-unexplained-variance}
+As soon as we have defined the ``best'' fitting model, we have also
+defined all distances between the observations and the estimated model.
+
+These distances are the residuals:
+\[d_i = y_i - (\widehat{\beta}_0 + \widehat{\beta}_1 x_i)\] for
+\(i=1,\ldots,n\)
+
+An unbiased estimator for the error variance \(\sigma^2\) depends on
+these distances through
+\[ \widehat{\sigma}^2 = \sum d_i^2/(n-p) = \frac{SSE}{(n-p)} = MSE\]
+
+where \(p\) is the number of estimated regression coeffiscients.
+\end{frame}
+
+\begin{frame}{Example: Regression in R (Model 1)}
+\phantomsection\label{example-regression-in-r-model-1}
+We use samples 1 to 20 of the bodydata as example data (training set)
+
+\[ y_i = \beta_0 +\beta_1 x_{1i} + \epsilon_i \] where \(y\) is Weight,
+\(x_1\) is Height and \(i=1,\ldots, 20\).
+\end{frame}
+
+\begin{frame}[fragile]{Example of model fit in R Studio}
+\phantomsection\label{example-of-model-fit-in-r-studio}
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{options}\NormalTok{(}\AttributeTok{contrasts=}\FunctionTok{c}\NormalTok{(}\StringTok{\textquotesingle{}contr.sum\textquotesingle{}}\NormalTok{,}\StringTok{\textquotesingle{}contr.poly\textquotesingle{}}\NormalTok{))}
+\NormalTok{LinearModel}\FloatTok{.1} \OtherTok{\textless{}{-}} \FunctionTok{lm}\NormalTok{(Weight }\SpecialCharTok{\textasciitilde{}}\NormalTok{ Height, }\AttributeTok{data=}\NormalTok{bodydata, }\AttributeTok{subset=}\DecValTok{1}\SpecialCharTok{:}\DecValTok{20}\NormalTok{)}
+\NormalTok{sum.model1 }\OtherTok{\textless{}{-}} \FunctionTok{summary}\NormalTok{(LinearModel}\FloatTok{.1}\NormalTok{)}
+\FunctionTok{print}\NormalTok{(sum.model1)}
+\end{Highlighting}
+\end{Shaded}
+\end{frame}
+
+\begin{frame}[fragile]{Output}
+\phantomsection\label{output}
+\begin{verbatim}
+## 
+## Call:
+## lm(formula = Weight ~ Height, data = bodydata, subset = 1:20)
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -11.5160  -2.5964   0.0261   2.9141  11.7454 
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(>|t|)   
+## (Intercept) -38.2310    38.3605  -0.997  0.33216   
+## Height        0.6386     0.2123   3.007  0.00757 **
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 5.839 on 18 degrees of freedom
+## Multiple R-squared:  0.3344, Adjusted R-squared:  0.2974 
+## F-statistic: 9.043 on 1 and 18 DF,  p-value: 0.007566
+\end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]{The fitted line plot}
+\phantomsection\label{the-fitted-line-plot}
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{plot}\NormalTok{(Weight}\SpecialCharTok{\textasciitilde{}}\NormalTok{Height, }\AttributeTok{data=}\NormalTok{bodydata, }\AttributeTok{subset=}\DecValTok{1}\SpecialCharTok{:}\DecValTok{20}\NormalTok{, }\AttributeTok{pch=}\DecValTok{20}\NormalTok{, }\AttributeTok{cex=}\DecValTok{2}\NormalTok{)}
+\FunctionTok{abline}\NormalTok{(LinearModel}\FloatTok{.1}\NormalTok{, }\AttributeTok{lwd=}\DecValTok{2}\NormalTok{, }\AttributeTok{col=}\StringTok{"red"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\pandocbounded{\includegraphics[keepaspectratio]{Lecture_2_files/figure-beamer/unnamed-chunk-5-1.pdf}}
+\end{frame}
+
+\begin{frame}{Weight versus Circumference (Model 2)}
+\phantomsection\label{weight-versus-circumference-model-2}
+Now let:
+
+\[ y_i = \beta_0 +\beta_1 x_{2i} + \epsilon_i \]
+
+where \(y\) still is Weight, \(x_2\) is Circumference and
+\(i=1,\ldots, 20\).
+\end{frame}
+
+\begin{frame}[fragile]{R Commander output}
+\phantomsection\label{r-commander-output}
+\begin{verbatim}
+## 
+## Call:
+## lm(formula = Weight ~ Circumference, data = bodydata, subset = 1:20)
+## 
+## Residuals:
+##    Min     1Q Median     3Q    Max 
+## -8.937 -3.540  0.038  2.956  8.659 
+## 
+## Coefficients:
+##               Estimate Std. Error t value Pr(>|t|)    
+## (Intercept)     3.6737    17.1036   0.215 0.832343    
+## Circumference   0.9137     0.2125   4.300 0.000431 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 5.027 on 18 degrees of freedom
+## Multiple R-squared:  0.5067, Adjusted R-squared:  0.4793 
+## F-statistic: 18.49 on 1 and 18 DF,  p-value: 0.0004311
+\end{verbatim}
+
+How can we claim that this model gives a better fit than model1?
+\end{frame}
+
+\begin{frame}{A measure of goodness of fit, the \(R^2\)}
+\phantomsection\label{a-measure-of-goodness-of-fit-the-r2}
+The unconditional (sample) variance of Weight is:
+\[\sum (y_i - \bar{y})^2/(n-1) = \frac{SST}{(n-1)}\] Hence, \(SST\) (in
+some literature \(SSY\)) is a mesure of total variability in y, the
+response
+
+Further, \(SSE\) is a measure of unexplained variability in y
+
+So, a measure of explained variability is
+\[R^2 = \frac{SST-SSE}{SST} = \frac{SSR}{SST}\]
+\end{frame}
+
+\begin{frame}[fragile]{The ANOVA table}
+\phantomsection\label{the-anova-table}
+The sums of squares are often presented in an ANOVA table:
+
+We use the `Anova'-function in the car-library to get the ANOVA table
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{Anova}\NormalTok{(LinearModel}\FloatTok{.1}\NormalTok{, }\AttributeTok{type=}\StringTok{"II"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Anova Table (Type II tests)
+## 
+## Response: Weight
+##           Sum Sq Df F value   Pr(>F)   
+## Height    308.31  1  9.0433 0.007566 **
+## Residuals 613.67 18                    
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+\end{verbatim}
+
+The Residuals-line gives the SSE and the total sums of squares, SST,
+equals the sum of all elements in the ``Sum sq'' column.
+\end{frame}
+
+\begin{frame}{Multiple linear regression (Model 3)}
+\phantomsection\label{multiple-linear-regression-model-3}
+\[y_i = \beta_0 + \beta_1 x_{1i} + \beta_2x_{2i} + \epsilon_i\]
+
+where \(y\) is Weight, \(x_1\) is Height \(x_2\) is Circumference and
+\(i=1,\ldots, 20\).
+\end{frame}
+
+\begin{frame}[fragile]{R Studio output (Model 3)}
+\phantomsection\label{r-studio-output-model-3}
+\begin{verbatim}
+## 
+## Call:
+## lm(formula = Weight ~ Height + Circumference, data = bodydata, 
+##     subset = 1:20)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -5.3189 -3.5363 -0.7817  2.8028  6.3974 
+## 
+## Coefficients:
+##               Estimate Std. Error t value Pr(>|t|)    
+## (Intercept)   -70.8202    28.4518  -2.489 0.023464 *  
+## Height          0.4731     0.1566   3.021 0.007698 ** 
+## Circumference   0.7777     0.1820   4.273 0.000515 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 4.172 on 17 degrees of freedom
+## Multiple R-squared:  0.679,  Adjusted R-squared:  0.6413 
+## F-statistic: 17.98 on 2 and 17 DF,  p-value: 6.38e-05
+\end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]{Three predictors\ldots(Model 4)}
+\phantomsection\label{three-predictorsmodel-4}
+\begin{verbatim}
+## 
+## Call:
+## lm(formula = Weight ~ Height + Circumference + Age, data = bodydata, 
+##     subset = 1:20)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -5.4088 -3.3900 -0.9123  3.0403  6.9827 
+## 
+## Coefficients:
+##               Estimate Std. Error t value Pr(>|t|)    
+## (Intercept)   -66.5785    30.0098  -2.219 0.041330 *  
+## Height          0.4768     0.1600   2.981 0.008831 ** 
+## Circumference   0.7769     0.1858   4.181 0.000706 ***
+## Age            -0.2094     0.3731  -0.561 0.582352    
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 4.259 on 16 degrees of freedom
+## Multiple R-squared:  0.6852, Adjusted R-squared:  0.6262 
+## F-statistic: 11.61 on 3 and 16 DF,  p-value: 0.0002729
+\end{verbatim}
+\end{frame}
+
+\begin{frame}{\(R^2\)-adjusted}
+\phantomsection\label{r2-adjusted}
+\[R^2 = 1 - \frac{SSE}{SST} \text{The Problem: $R^2$ always increases when adding predictors}\]
+
+\[R^2_{\text{adj}} = 1 - \frac{MSE}{Var(y)} = 1 - \frac{SSE/(n-p)}{SST/(n-1)}\]
+The Solution: \(R^2_{\text{adjusted}}\) penalizes adding parameters
+
+\includegraphics[width=400px]{Lecture_2_files/figure-beamer/unnamed-chunk-10-1}
+\end{frame}
+
+\begin{frame}{Hypothesis Test for Regression Coefficients}
+\phantomsection\label{hypothesis-test-for-regression-coefficients}
+We may test the \textbf{conditional significance} of any predictor using
+a t-test
+
+\textbf{Hypotheses:}
+
+\begin{itemize}
+\item
+  \(H_0: \beta_j = 0\) (predictor has \textbf{no effect} on response)
+\item
+  \(H_1: \beta_j \neq 0\) (predictor \textbf{does have an effect})
+\end{itemize}
+
+\textbf{Test statistic:}
+\[T_j = \frac{\widehat{\beta}_j}{SE(\widehat{\beta}_j)} \sim t_{n-p}\]
+\end{frame}
+
+\begin{frame}{Visual explanation}
+\phantomsection\label{visual-explanation}
+\pandocbounded{\includegraphics[keepaspectratio]{Lecture_2_files/figure-beamer/unnamed-chunk-11-1.pdf}}
+\end{frame}
+
+\begin{frame}{Decision rule}
+\phantomsection\label{decision-rule}
+The \textbf{p-value} is the probability of observing a test statistic as
+extreme or more extreme than the observed value, \textbf{assuming}
+\(H_0\) is true
+
+\[\text{p-value} = P(|T| \geq |T_{\text{obs}}|) = 2 \times P(T > |T_{\text{obs}}|)\]
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{p-value is small} (e.g., 0.002): It's \textbf{very unlikely}
+  to observe such an extreme T if \(H_0\) were true → Strong evidence
+  against \(H_0\) → \textbf{Reject} \(H_0\) ✓
+\end{itemize}
+
+\textbf{At significance level of 0.05:}
+
+\begin{itemize}
+\tightlist
+\item
+  Reject \(H_0\) if \(|T_j| > t_{\alpha/2, n-p}\) (i.e., p-value
+  \(< 0.05\))
+\item
+  Fail to reject \(H_0\) if \(|T_j| \leq t_{\alpha/2, n-p}\) (i.e.,
+  p-value \(\geq 0.05\))
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Example: Model 4 Significance tests}
+\phantomsection\label{example-model-4-significance-tests}
+\begin{verbatim}
+##                  Estimate Std. Error    t value     Pr(>|t|)
+## (Intercept)   -66.5785315 30.0098013 -2.2185596 0.0413297267
+## Height          0.4768387  0.1599838  2.9805444 0.0088305547
+## Circumference   0.7768555  0.1858173  4.1807501 0.0007063713
+## Age            -0.2094104  0.3730630 -0.5613273 0.5823518801
+\end{verbatim}
+
+\textbf{Key insight:}
+
+\begin{itemize}
+\item
+  Age is not significant (p = 0.260 \textgreater\textgreater{} 0.05)
+\item
+  Explains why adding Age slightly reduces \(R^2_{\text{adj}}\) - Model
+  3 (without Age) is \textbf{better choice} than Model 4
+\item
+  Other predictors are significant
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Confidence interval for regression coefficients}
+\phantomsection\label{confidence-interval-for-regression-coefficients}
+A \((1-\alpha)\cdot 100 \%\) for \(\beta_j\) is mathematically given by:
+\[ \left[ \widehat{\beta}_j\pm t_{\alpha/2, (n-p)} SE(\widehat{\beta}_j) \right]\]
+
+In RStudio we can get these (ex. for model 4) by
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{confint}\NormalTok{(LinearModel}\FloatTok{.4}\NormalTok{, }\AttributeTok{level=}\FloatTok{0.95}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##                      2.5 %     97.5 %
+## (Intercept)   -130.1964683 -2.9605946
+## Height           0.1376883  0.8159891
+## Circumference    0.3829405  1.1707706
+## Age             -1.0002686  0.5814477
+\end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]{Prediction}
+\phantomsection\label{prediction}
+A fitted model can be used for prediction of new observations
+
+According to model 4, what is the predicted Weight of some person with
+these values?
+
+\begin{verbatim}
+##   Height Circumference Age
+## 1    171            76  30
+\end{verbatim}
+
+\[
+\begin{split}
+\widehat{y} &= -66.579 + 0.4768\cdot171 + 0.7769\cdot76 - 0.2094\cdot30 \\
+& = 67.72
+\end{split}
+\]
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{newobs }\OtherTok{\textless{}{-}} \FunctionTok{data.frame}\NormalTok{(}\StringTok{\textquotesingle{}Height\textquotesingle{}}\OtherTok{=}\DecValTok{171}\NormalTok{, }\StringTok{\textquotesingle{}Circumference\textquotesingle{}}\OtherTok{=}\DecValTok{76}\NormalTok{, }\StringTok{\textquotesingle{}Age\textquotesingle{}}\OtherTok{=}\DecValTok{30}\NormalTok{)}
+\FunctionTok{predict.lm}\NormalTok{(LinearModel}\FloatTok{.4}\NormalTok{, }\AttributeTok{newdata=}\NormalTok{newobs, }\AttributeTok{level=}\FloatTok{0.95}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##       1 
+## 67.7196
+\end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]{Other intervals in Prediction output}
+\phantomsection\label{other-intervals-in-prediction-output}
+Confidence interval for \(E(y|x_1, \ldots, x_p)\)
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{predict.lm}\NormalTok{(LinearModel}\FloatTok{.4}\NormalTok{, }\AttributeTok{newdata=}\NormalTok{newobs, }
+           \AttributeTok{level=}\FloatTok{0.95}\NormalTok{, }\AttributeTok{interval=}\FunctionTok{c}\NormalTok{(}\StringTok{"confidence"}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##       fit      lwr      upr
+## 1 67.7196 60.98252 74.45668
+\end{verbatim}
+
+Prediction interval for \(y|x_1, \ldots, x_p\)
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{predict.lm}\NormalTok{(LinearModel}\FloatTok{.4}\NormalTok{, }\AttributeTok{newdata=}\NormalTok{newobs, }
+           \AttributeTok{level=}\FloatTok{0.95}\NormalTok{, }\AttributeTok{interval=}\FunctionTok{c}\NormalTok{(}\StringTok{"prediction"}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##       fit      lwr      upr
+## 1 67.7196 56.45463 78.98456
+\end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]{Compare real and predicted values}
+\phantomsection\label{compare-real-and-predicted-values}
+Let's predict the 387 extra observations and compare with actual
+observations!
+
+\begin{verbatim}
+##         fit      lwr      upr
+## 25 73.94436 64.06824 83.82047
+## 26 82.80148 72.72603 92.87693
+## 27 81.03059 71.44393 90.61725
+## 28 71.46852 61.81893 81.11811
+## 29 65.93065 55.27452 76.58677
+## 31 76.31124 66.90951 85.71296
+## 32 69.35871 59.61763 79.09979
+## 33 75.73802 65.67258 85.80346
+## 34 82.52507 72.84459 92.20555
+## 35 67.71321 57.86212 77.56431
+## 37 73.86325 64.29154 83.43496
+## 39 74.81258 65.46899 84.15617
+\end{verbatim}
+\end{frame}
+
+\begin{frame}{Predicted vs observed - plot}
+\phantomsection\label{predicted-vs-observed---plot}
+\includegraphics[width=700px,height=400]{Lecture_2_files/figure-beamer/unnamed-chunk-19-1}
+\end{frame}
+
+\begin{frame}[fragile]{Checking the prediction intervals}
+\phantomsection\label{checking-the-prediction-intervals}
+How many observations fell within the prediction intervals?
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{largerthanlower }\OtherTok{\textless{}{-}}\NormalTok{ (newWeight }\SpecialCharTok{\textgreater{}}\NormalTok{ pred[,}\DecValTok{2}\NormalTok{])}
+\NormalTok{smallerthanupper }\OtherTok{\textless{}{-}}\NormalTok{ (newWeight }\SpecialCharTok{\textless{}}\NormalTok{ pred[,}\DecValTok{3}\NormalTok{])}
+\NormalTok{inInterval }\OtherTok{\textless{}{-}} \FunctionTok{which}\NormalTok{(largerthanlower }\SpecialCharTok{\&}\NormalTok{ smallerthanupper)}
+\FunctionTok{print}\NormalTok{(}\FunctionTok{length}\NormalTok{(inInterval))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 381
+\end{verbatim}
+
+Proportion of observations within prediction intervals:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{length}\NormalTok{(inInterval)}\SpecialCharTok{/}\FunctionTok{length}\NormalTok{(newWeight)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 0.9844961
+\end{verbatim}
+
+What should we expect?
+\end{frame}
+
+\end{document}

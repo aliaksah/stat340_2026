@@ -1,0 +1,644 @@
+---
+title: "Exercises STAT340 - Regression analysis - part I"
+params:
+  vis.forslag: false
+output:
+  html_document:
+    toc: true
+    theme: yeti
+    code_folding: hide
+    number_sections: true
+editor_options: 
+  chunk_output_type: console
+---
+
+<style>
+.main-container, .main-content { max-width: 100%; }
+.info { background-color:aliceblue; }
+.task { background-color:lightpink; }
+</style>
+
+```{r forslag, include = FALSE}
+vis.forslag <- params$vis.forslag
+```
+
+```{r forklar forslag, echo = FALSE, results = "asis", include = vis.forslag}
+cat('
+<mark>
+**LØSNINGSFORSLAG!**
+
+Disse vises nedenfor på ulike måter:
+<mark>Gulmerking</mark> av tekstforslag til løsning, eller kommentarer om alternative løsninger.
+* Noe <button>Code</button> som var skjult i øvingsdokumentet.
+<details>
+<summary>
+<mark>
+Noen løsningsforslag er skjult inni hint.
+</mark>
+</summary>
+Da må du utvide hintene for å se løsningsforslagene.  
+
+</details>
+')
+```
+
+<br>
+<br>
+<br>
+<br>
+
+<div class="info">
+**Colloquium exercises:**
+You are encouraged to work together in groups on the colloquim exercises, 1 and 2. Sharing problems and solutions is often a much quicker way to learn, especially for problems of a more practical nature like we will see in these exercises. In addition there are extra exercises for individual or group work below (3,4).
+</div>
+
+<br>
+  
+# Least Squares App
+This is a *Shiny app* written in R. The point here is to illustrate the fitting of a simple linear regression model, to give an intuition about the methods of least squares for parameter estimation and the assumptions made in a linear model. Discuss the exercises in the group, and try to understand the underlying principles.
+
+
+Play around with the least squares app at [The method of least squares](http://solve.shinyapps.io/LeastSquaresApp){target="blank"}
+
+1. Use `N = 10` data points. Whenever you select another `N` you get a new data set with a random slope and intercept, and with random noise added. These data are displayed as black dots in the tab named "My model".
+2. Try to adjust manually the intercept and the slope. This is done by the sliders on the left, and it is displayed as the blue line. Try to adjust the intercept and slope to minimize the sum of squared errors, `K`, in the title of the figure.
+3. Then, display the least square estimate (check box below the sliders) to see how close you were. It will appear as a red line.
+4. Display the true (unknown) model (also a check box) from which the data where simulated. It is displayed as a green line. Were your manual (blue) line close to the green? Why is the least square (red) line not identical to the true (green) line?
+5. Also, inspect the tabs "Regression analysis", which is the `summary()` output, and the "sum of squares plot", showing the Least square function values as a contour-map over the parameters space (intercept and slope).
+
+Repeat the exercise, but use `N = 100` instead. Are you closer to the true model now?
+<br>
+<br>
+<br>
+
+# The AUDI data - Simple linear regression
+
+## Linear model assumptions
+Let us use the `Audi` data we saw in week 1. Below is some code for fitting a simple linear model.
+```{r, results='hide'}
+library(BIAS.data)
+data(Audi)
+lm.obj <- lm(Price ~ Age, data = Audi)
+```
+
+From this, write down (using "pen and paper") the model equation and the assumptions made in a simple regression model.
+
+<details>
+<summary>
+<mark>
+Solution
+</mark>
+</summary>
+
+The model:
+$$y_i = \beta_0 + \beta_1 x_i + e_i$$
+where $i = 1,2,...,30$ and $e_i \sim N(0,\sigma^2) \;\; i.i.d.$. The `Price` variable is named $y$ and this is the response, while Àge` is named $x$ and is the predictor variable. The $y_i$ is the price and $x_i$ is the age of car number $i$. The $e_i$ is the error term for car number $i$, i.e. the difference between observed and expected price for car number $i$.
+
+The model assumptions:
+
+* There is a linear relationship between $y$ and $x$ (`Price` and `Age`).
+* The error terms are all normally distributed.
+* The error terms have a constant variance $\sigma^2$ for all cars.
+* The error terms are independent.
+</details>
+
+## Fit model and test
+Is there a significant effect of `Age` on `Price`? State the hypotheses, run the required code and a write down the conclusion.
+
+<details>
+<summary>
+<mark>
+Solution
+</mark>
+</summary>
+Hypothesis test: We look at the `summary()` output to determine whether `Age` is a significant predictor for `Price`. The hypotheses are:
+$$H_0: \beta_1=0 \: \: \textrm{vs} \: \: \beta_1 \neq 0$$
+The t-test statistic and its corresponding p-value for the effect `Age` in the summary output gives us all we need. If the p-value is below the rejection level we find adequate (typically 0.05) we state that the data supports a rejection of $H_0$. In this case the summary is:
+```{r}
+summary(lm.obj)
+```
+We see that the p-value for `Age` is `4.97e-10` which means $4.97\cdot 10^{-10}$, i.e. `0.000000000497`! We conclude there is a significant negative (slope is `-23.09`) effect of `Age` on the `Price` of an Audi car. Note that this is a valid statement only if the model assumptions are met.
+</details>
+
+## Diagnostics
+Make some diagnostics of the fitted model, and comment on what these show.
+
+If the diagnostics indicate something should be changed, do this and re-fit the model and test the null hypothesis again.
+
+<details>
+<summary>
+<mark>
+Solution
+</mark>
+</summary>
+We use diagnostic plots to evaluate some of the model assumptions. Here we only use plot 1 and 2:
+```{r}
+par(mfrow = c(1,2))           # splits the plotting window into two panels (not required)
+plot(lm.obj, which = c(1,2))  # creates three plots
+```
+
+In the plot to the left, we check for non-linearity in the relation and constant variance. Observation 21 sticks out a bit, but otherwise this residual plot looks fine, with little "bend" in the trend and a fairly constant spread from left to right. No need to make any transforms here.
+
+In the plot to the right, we check whether the residuals are normally distributed. They are normally distributed if the points are located on the diagonal line. We see that this is generally the case for all observations apart from perhaps data case 21. No need to worry about normality here.
+
+We compute some studentized residuals and leverages, to see if some data cases has extreme influence:
+```{r}
+stud.resid <- rstudent(lm.obj)
+summary(stud.resid)
+```
+We can see the largest positive residual is well above 3. From the first plot above we can see the largest positive residual belongs to data case 21. This is an extreme observation compared to the rest, and may not belong in this data set.
+
+The leverages:
+```{r}
+influences <- influence.measures(lm.obj)
+summary(influences)
+```
+This also lists data case 21 as extreme.
+
+We now re-fit the model without data case 21, and run the `summary()` on that:
+```{r}
+lm_21.obj <- lm(Price ~ Age, data = Audi, subset = -21)
+summary(lm_21.obj)
+```
+The effect of `Age` is still negative and significant, but the slope is not as steep as before.
+</details>
+<br>
+<br>
+<br>
+
+
+<div class="info">
+**Extra exercises:**
+These are extra exercises for group or individual work. Use the example codes if you are stuck in the programming, and try to understand the output and how to interpret it.  
+</div>
+
+# Data set `birth`
+
+Load the data set `birth` that we inspected in week 1. This contains 189 birth weights from Massachusetts, USA, and some additional variables. See the week 1 exercise for more details.
+
+<br>
+
+
+## Effect of mothers weight
+In week 1 we plotted the birth weights of the children against the weights of their mothers, and added some *trend line* to the plot. This indicated that heavier mothers gave birth to heavier children. We will now make a formal test of this.
+
+Fit a simple linear regression model with `BWT` as response and `LWT` as predictor. Test if there is a significant effect of mothers weight (`LWT`) on birth weight (`BWT`) with a 5% rejection level and then at a 1% rejection level
+
+* What are the hypothesis you are testing?
+* What is your conclusion on the effect of mothers weight on birth weight?
+* Find the $R^2$. Would you say the model fits the data well?
+
+<details>
+<summary>
+<mark>
+Solution
+</mark>
+</summary>
+we fit the model by
+```{r, message=F}
+library(BIAS.data)
+data(birth)
+
+lm.obj <- lm(BWT~LWT, data = birth)
+```
+
+We want to test the hypotheses
+$$H_0: \beta_1 = 0 \;\;\;\mbox{ versus }\;\;\; H_1: \beta_0 \neq 0$$
+We do the actual testing by the `summary()` function:
+```{r}
+summary(lm.obj)
+```
+From the output we see that the coefficient for `LWT` ($\beta_1$) is estimated to `4.429`, and the corresponding t-statistic is `2.586`. This gives a p-value of `0.0105`. This p-value is below 0.05, but not below 0.01. We claim that there is an effect of mothers weight on birth weight at the 5% significance level, but not at the 1% level.
+
+The $R^2$ is very low at only `0.03452`, indicating the model has a poor fit to the data. The slope $\beta_1$ is estimated to `4.429`. This means an increase in `LWT` of 1 pound (`LWT` is measured in pounds) gives an average increase in birth weight of `4.429`grams (`BWT` is measured in grams). Thus, even if the effect is significant (at 5%), the effect is not very big, i.e. the slope is not very steep, and the $R^2$ remains small. The total variation in birth weight must be due to many other predictors than the mothers weight.
+<br>
+</details>
+
+## Scatter-plot
+Make a scatter plot of `LWT` vs `BWT`. Add the regression line to the plot. Add proper texts on the axes.
+
+How can we see from this plot the $R^2$ must be rather low in this case?
+
+
+<details>
+<summary>
+<mark>
+Solution
+</mark>
+</summary>
+```{r, message=F}
+library(tidyverse)
+lm.obj$model %>%
+  mutate(Fitted = lm.obj$fitted.values) %>%
+  ggplot() +
+  geom_point(aes(x = LWT, y = BWT), size = 3, alpha = 0.5) +
+  geom_line(aes(x = LWT, y = Fitted), color = "blue1", linewidth = 2) +
+  labs(x = "Mother's weight (lb)", y = "Child's weight (grams)")
+```
+
+We can see why the R-squared is low. It is computed by 
+$$R^2 = 1 - \frac{SSE}{SSY}$$
+The $SSE$ is simply the sum of the squared distance from each point down/up to the blue regression line.
+
+The $SSY$ is simply the sum of the squared distance from each point down/up to an imaginary line that *lies flat* at the mean y-value.
+
+In this case this imaginary line would be very similar to the blue regression line, since the latter has such a small slope. Thus, $SSE$ and $SSY$ becomes almost equal, and from the formula this means a very low $R^2$. To get a large $R^2$ the slope must be steeper.
+</details>
+<br>
+
+
+## Confidence Intervals
+Find a 95% confidence interval for the slope in the fitted model from above. Also find the 99% confidence interval
+Comment on the intervals in light of the hypothesis test
+
+<details>
+<summary>
+<mark>
+Solution
+</mark>
+</summary>
+```{r}
+confint(lm.obj, level = 0.95)
+confint(lm.obj, level = 0.99)
+```
+The 95% confidence interval for the slope does *not* cover 0, as we expect since we rejected the null hypothesis at 5% level.
+
+The 99% interval covers 0, also as expected, since we could not reject the null hypothesis at the 1% level.
+
+Note: The value 0 we focus on here is because a slope with value 0 means we have no effect. It is the same as in the null hypothesis $H_0:\beta = 0$. If the null hypothesis, for some reason, was $H_0:\beta = 1$, then we would consider if the confidence intervals overlap the value 1.
+</details>
+
+<br>
+
+
+## Subsets
+An element of randomness in our data lies in the fact that we have sampled a (random) subset from the entire population of all data cases we could have considered. To illustrate this, and to visualize this randomness, let us simulate this subsetting again on the current data set!
+
+In the `birth` data set we have 189 data cases. How would the picture look like if we had only 50 data cases? Make R code to do as follows:
+
+* We want to fit our model to data sets of size `sub.size <- 50`
+* Select randomly this many rows from the data set. You may use this code: `birth.sub <- slice(birth, sample(1:nrow(birth), sub.size))`
+* Fit the same model as above, but use the data subset
+* Collect from the fitted model
+  + the data used when fitting the model (`lm.obj$model`)
+  + the fitted values (`lm.obj$fitted.values`)
+  + the estimated slope (`lm.obj$coefficients[2]`)
+* Put these results into a table named `res.tbl`, with columns `BWT`, `LWT`, `Fitted` and `Slope` (same value in all rows).
+
+Next, repeat this 1000 times, and collect the same results as above each time. In addition, the resulting table from above should also have another column named `Subset` indicating which rows are from the same data subset. Here is a code skeleton:
+```{r, eval=F, results='hide'}
+library(tidyverse)
+# define N.sub and sub-size here
+result.tbl <- NULL   # empty table
+for(i in ___){
+  # sub-set the birth data
+  # fit model
+  # collect results into res.tbl
+  result.tbl <- res.tbl %>% 
+    mutate(Subset = i) %>% 
+    bind_rows(result.tbl)   # add new rows to the result.tbl
+}
+```
+
+After running this, the `result.tbl` should have 5000 rows. 
+
+Make a histogram of the estimated slopes. How is this related to the p-value and confidence interval we would get for the slope?
+
+Make a scatter-plot of the data used in the subsets (`BWT` versus `LWT` as before), and add the fitted regression lines and color them red. To get one line for each subset, use the `group = Subset` aesthetic in `geom_line()`.
+
+When we fit a model to 1 data set, we get 1 estimate of slope and 1 regression line. From the plots above you should now have a more correct image: The estimates have an element of randomness, the values we get are just randomly sampled from a range of values. Remember these pictures.
+
+<details>
+<summary>
+<mark>
+Solution
+</mark>
+</summary>
+Here is one way of implementing it:
+```{r}
+library(tidyverse)
+N.sub <- 1000
+sub.size <- 50
+result.tbl <- NULL
+for(i in 1:N.sub){
+  birth.sub <- slice(birth, sample(1:nrow(birth), sub.size))
+  lm.obj <- lm(BWT~LWT, data = birth.sub)
+  res.tbl <- lm.obj$model %>% 
+    mutate(Fitted = lm.obj$fitted.values) %>% 
+    mutate(slope = lm.obj$coefficients[2])
+  result.tbl <- res.tbl %>% 
+    mutate(Subset = i) %>% 
+    bind_rows(result.tbl)
+}
+
+ggplot(result.tbl) +
+  geom_histogram(aes(x = slope), bins = 50)
+
+ggplot(result.tbl) +
+  geom_point(aes(x = LWT, y = BWT), alpha = 0.6) +
+  geom_line(aes(x = LWT, y = Fitted, group = Subset), linewidth = 1, color = "red", alpha = 0.1)
+```
+
+The histogram of the slopes show that in some cases the estimated slope is negative, even if the majority are positive. The p-value is not computed directly from this distribution, see the lectures. This distribution is closer linked to the confidence interval for the slope. Since we have 1000 estimates here, if you discard the 25 most extreme estimates in each side of the histogram, the remaining width of the histogram is a rough estimate for the 95% confidence interval! 
+
+The histogram of the slopes actually shows the same slope value 50 times, since we stored the slope in each of the 50 rows in the `res.tbl`. To select only one from each subset, we could run
+```{r, eval=F}
+result.tbl %>% 
+  group_by(Subset) %>% 
+  slice(1) %>% 
+  ggplot() +
+  geom_histogram(aes(x = slope), bins = 50)
+```
+However, this will not change the shape of the histogram, just make all values on the y-axis smaller (50 times).
+
+The figure showing the "cloud" of regression lines, one for each of the 1000 subsets, is an image you should always remember when you see a single regression line in a plot. The single line is always a random sample of many such lines! The spread between the lines depend on 
+
+* How many data cases we have
+* How well the model fits the data
+* How presicely the data have been collected
+
+To see some effect of the sample size, try to run the simulations again, but reduce the subsets to 25 data cases, or even smaller, and the "cloud" of regression lines get wider.
+</details>
+
+
+```{r, echo = FALSE, purl = FALSE, message=FALSE, results='hide', warning=FALSE}
+library(car)
+library(skimr)
+load("Advertising.Rdata")
+```
+
+# Advertising data
+
+A data set contains sales-numbers of a certain product in 200 markets. In addition there are advertising budgets (in thousand dollars) for each case of TV, radio and newspapers. The question is how large the effect of advertising is on sales. The data are also used in the book "An introduction to statistical learning" which may be found in the curriculum file on CANVAS.
+
+Download the file «Advertising.Rdata» to your computer from the course pages on CANVAS (data module) and load the data into R Studio. Click on the data set listed in the environment window to have a look at the data after it has been loaded.
+
+## Summary statistics
+
+Compute the sample means, the sample standard deviations, and percentiles for all four variables. You may use the skim-function in the skimr-library for this purpose. Which channel for advertising, TV, Radio or Newspaper has on average the largest budgets? In which channel does the advertising costs vary the most?
+
+```{r, echo=TRUE, message=FALSE, eval=FALSE, results='hide'}
+skim(Advertising,Newspaper,Radio,Sales)
+```
+
+<details>
+<summary>
+<mark>
+Solution
+</mark>
+</summary>
+
+```{r, echo=FALSE, message=FALSE, eval=TRUE}
+skim(Advertising,Newspaper,Radio,Sales)
+```
+
+We can see that TV has on average the largest advertising budget with a mean of 147 thousand dollars, and also the largest variation in advertising costs with a standard deviation of 85.85 thousand dollars. 
+</details>
+
+
+## Scatterplots
+
+Create a scatterplot-matrix for all variables using the scatterplotMatrix function as shown below. Use the plot to comment on the dependence (or lack thereof) between the following variable pairs:
+
+* Sales and Newspaper
+* Sales and Radio
+* Sales and TV
+
+
+```{r, echo=TRUE, message=FALSE, results='hide'}
+scatterplotMatrix(~Newspaper+Radio+Sales+TV,regLine=TRUE, smooth=FALSE, data=Advertising)
+```
+
+<details>
+<summary>
+<mark>
+Solution
+</mark>
+</summary>
+From the plots in the row of Sales, we see that the amount of advertisement in newspaper seems to have small effect on the sales. The correlation, if any, is very small and the observations scatter all around with no apparent dependence between the variables. The correlation seems to be positive and higher between sales and radio advertisement. A clear positive trend in sales as radio advertising increases. An even stronger association is found between sales and TV-advertisements. However, the positive effect of TV-advertising is strongest for low advertising budgets. Beyond a certain budget level the effects on sales flattens out. 
+</details>
+
+## Model and assumptions
+
+Assume a regression model with sales as response variable and radio as predictor variable. Write up the model with all assumptions.
+
+<details>
+<summary>
+<mark>
+Solution
+</mark>
+</summary>
+The model is:
+
+$$y_i = \beta_0 + \beta_1 x_i + \epsilon_i$$
+where $i=1,\ldots,200$ and where $y_i$ and $x_i$ is observation $i$ of sales and radio advertisment, respectively, $\beta_0$ is the constant term (intercept), $\beta_1$ is the regression coefficient and the effect of radio and $\epsilon_i$ is the error term with assumptions
+$$\epsilon_i \sim N(0, \sigma^2)$$
+All error terms are assumed independent of each other.
+
+</details>
+
+Fit the model in RStudio. From the output locate the three estimated model parameters and interprete them. Also find the determination coeficient $R^2$ and interprete it.
+
+<details>
+<summary>
+<mark>
+Solution
+</mark>
+</summary>
+
+```{r, echo=TRUE, message=FALSE, results='hide'}
+LinearModel.1 <- lm(Sales ~ Radio, data=Advertising)
+summary(LinearModel.1)
+```
+
+The least squares estimates of the regression coefficients with interpretations are:
+
+$\hat{\beta}_0 = 9.312$ is the expected sales if no radio advertisment is made.
+
+$\hat{\beta}_1 = 0.203$ is the expected change in sales (in thousand dollars) for a unit's increase in the radio advertisement budget.
+
+$\hat{\sigma} = s = 4.275$ is the standard deviation of sales for any given and fixed level of radio advertisment.
+
+The $R^2$ is found to be 0.332, which means that about 33.2 % of total the variation in sales numbers can be explained by the linear model with radio as predictor.
+</details>
+
+## Fitted line plot
+Make a corresponding fitted line plot. This can be done in many ways in R as we've seen earlier by ggplot2, but a simple way using regular plot-function and the abline-function is shown in the code below. 
+
+```{r, echo=TRUE, message=FALSE, results='hide'}
+plot(Sales ~ Radio, data=Advertising, pch=20, cex=2, col ="red")
+abline(LinearModel.1, col="blue", lwd=2)
+```
+
+Do you think the model fits the data well? Do you think the model assumptions as you made in exercise e. are fulfilled?
+
+<details>
+<summary>
+<mark>
+Solution
+</mark>
+</summary>
+From the plot there appears to be a linear association between the variables, but the assumption of constant variance for the error term independent of the level of the x-variable is questionable. The spread around the line seems to increase with increasing radio advertisement budget. Furthermore, the spread beneath the line seems to be larger than above the line which also makes the normal distribution of the errors questionable. 
+</details>
+
+## Model diagnostics
+
+Create some model diagnostics plots. Do the plots support your findings in the previous exercise?
+
+<details>
+<summary>
+<mark>
+Solution
+</mark>
+</summary>
+```{r, echo=TRUE, message=FALSE, results='hide'}
+oldpar <- par(oma=c(0,0,3,0), mfrow=c(2,2))
+plot(LinearModel.1, which = c(1,2,4,5), add.smooth=FALSE)
+par(oldpar)
+```
+
+Yes, the deviations from the model assumptions are even more clear here. From the top-left plot of fitted-values versus residuals, the increasing variance of the residuals as $\hat{y}$ increases is clearly visible. Also from the normality Q-Q plot (top-right) we can see the slight deviation from the normal distribution with a heavier tail towards negative residuals (the observed redisuals are smaller than what is expected according to a normal distribution). 
+</details>
+
+## Other predictor variables
+
+Repeat the previous exercises replacing radio with TV.
+
+<details>
+<summary>
+<mark>
+Solution
+</mark>
+</summary>
+```{r, echo=TRUE, message=FALSE, results='hide'}
+LinearModel.2 <- lm(Sales ~ TV, data=Advertising)
+summary(LinearModel.2)
+```
+
+```{r, echo=TRUE, message=FALSE, results='hide'}
+plot(Sales ~ TV, data=Advertising, pch=20, cex=2, col ="red")
+abline(LinearModel.2, col="blue", lwd=2)
+```
+
+The scatterplot shows a linear relationship between sales and TV for TV-budgets larger than about 50, but across the entire range of TV-budgets the association seems non-linear. The vertical spread around the line is quite even, so the normality assumption may be quite OK, but again, the variability seems to increase with increasing value of x. 
+
+```{r, echo=TRUE, message=FALSE, results='hide'}
+oldpar <- par(oma=c(0,0,3,0), mfrow=c(2,2))
+plot(LinearModel.2, which = c(1,2,4,5), add.smooth=FALSE)
+par(oldpar)
+```
+
+The non-liearity of the association between TV-budget and sales is apparent from the banana shaped residual plot. Also the increasing variance is clear. These are clear violations of the model assumptions, even though the normality seems better here.
+</details>
+
+## Transformation of variables
+
+Create a new transformed Sales variable as the natural logarithm of sales and call it logSales. Also make a new logTV variable in the same way. Click on the "view data set"-button afterwards to check that logSales and logTV were added as new variables to your data set. Here is a way to do this in RStudio:
+
+```{r, echo=TRUE, message=FALSE, eval=FALSE, results='hide'}
+Advertising$logSales <- with(Advertising, log(Sales))
+Advertising$logTV <- with(Advertising, log(TV))
+```
+
+Fit a new model with logSales as response variable and logTV as predictor.
+Run the diagnostics plots. Does the fit improve? Are assumptions fulfilled?
+
+<details>
+<summary>
+<mark>
+Solution
+</mark>
+</summary>
+```{r, echo=FALSE, message=FALSE, results='hide'}
+Advertising$logSales <- with(Advertising, log(Sales))
+Advertising$logTV <- with(Advertising, log(TV))
+LinearModel.4 <- lm(logSales ~ logTV, data=Advertising)
+summary(LinearModel.4)
+oldpar <- par(oma=c(0,0,3,0), mfrow=c(2,2))
+plot(LinearModel.4, which = c(1,2,4,5), add.smooth=FALSE)
+par(oldpar)
+```
+
+The model fit improves a bit. The $R^2$ increases. The residual plot indicates that linearity has improved and that variance is stabilized. However, the normality is now questionable. The model is still better, because tests are more vulnerable to deviations from assumptions of linearity and constant variance than that of normality.
+</details>
+
+## Hypothesis testing
+
+Now that we have found a reasonable model, perform hypothesis tests at 5% level to test the following hypotheses:
+
+$H_0: \beta_1 = 0$ vs $H_1:\beta_1 \neq 0$ 
+
+$H_0: \beta_0 = 0$ vs $H_1:\beta_0 \neq 0$ 
+
+How can we conclude about the effect of logTV on logSales?
+
+<details>
+<summary>
+<mark>
+Solution
+</mark>
+</summary>
+From the regression output we can see that $\hat{\beta}_1 = 0.355$ and that the uncertainty of this estimate, the standard error of the mean is $SE(\hat{\beta_1}) = 0.01487$. We test the hypothesis by constructing the test observator 
+
+$$T = \frac{\hat{\beta_1}-0}{SE(\hat{\beta_1})} = \frac{0.355}{0.01487} = 23.87$$
+We reject the null-hypothesis is this test observator is far from zero, and more specifically if 
+
+$$|T|>t_{\alpha/2, n-p}$$
+where $t_{\alpha/2, n-p}$ is the upper $\alpha/2$ percentile of the t-distribution with $n-p$ degrees of freedom. This value can be read from a t-table, and in our case we have $n=200$ and $p=2$, that is 198 degrees of freedom. If we look up in the t-table, the closest degrees of freedom are 100 and 1000. We choose 1000 since this gives a concervative conclusion. We find $t_{\alpha/2, n-p}=1.9623$ and reject the null-hypothesis. We could also make the same conclusion by observing that the p-value of the last column in the coefficients table is very small, and smaller than the test level 0.05. We can therefore claim that logTV has a significant and positive effect on logSales.
+
+We can repeat the same procedure to test the second hypothesis. We conclude that the intercept of the model is different from zero. 
+</details>
+
+## Confidence intervals
+
+Compute 95% confidence intervals for the regression coefficients as shown in the code here:
+
+```{r, echo=TRUE, eval=FALSE, message=FALSE}
+Confint(LinearModel.4, level=0.95)
+```
+
+How can we interpret these intervals?
+
+<details>
+<summary>
+<mark>
+Solution
+</mark>
+</summary>
+```{r, echo=TRUE, message=FALSE}
+Confint(LinearModel.4, level=0.95)
+```
+It is a 95% probability that the intervals cover the true and unknown value of the regression coefficents.
+</details>
+
+## Optional mathematical exercise 
+
+The model which you just fitted to Sales and TV on the original scale is really:
+$$y_i = \beta_0\cdot x_i^{\beta_1}\cdot \epsilon_i$$
+which is a so-called multiplicative model. Show that the transformations you made to Sales and TV in exercise i. transforms this model into a linear model. How do the estimated regression coefficients of the model you fitted in i. relate to the $\beta_0$ and the $\beta_1$ in the multiplicative model?
+
+<details>
+<summary>
+<mark>
+Solution
+</mark>
+</summary>
+Taking the logarithm on both sides we obtain:
+
+$$
+\begin{split}
+log(y_i) &= log(\beta_0\cdot x_i^{\beta_1}\cdot \epsilon_i))\\
+log(y_i) &= log(\beta_0) + log(x_i^{\beta_1}) + \log(\epsilon_i)\\
+log(y_i) &= log(\beta_0) + \beta_1log(x_i) + \log(\epsilon_i)\\
+y_i^* &= \beta_0^* +\beta_1 x_i^* + \epsilon_i^*
+\end{split}
+$$
+where $y_i^*$ is logSales, $x_i^*$ is logTV. We can see that the intercept we estimated in the transformed model ($\hat{\beta}_0^*=0.905$) really is the logarithm of the $\beta_0$ in the multiplicative model. Hence we can find $\hat{\beta}_0 = \exp(\hat{\beta_0^*})=exp(0.905) = 2.47$. The $\beta_1$ is un-transformed, hence $\hat{\beta}_1 = 0.355$. Furthermore, the error terms in the transformed model are the logarithms of the error terms of the multiplicative model.
+
+To verify this we can add the estimated multiplicative model to a scatterplot of Sales and TV-budget, as in this code:
+```{r, echo=TRUE, message=FALSE, results='hide'}
+plot(Sales~TV, pch=20, cex=2, col="red", data=Advertising)
+curve(2.47*x^(0.355), add=TRUE, lwd=2, col="blue")
+```
+</details>
+

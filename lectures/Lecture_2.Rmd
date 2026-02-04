@@ -52,8 +52,7 @@ Estimation of parameters is equivalent to finding the "best fitting" model.
 Different estimation methods $\Leftrightarrow$ Different definitions of "best".
 
 -   Least squares estimator : The estimates minimize $\sum (y_i - (\widehat{\beta}_0 + \widehat{\beta}_1 x_i))^2$
--   Robust estimator : The estimates minimize $\sum |y_i - (\widehat{\beta}_0 + \widehat{\beta}_1 x_i)|$
--   Maximum likelihood estimator: The estimates make the observed data "most likely"
+-   Equivalent to the maximum likelihood estimator: The estimates make the observed data "most likely"
 
 ## Maximum likelihood formulation
 
@@ -78,7 +77,6 @@ $$ y_i = \beta_0 +\beta_1 x_{1i} + \epsilon_i $$ where $y$ is Weight, $x_1$ is H
 ## Example of model fit in R Studio
 
 ```{r, echo=TRUE, eval=FALSE}
-options(contrasts=c('contr.sum','contr.poly'))
 LinearModel.1 <- lm(Weight ~ Height, data=bodydata, subset=1:20)
 sum.model1 <- summary(LinearModel.1)
 print(sum.model1)
@@ -87,7 +85,6 @@ print(sum.model1)
 ## Output
 
 ```{r, echo=FALSE}
-options(contrasts=c('contr.sum','contr.poly'))
 LinearModel.1 <- lm(Weight ~ Height, data=bodydata, subset=1:20)
 sum.model1 <- summary(LinearModel.1)
 print(sum.model1)
@@ -111,7 +108,6 @@ where $y$ still is Weight, $x_2$ is Circumference and $i=1,\ldots, 20$.
 ## R Commander output
 
 ```{r, echo=FALSE}
-options(contrasts=c('contr.sum','contr.poly'))
 LinearModel.2 <- lm(Weight ~ Circumference, data=bodydata, subset=1:20)
 sum.model2 <- summary(LinearModel.2)
 print(sum.model2)
@@ -126,18 +122,6 @@ The unconditional (sample) variance of Weight is: $$\sum (y_i - \bar{y})^2/(n-1)
 Further, $SSE$ is a measure of unexplained variability in y
 
 So, a measure of explained variability is $$R^2 = \frac{SST-SSE}{SST} = \frac{SSR}{SST}$$
-
-## The ANOVA table
-
-The sums of squares are often presented in an ANOVA table:
-
-We use the 'Anova'-function in the car-library to get the ANOVA table
-
-```{r, echo=TRUE}
-Anova(LinearModel.1, type="II")
-```
-
-The Residuals-line gives the SSE and the total sums of squares, SST, equals the sum of all elements in the "Sum sq" column.
 
 ## Multiple linear regression (Model 3)
 
@@ -165,9 +149,9 @@ print(sum.model4)
 
 ## $R^2$-adjusted
 
-$$R^2 = 1 - \frac{SSE}{SST} \text{The Problem: $R^2$ always increases when adding predictors}$$
+$$R^2 = 1 - \frac{SSE}{SST} \text{, but the Problem: $R^2$ always increases when adding predictors}$$
 
-$$R^2_{\text{adj}} = 1 - \frac{MSE}{Var(y)} = 1 - \frac{SSE/(n-p)}{SST/(n-1)}$$ The Solution: $R^2_{\text{adjusted}}$ penalizes adding parameters
+$$R^2_{\text{adj}} = 1 - \frac{\hat\sigma^2}{\widehat{Var}(y)} = 1 - \frac{SSE/(n-p)}{SST/(n-1)}$$ The Solution: $R^2_{\text{adjusted}}$ penalizes adding parameters
 
 ```{r, echo=FALSE, out.width=400}
 r2 <- c(sum.model1$r.squared, sum.model2$r.squared,
@@ -190,83 +174,9 @@ We may test the **conditional significance** of any predictor using a t-test
 
 -   $H_1: \beta_j \neq 0$ (predictor **does have an effect**)
 
-**Test statistic:** $$T_j = \frac{\widehat{\beta}_j}{SE(\widehat{\beta}_j)} \sim t_{n-p}$$
+**Test statistic:** $$T_j = \frac{\widehat{\beta}_j-0}{SE(\widehat{\beta}_j)} \sim t_{n-p}$$
 
 ## Visual explanation
-
-```{r, echo=FALSE, fig.height=5.5, fig.width=6.25}
-par(mar=c(4,4,2,1))
-
-# Parameters
-df <- 17                      # n - p
-t_obs <- 3.77                 # example observed T (e.g. for Height)
-p_val <- 2 * (1 - pt(abs(t_obs), df))
-
-# Create t-distribution
-x <- seq(-5, 5, length.out = 1000)
-y <- dt(x, df = df)
-
-plot(x, y, type="l", lwd=2.5, col="black",
-     ylab="f(T)", xlab="T statistic",
-     main="Two-Sided t-Test: α = 0.05, df = n-p = 17")
-
-# Rejection regions (fixed, alpha = 0.05)
-x_left  <- seq(-5, -2.11, length.out=100)  # t_{0.025,17} ≈ 2.11
-x_right <- seq(2.11,  5,   length.out=100)
-
-polygon(c(-5, x_left, -2.11),  c(0, dt(x_left,  df=df), 0),
-        col=rgb(1, 0.3, 0.3, 0.4), border=NA)
-polygon(c(2.11, x_right, 5),   c(0, dt(x_right, df=df), 0),
-        col=rgb(1, 0.3, 0.3, 0.4), border=NA)
-
-# Acceptance region
-x_accept <- seq(-2.11, 2.11, length.out=100)
-polygon(c(-2.11, x_accept, 2.11), c(0, dt(x_accept, df=df), 0),
-        col=rgb(0.3, 0.8, 1, 0.3), border=NA)
-
-# Critical values
-abline(v=c(-2.11, 2.11), col="red", lwd=2, lty=2)
-text(-2.11, 0.25, expression(t[0.025]), cex=0.95, pos=2, col="red", font=2)
-text( 2.11, 0.25, expression(t[0.975]), cex=0.95, pos=4, col="red", font=2)
-
-# ---- p-value shading (two-sided) ----
-# Right tail from t_obs
-x_p_right <- seq(t_obs, 5, length.out=100)
-polygon(c(t_obs, x_p_right, 5),
-        c(0,     dt(x_p_right, df=df), 0),
-        col=rgb(0, 0.6, 0, 0.45), border=NA)
-
-# Left tail from -t_obs (mirror)
-x_p_left <- seq(-5, -t_obs, length.out=100)
-polygon(c(-5, x_p_left, -t_obs),
-        c(0,   dt(x_p_left, df=df), 0),
-        col=rgb(0, 0.6, 0, 0.45), border=NA)
-
-# Observed T line and point (positive side)
-abline(v = t_obs, col="darkgreen", lwd=3)
-points(t_obs, 0, pch=19, col="darkgreen", cex=1.4)
-
-# Mirror observed T (negative side)
-abline(v = -t_obs, col="darkgreen", lwd=3, lty=1)
-points(-t_obs, 0, pch=19, col="darkgreen", cex=1.4)
-
-# Labels
-text(-3.5, 0.15, "Reject H0\n(Significant)", cex=0.85, col="darkred", font=2)
-text(0,    0.35, "Fail to reject H0\n(Not significant)", cex=0.85,
-     col="darkblue", font=2)
-text(3.5,  0.15, "Reject H0\n(Significant)", cex=0.85, col="darkred", font=2)
-
-# Shading labels
-text(-4.2, 0.02, "p-value/2", cex=0.75, col="orange", font=2)
-text( 4.2, 0.02, "p-value/2", cex=0.75, col="orange", font=2)
-
-# Text box with numeric p-value
-text(0, 0.22,
-     labels = bquote(T == .(round(t_obs, 2)) ~ " (or " ~ .(round(-t_obs, 2)) ~ ") → two-sided p = " ~
-                     .(round(p_val, 4))),
-     cex=0.85, col="darkgreen", font=2)
-
-```
 
 ## Decision rule
 
@@ -274,7 +184,8 @@ The **p-value** is the probability of observing a test statistic as extreme or m
 
 $$\text{p-value} = P(|T| \geq |T_{\text{obs}}|) = 2 \times P(T > |T_{\text{obs}}|)$$
 
--   **p-value is small** (e.g., 0.002): It's **very unlikely** to observe such an extreme T if $H_0$ were true → Strong evidence against $H_0$ → **Reject** $H_0$ ✓
+-   **p-value is small** (e.g., 0.002): It's **very unlikely** to observe such an extreme
+-   T if $H_0$ were true → Strong evidence against $H_0$ → **Reject** $H_0$
 
 **At significance level of 0.05:**
 

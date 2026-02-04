@@ -418,7 +418,8 @@ big (`size = 5`). Also, color them by `Fuel` such that we may see if
 prices are consistently different between cars running on gasoline (`G`)
 or diesel (`D`). Add proper texts on the axes.
 
-```{r, eval=F, class.source = 'fold-hide'}
+```{r, eval=T, class.source = 'fold-hide'}
+library(ggplot2)
 gg.obj1 <- ggplot(Audi) +
   geom_point(aes(x = Km, y = Price, color = Fuel), size = 5) +
   labs(x = "Km the car has gone", y = "Price", color = "Fuel type")
@@ -428,7 +429,7 @@ print(gg.obj1)
 Next, make a boxplot showing if `Price` distributes different between
 cars with Manual or Automatic `Transition`.
 
-```{r, eval=F, class.source = 'fold-hide'}
+```{r, eval=T, class.source = 'fold-hide'}
 gg.obj2 <- ggplot(Audi) +
   geom_boxplot(aes(x = Transition, y = Price)) +
   labs(x = "Transition (Manual or Automatic)", y = "Prices")
@@ -473,7 +474,8 @@ To solve this, use the `group_by()` and `summarise()` functions from
 factor variable, and then summarise for each group. For example, in the
 `Audi` data we can compute the mean price for cars of both fuel types by
 
-```{r, eval=F}
+```{r, eval=T}
+library(tidyverse)
 Audi %>% 
   group_by(Fuel) %>% 
   summarise(mean_price = mean(Price))

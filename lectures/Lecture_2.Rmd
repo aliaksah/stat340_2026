@@ -35,13 +35,11 @@ Let's use a web applet to discuss the "best" fitting line: <http://solve.shinyap
 
 ## The main idea
 
-A continuous response variable, $y$, is assumed to be linearly dependent on one or several predictor variables, $x_1, x_2, \ldots, x_k$?
+A continuous response variable, $y$, is assumed to be linearly dependent on one or several predictor variables, $x_1, x_2, \ldots, x_p$
 
-A simple regression model (one predictor) $$ y = \beta_0 + \beta_1 x + \epsilon $$
+A simple regression model (one predictor) $ y = \beta_0 + \beta_1 x + \epsilon, \epsilon \sim N(0, \sigma^2)$
 
-A multiple regression model (multiple predictors) $$ y = \beta_0 + \beta_1 x_1 + \beta_2 x_2 + \cdots+ \beta_k x_k +\epsilon $$
-
-where we typically assume $$ \epsilon \sim N(0, \sigma^2) $$
+A multiple regression model (multiple predictors) $ y = \beta_0 + \beta_1 x_1 + \beta_2 x_2 + \cdots+ \beta_p x_p +\epsilon, \epsilon \sim N(0, \sigma^2) $
 
 ## Estimation of regression coefficients
 
@@ -64,9 +62,9 @@ As soon as we have defined the "best" fitting model, we have also defined all di
 
 These distances are the residuals: $$d_i = y_i - (\widehat{\beta}_0 + \widehat{\beta}_1 x_i)$$ for $i=1,\ldots,n$
 
-An unbiased estimator for the error variance $\sigma^2$ depends on these distances through $$ \widehat{\sigma}^2 = \sum d_i^2/(n-p) = \frac{SSE}{(n-p)} = MSE$$
+An unbiased estimator for the error variance $\sigma^2$ depends on these distances through $$ \widehat{\sigma}^2 = \sum d_i^2/(n-p-1) = \frac{SSE}{(n-p-1)} = MSE$$
 
-where $p$ is the number of estimated regression coeffiscients.
+where $p$ is the number of predictors.
 
 ## Example: Regression in R (Model 1)
 
@@ -78,8 +76,7 @@ $$ y_i = \beta_0 +\beta_1 x_{1i} + \epsilon_i $$ where $y$ is Weight, $x_1$ is H
 
 ```{r, echo=TRUE, eval=FALSE}
 LinearModel.1 <- lm(Weight ~ Height, data=bodydata, subset=1:20)
-sum.model1 <- summary(LinearModel.1)
-print(sum.model1)
+summary(LinearModel.1)
 ```
 
 ## Output
@@ -151,7 +148,7 @@ print(sum.model4)
 
 $$R^2 = 1 - \frac{SSE}{SST} \text{, but the Problem: $R^2$ always increases when adding predictors}$$
 
-$$R^2_{\text{adj}} = 1 - \frac{\hat\sigma^2}{\widehat{Var}(y)} = 1 - \frac{SSE/(n-p)}{SST/(n-1)}$$ The Solution: $R^2_{\text{adjusted}}$ penalizes adding parameters
+$$R^2_{\text{adj}} = 1 - \frac{\hat\sigma^2}{\widehat{Var}(y)} = 1 - \frac{SSE/(n-p-1)}{SST/(n-1)}$$ The Solution: $R^2_{\text{adjusted}}$ penalizes adding parameters
 
 ```{r, echo=FALSE, out.width=400}
 r2 <- c(sum.model1$r.squared, sum.model2$r.squared,

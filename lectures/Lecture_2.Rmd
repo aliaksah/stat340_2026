@@ -13,8 +13,14 @@ output:
 
 A motivating example - The body data
 
-```{r, echo=FALSE, message=FALSE}
+```{r}
 library(BIAS.data)
+head(bodydata,10)
+```
+
+## Scatterplots
+
+```{r, echo=FALSE, message=FALSE}
 library(car)
 pairs(bodydata, panel=panel.smooth)
 ```
@@ -39,7 +45,7 @@ A continuous response variable, $y$, is assumed to be linearly dependent on one 
 
 A simple regression model (one predictor) $ y = \beta_0 + \beta_1 x + \epsilon, \epsilon \sim N(0, \sigma^2)$
 
-A multiple regression model (multiple predictors) $ y = \beta_0 + \beta_1 x_1 + \beta_2 x_2 + \cdots+ \beta_p x_p +\epsilon, \epsilon \sim N(0, \sigma^2) $
+A multiple regression model (multiple predictors) $y = \beta_0 + \beta_1 x_1 + \beta_2 x_2 + \cdots+ \beta_p x_p +\epsilon, \epsilon \sim N(0, \sigma^2)$
 
 ## Estimation of regression coefficients
 
@@ -53,6 +59,8 @@ Different estimation methods $\Leftrightarrow$ Different definitions of "best".
 -   Equivalent to the maximum likelihood estimator: The estimates make the observed data "most likely"
 
 ## Maximum likelihood formulation
+
+Recall normal pdf$f(y) = \frac{1}{\sigma\sqrt{2\pi}} \exp\left\{-\frac{1}{2}\left(\frac{y-\mu}{\sigma}\right)^2\right\}$
 
 ## Derivations for maxima
 
@@ -71,6 +79,11 @@ where $p$ is the number of predictors.
 We use samples 1 to 20 of the bodydata as example data (training set)
 
 $$ y_i = \beta_0 +\beta_1 x_{1i} + \epsilon_i $$ where $y$ is Weight, $x_1$ is Height and $i=1,\ldots, 20$.
+
+```{r, echo=FALSE, fig.height=3.5, fig.width=4.5}
+plot(Weight ~ Height, data=bodydata,pch = 1)
+points(Weight ~ Height, data=bodydata,pch = 16, col = 2, subset = 1:20)
+```
 
 ## Example of model fit in R Studio
 
@@ -102,6 +115,11 @@ $$ y_i = \beta_0 +\beta_1 x_{2i} + \epsilon_i $$
 
 where $y$ still is Weight, $x_2$ is Circumference and $i=1,\ldots, 20$.
 
+```{r, echo=FALSE, fig.height=3.5, fig.width=4.5}
+plot(Weight ~ Circumference, data=bodydata,pch = 1)
+points(Weight ~ Circumference, data=bodydata,pch = 16, col = 2, subset = 1:20)
+```
+
 ## R Commander output
 
 ```{r, echo=FALSE}
@@ -118,7 +136,7 @@ The unconditional (sample) variance of Weight is: $$\sum (y_i - \bar{y})^2/(n-1)
 
 Further, $SSE$ is a measure of unexplained variability in y
 
-So, a measure of explained variability is $$R^2 = \frac{SST-SSE}{SST} = \frac{SSR}{SST}$$
+So, a measure of explained variability is $$R^2 = \frac{SST-SSE}{SST} = 1-\frac{SSE}{SST}$$
 
 ## Multiple linear regression (Model 3)
 
@@ -148,7 +166,7 @@ print(sum.model4)
 
 $$R^2 = 1 - \frac{SSE}{SST} \text{, but the Problem: $R^2$ always increases when adding predictors}$$
 
-$$R^2_{\text{adj}} = 1 - \frac{\hat\sigma^2}{\widehat{Var}(y)} = 1 - \frac{SSE/(n-p-1)}{SST/(n-1)}$$ The Solution: $R^2_{\text{adjusted}}$ penalizes adding parameters
+$$R^2_{\text{adj}} = 1 - \frac{\widehat\sigma^2}{\widehat{Var}(y)} = 1 - \frac{SSE/(n-p-1)}{SST/(n-1)}$$ The Solution: $R^2_{\text{adjusted}}$ penalizes adding parameters
 
 ```{r, echo=FALSE, out.width=400}
 r2 <- c(sum.model1$r.squared, sum.model2$r.squared,
@@ -171,7 +189,7 @@ We may test the **conditional significance** of any predictor using a t-test
 
 -   $H_1: \beta_j \neq 0$ (predictor **does have an effect**)
 
-**Test statistic:** $$T_j = \frac{\widehat{\beta}_j-0}{SE(\widehat{\beta}_j)} \sim t_{n-p}$$
+**Test statistic:** $$T_j = \frac{\widehat{\beta}_j-0}{SE(\widehat{\beta}_j)} \sim t_{n-p-1}$$
 
 ## Visual explanation
 
@@ -186,8 +204,8 @@ $$\text{p-value} = P(|T| \geq |T_{\text{obs}}|) = 2 \times P(T > |T_{\text{obs}}
 
 **At significance level of 0.05:**
 
--   Reject $H_0$ if $|T_j| > t_{\alpha/2, n-p}$ (i.e., p-value $< 0.05$)
--   Fail to reject $H_0$ if $|T_j| \leq t_{\alpha/2, n-p}$ (i.e., p-value $\geq 0.05$)
+-   Reject $H_0$ if $|T_j| > \tau_{\alpha/2, n-p-1}$ (i.e., p-value $< 0.05$)
+-   Fail to reject $H_0$ if $|T_j| \leq \tau_{\alpha/2, n-p-1}$ (i.e., p-value $\geq 0.05$)
 
 ## Example: Model 4 Significance tests
 
@@ -197,7 +215,7 @@ sum.model4$coef
 
 **Key insight:**
 
--   Age is not significant (p = 0.260 \>\> 0.05)
+-   Age is not significant (p = 0.582 \>\> 0.05)
 
 -   Explains why adding Age slightly reduces $R^2_{\text{adj}}$ - Model 3 (without Age) is **better choice** than Model 4
 
@@ -205,7 +223,7 @@ sum.model4$coef
 
 ## Confidence interval for regression coefficients
 
-A $(1-\alpha)\cdot 100 \%$ for $\beta_j$ is mathematically given by: $$ \left[ \widehat{\beta}_j\pm t_{\alpha/2, (n-p)} SE(\widehat{\beta}_j) \right]$$
+A $(1-\alpha)\cdot 100 \%$ for $\beta_j$ is mathematically given by: $$ \left[ \widehat{\beta}_j\pm \tau_{\alpha/2, (n-p-1)} SE(\widehat{\beta}_j) \right]$$
 
 In RStudio we can get these (ex. for model 4) by
 
@@ -233,7 +251,7 @@ $$
 
 ```{r, echo=TRUE}
 newobs <- data.frame('Height'=171, 'Circumference'=76, 'Age'=30)
-predict.lm(LinearModel.4, newdata=newobs, level=0.95)
+predict.lm(LinearModel.4, newdata=newobs)
 ```
 
 ## Other intervals in Prediction output
@@ -260,14 +278,52 @@ Let's predict the 387 extra observations and compare with actual observations!
 pred <- predict(LinearModel.4, newdata=bodydata[-c(1:20),], 
   interval="prediction", level=0.95)
 head(pred,12)
+
+conf <- predict.lm(LinearModel.4, newdata=bodydata[-c(1:20),], 
+           level=0.95, interval=c("confidence"))
 ```
 
 ## Predicted vs observed - plot
 
 ```{r, echo=FALSE, out.width=700, out.height=400}
+
 newWeight <- bodydata[-c(1:20),1]
-plot(newWeight,pred[,1], xlab="Observed", ylab="Predicted")
-curve(1*x, add=TRUE, col=2, lwd=2)
+
+ord <- order(newWeight)
+x   <- newWeight[ord]
+
+## central fits
+fit_mean <- pred[ord, 1]         # or your mean-prediction object
+fit_mean_s <- predict(loess(fit_mean ~ x, span = 0.5))
+
+## mean CI
+lwr_ci <- conf[ord, 2]
+upr_ci <- conf[ord, 3]
+lwr_ci_s <- predict(loess(lwr_ci ~ x, span = 0.5))
+upr_ci_s <- predict(loess(upr_ci ~ x, span = 0.5))
+
+## predictive PI
+lwr_pi <- pred[ord, 2]
+upr_pi <- pred[ord, 3]
+lwr_pi_s <- predict(loess(lwr_pi ~ x, span = 0.5))
+upr_pi_s <- predict(loess(upr_pi ~ x, span = 0.5))
+
+plot(x, fit_mean, xlab = "Observed", ylab = "Predicted")
+#curve(1 * x, add = TRUE, col = 2, lwd = 2)
+
+## mean fit
+#lines(x, fit_mean_s, col = "red", lwd = 2)
+
+## confidence band for mean
+lines(x, lwr_ci_s, col = "blue",  lwd = 1.5, lty = 2)
+lines(x, upr_ci_s, col = "blue",  lwd = 1.5, lty = 2)
+
+## prediction band (wider)
+lines(x, lwr_pi_s, col = "darkgreen", lwd = 1.5, lty = 3)
+lines(x, upr_pi_s, col = "darkgreen", lwd = 1.5, lty = 3)
+
+
+
 ```
 
 ## Checking the prediction intervals

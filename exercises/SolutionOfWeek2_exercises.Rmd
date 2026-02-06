@@ -583,8 +583,8 @@ From the regression output we can see that $\hat{\beta}_1 = 0.355$ and that the 
 $$T = \frac{\hat{\beta_1}-0}{SE(\hat{\beta_1})} = \frac{0.355}{0.01487} = 23.87$$
 We reject the null-hypothesis is this test observator is far from zero, and more specifically if 
 
-$$|T|>t_{\alpha/2, n-p}$$
-where $t_{\alpha/2, n-p}$ is the upper $\alpha/2$ percentile of the t-distribution with $n-p$ degrees of freedom. This value can be read from a t-table, and in our case we have $n=200$ and $p=2$, that is 198 degrees of freedom. If we look up in the t-table, the closest degrees of freedom are 100 and 1000. We choose 1000 since this gives a concervative conclusion. We find $t_{\alpha/2, n-p}=1.9623$ and reject the null-hypothesis. We could also make the same conclusion by observing that the p-value of the last column in the coefficients table is very small, and smaller than the test level 0.05. We can therefore claim that logTV has a significant and positive effect on logSales.
+$$|T|>t_{\alpha/2, n-p-1}$$
+where $t_{\alpha/2, n-p-1}$ is the upper $\alpha/2$ percentile of the t-distribution with $n-p-1$ degrees of freedom. This value can be read from a t-table, and in our case we have $n=200$ and $p=1$, that is 198 degrees of freedom. If we look up in the t-table, the closest degrees of freedom are 100 and 1000. We choose 1000 since this gives a concervative conclusion. We find $t_{\alpha/2, n-p-1}=1.9623$ and reject the null-hypothesis. We could also make the same conclusion by observing that the p-value of the last column in the coefficients table is very small, and smaller than the test level 0.05. We can therefore claim that logTV has a significant and positive effect on logSales.
 
 We can repeat the same procedure to test the second hypothesis. We conclude that the intercept of the model is different from zero. 
 </details>

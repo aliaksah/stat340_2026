@@ -43,9 +43,13 @@ Let's use a web applet to discuss the "best" fitting line: <http://solve.shinyap
 
 A continuous response variable, $y$, is assumed to be linearly dependent on one or several predictor variables, $x_1, x_2, \ldots, x_p$
 
-A simple regression model (one predictor) $ y = \beta_0 + \beta_1 x + \epsilon, \epsilon \sim N(0, \sigma^2)$
+A simple regression model (one predictor)
 
-A multiple regression model (multiple predictors) $y = \beta_0 + \beta_1 x_1 + \beta_2 x_2 + \cdots+ \beta_p x_p +\epsilon, \epsilon \sim N(0, \sigma^2)$
+$y = \beta_0 + \beta_1 x + \epsilon, \epsilon \sim N(0, \sigma^2)$
+
+A multiple regression model (multiple predictors)
+
+$y = \beta_0 + \beta_1 x_1 + \beta_2 x_2 + \cdots+ \beta_p x_p +\epsilon, \epsilon \sim N(0, \sigma^2)$
 
 ## Estimation of regression coefficients
 

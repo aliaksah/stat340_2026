@@ -1,0 +1,245 @@
+---
+title: "Exercises STAT340 - Regression analysis - part II"
+author: "Solve Sæbø" 
+date: "Feb 18 2025"
+params:
+  vis.forslag: false
+output:
+  html_document:
+    toc: true
+    theme: yeti
+    code_folding: hide
+    number_sections: true
+editor_options: 
+  chunk_output_type: console
+  markdown: 
+    wrap: 72
+---
+
+```{=html}
+<style>
+.main-container, .main-content { max-width: 100%; }
+.info { background-color:aliceblue; }
+.task { background-color:lightpink; }
+</style>
+```
+
+```{r forslag, include = FALSE}
+vis.forslag <- params$vis.forslag
+```
+
+```{r forklar forslag, echo = FALSE, results = "asis", include = vis.forslag}
+cat('
+<mark>
+**LØSNINGSFORSLAG!**
+
+Disse vises nedenfor på ulike måter:
+<mark>Gulmerking</mark> av tekstforslag til løsning, eller kommentarer om alternative løsninger.
+* Noe <button>Code</button> som var skjult i øvingsdokumentet.
+<details>
+<summary>
+<mark>
+Noen løsningsforslag er skjult inni hint.
+</mark>
+</summary>
+Da må du utvide hintene for å se løsningsforslagene.  
+
+</details>
+')
+```
+
+<br> <br> <br> <br>
+
+::: info
+**Colloquium exercises:** You are encouraged to work together in groups
+on the exercises. Sharing problems and solutions is often a much quicker
+way to learn, especially for problems of a more practical nature.
+:::
+
+<br>
+
+# The mtcars data (on CANVAS)
+
+We will use an old data set from 1974 on gasoline consumption for
+various cars. The data set is called `mtcars`. Load down the
+mtcars.Rdata file from CANVAS and load it into RStudio.
+
+```{r, echo=FALSE}
+head(mtcars)
+```
+
+a)  Fit a multiple linear regression model with mpg (Miles/Gallon) as
+    response variable and `wt` (Weight) and `cyl` (Number of cylinders)
+    as predictors. Call the model object "`cars1`".
+
+```{r, echo=FALSE}
+options(contrasts=c('contr.sum','contr.poly'))
+cars1 <- lm(mpg ~ cyl + wt, data=mtcars)
+```
+
+b)  Check the model assumptions by residual analysis.
+
+<details>
+
+<summary><mark> Solution </mark></summary>
+
+```{r, echo=FALSE}
+par(mfrow = c(2,2)) #This creates a layout for plots, one row and two columns
+plot(cars1, ask=FALSE)
+```
+
+</details>
+
+c)  Report the regression results and compute the ANOVA-table.
+
+<details>
+
+<summary><mark> Solution </mark></summary>
+
+```{r, echo=FALSE}
+summary(cars1)
+anova(cars1)
+```
+
+</details>
+
+d)  Write a short report on the results.
+
+<details>
+
+<summary><mark> Solution </mark></summary>
+
+Both `cyl` and `wt` appears to be highly significant predictors for
+`mpg`. The estimated effects are negative implying that the mileage
+decreases as both weight and cylinder numbers increase, which is a
+reasonable result. The $R^2$ is `r round(summary(cars1)$r.squared,3)`,
+hence, about `r round(summary(cars1)$r.squared*100,0)`% of the
+variability in mileage is explained by the linear relationship with
+`cyl` and `wt`. The residual plot of fitted values versus residuals
+gives an indication of a non-linear relationship, which may be a result
+of non-linear dependencies or missing explanatory variable(s). The
+normal probability plot is more or less OK.
+
+</details>
+
+# Influential measurements
+
+a)  Use the influence.measures function to compute the Cook's distances
+    and the leverage (hat) values for all observations according to the
+    `cars1` model. A rule of thumb is that Cook's distance (column
+    'cook.d') larger than 1, and leverage (column 'hat') above $2p/n$
+    should be checked for influence. Are there any influential
+    observations according to these measures?
+
+<details>
+
+<summary><mark> Solution </mark></summary>
+
+```{r, echo=FALSE}
+influence.measures(cars1)
+```
+
+Three observations have larger leverage (hat-value) than
+$2p/n = 2 \times 3/32 = 0.1875$. These are potentially influential
+observations. However, their Cook's distances are far below 1, hence
+their positions in the predictor space do not influence the estimated
+model noteworthy.
+
+</details>
+
+# Model selection
+
+a)  Fit a third multiple linear regression model with mpg (Miles/Gallon)
+    as response variable and `cyl`, `disp`, `hp`, `drat`, `wt` and
+    `qsec` as predictor variables. Call the model object "`cars2`".
+    Report a summary of the analysis.
+
+<details>
+
+<summary><mark> Solution </mark></summary>
+
+```{r, echo=FALSE}
+cars2 <- lm(mpg ~ cyl + disp + hp + drat + wt + qsec, data = mtcars)
+summary(cars2)
+```
+
+Apparently only wt is significant, but having many variables in a model
+may lead to inflated standard errors of the estimates due to correlation
+between predictors, and problems finding truly significant variables.
+
+</details>
+
+b)  We would like to check various sub-models of this model by combining
+    different variables. Use the "best subsets" method in the
+    mixlm-package to find a good reduced model based on adjusted
+    R-squared. Use the 'nbest=3' argument to get the three best models
+    for each model size. Which model would you select?
+
+```{r, echo=FALSE}
+library(mixlm)
+best.subsets(cars2, nbest=3)
+```
+
+The model size is given in the first column. Column two is the rank
+within model size, then comes a column for each variable with a star
+indicating that a given variable is part of the model. Finally comes the
+residual sum of squares (RSS or SSE), $R^2$, $R^2$-adjusted and finally
+a diagnostic called Mallow's Cp (not covered in this course). Which
+sub-model would you say is the best fitting model according to the
+$R^2$-adjusted?
+
+<details>
+
+<summary><mark> Solution </mark></summary>
+
+A couple of models are quite similar, but the largest $R^2$-adjusted is
+obtained with a model with predictors `cyl`, `hp` and `wt`. This is also
+a quite simple model with few predictors. We should always strive for
+simple models and choose the simpler model in cases where the fit
+appears to be more or less equal for several models.
+
+</details>
+
+## Optional mathematical exercise
+
+The last model you fitted last week to Sales and TV (Advertising data)
+on the original scale was really:
+$$y_i = \beta_0\cdot x_i^{\beta_1}\cdot \epsilon_i$$ which is a
+so-called multiplicative model. Show that the transformations you made
+to Sales and TV in exercise i. transforms this model into a linear
+model. How do the estimated regression coefficients of the model you
+fitted in i. relate to the $\beta_0$ and the $\beta_1$ in the
+multiplicative model?
+
+<details>
+
+<summary><mark> Solution </mark></summary>
+
+Taking the logarithm on both sides we obtain:
+
+$$
+\begin{split}
+log(y_i) &= log(\beta_0\cdot x_i^{\beta_1}\cdot \epsilon_i))\\
+log(y_i) &= log(\beta_0) + log(x_i^{\beta_1}) + \log(\epsilon_i)\\
+log(y_i) &= log(\beta_0) + \beta_1log(x_i) + \log(\epsilon_i)\\
+y_i^* &= \beta_0^* +\beta_1 x_i^* + \epsilon_i^*
+\end{split}
+$$ where $y_i^*$ is logSales, $x_i^*$ is logTV. We can see that the
+intercept we estimated in the transformed model
+($\hat{\beta}_0^*=0.905$) really is the logarithm of the $\beta_0$ in
+the multiplicative model. Hence we can find
+$\hat{\beta}_0 = \exp(\hat{\beta_0^*})=exp(0.905) = 2.47$. The $\beta_1$
+is un-transformed, hence $\hat{\beta}_1 = 0.355$. Furthermore, the error
+terms in the transformed model are the logarithms of the error terms of
+the multiplicative model.
+
+To verify this we can add the estimated multiplicative model to a
+scatterplot of Sales and TV-budget, as in this code:
+
+```{r, echo=FALSE, message=FALSE, results='hide'}
+load("Advertising.Rdata")
+plot(Sales~TV, pch=20, cex=2, col="red", data=Advertising)
+curve(2.47*x^(0.355), add=TRUE, lwd=2, col="blue")
+```
+
+</details>

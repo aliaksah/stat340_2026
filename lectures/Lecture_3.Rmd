@@ -1,0 +1,339 @@
+---
+title: "Regression 2"
+author: "Aliaksandr Hubin"
+date: "February 17 2026"
+output:
+  ioslides_presentation: default
+  slidy_presentation: default
+editor_options:
+  markdown:
+    wrap: 72
+---
+
+## Topics for this lecture
+
+-   Significance of regression, the F-test
+-   Interaction effects
+-   Model checking
+-   Polynomial regression
+-   Transformations of the response
+-   Variable selection
+
+## The body data
+
+Let's again look at the body data and the model: $$ 
+y_i = \beta_0 + \beta_1 x_{1i} + \beta_2 x_{2i} + \beta_3 x_{3i}+\epsilon_i
+$$ with the usual assumption of independent errors distributed as
+$\epsilon_i \sim N(0, \sigma^2)$. Here $y_i$ is the body weight of
+person $i$, $x_{1i}$ the height, $x_{2i}$ is the circumference and
+$x_{3i}$ is the age of the same person.
+
+## Significance of regression?
+
+We have seen how we can test the significance of single predictor terms
+with T-tests in the previous lesson.
+
+We may also test the overall significance of the regression model.
+
+Recall from earlier that $R^2 = \frac{SSR}{SST}$ is a measure of model
+fit. If the model can explain much of the observed variability in $y$,
+then SSR is close to SST and big compared to SSE.
+
+Can be shown that a convenient test observator, typically named $F$ (for
+Fisher) is:
+
+$$F = \frac{SSR/p}{SSE/(n-p-1)}$$
+
+## The F-test for overall significance of regression
+
+Hypothesis:
+
+$H_0: \beta_1 = \beta_2 = \cdots = \beta_p = 0$ vs $H_1:$ at least one
+$\beta_j \neq 0$.
+
+Reject the null hypothesis at test level $\alpha$ if $F$ is large, and
+more specifically if
+
+$F > F_{\alpha, p, n-p-1}$
+
+Let's see how this turns out for the body data model.
+
+## The F-test illustration
+
+## The body data
+
+```{r, echo=TRUE, eval=FALSE}
+body1 <- lm(Weight ~  Height + Circumference + Age, data=bodydata)
+Atab <- anova(body1)
+```
+
+```{r, echo=FALSE}
+library(BIAS.data)
+data(bodydata)
+body1 <- lm(Weight ~  Height + Circumference + Age, data=bodydata)
+Atab <- anova(body1)
+print(Atab)
+SST <- sum(Atab[1:4,2])
+SSR <- SST - Atab[4,2]
+CSST <- cumsum(Atab[1:4,2])
+cat('', '\n')
+cat(' SST = ', SST, ', SSR = ', SSR, ';\n Cummulative SST', CSST, ';\n F = ', (SSR/3)/(Atab[4,2]/Atab[4,1]), '\n')
+
+```
+
+## The body data - Compare with previous
+
+```{r, echo=TRUE, eval=FALSE}
+body1 <- lm(Weight ~  Height + Circumference + Age, data=bodydata)
+Atab <- anova(body1)
+```
+
+```{r, echo=FALSE}
+library(BIAS.data)
+data(bodydata)
+body1 <- lm(Weight ~ Circumference + Height + Age, data=bodydata)
+Atab <- anova(body1)
+print(Atab)
+SST <- sum(Atab[1:4,2])
+SSR <- SST - Atab[4,2]
+cat(' ', '\n')
+cat('SST = ', SST, ', SSR = ', SSR, ', F = ', (SSR/3)/(Atab[4,2]/Atab[4,1]), '\n')
+
+```
+
+## Interaction effects
+
+Interaction effects occur when the effect of one variable on the
+response variable depends on the level/value of another variable.
+
+Consider the model: $$
+y_i = \beta_0 + \beta_1 x_{1i} + \beta_2 x_{2i} + \beta_3 x_{3i} + \beta_4 x_{2i}x_{3i} + \epsilon_i
+$$
+
+here we have expanded the model with an interaction term between $x_2$
+and $x_3$ (between circumference and age). How should we interpret this
+model?
+
+## How to fit the model in RStudio
+
+```{r, echo=TRUE, eval=FALSE}
+data(bodydata)
+body2 <- lm(Weight ~ Height + Circumference + Age + 
+              Circumference:Age, data=bodydata)
+summary(body2)
+```
+
+## The output
+
+```{r, echo=FALSE}
+data(bodydata)
+body2 <- lm(Weight ~ Height + Circumference + Age + Circumference:Age, data=bodydata)
+summary(body2)
+```
+
+## Model checking
+
+In standard linear regression we typically assume:
+
+-   Linearity
+-   Constant variance
+-   Independent observations
+-   Normality
+
+We should check that these assumptions are OK. Typically we do this by
+examining the residuals
+
+## Residual plots
+
+```{r, echo=TRUE}
+par(mfrow=c(2,2), mar=c(4.5,4,1.5,1.5))
+plot(body2, ask=FALSE)
+```
+
+## Explanations of the Q-Q plot
+
+## Another example - Bears
+
+```{r, echo=FALSE}
+data(bears)
+bears1 <- lm(Weight ~ Length, data=bears)
+```
+
+```{r, echo=FALSE}
+plot(Weight ~ Length, data=bears, pch=20, cex=2, ylim=c(0,250))
+abline(bears1, col=2, lwd=2)
+```
+
+## Residual plots
+
+```{r, echo=TRUE}
+par(mfrow=c(2,2), mar=c(4.5,4,1.5,1.5))
+plot(bears1, ask=FALSE)
+```
+
+## Outliers and influence statistics
+
+-   Leverage
+-   Standardized residuals
+-   Deleted residuals (PRESS residuals) (predict the deleted leave out
+    one point)
+-   Cook's distance (combines leverage and standardized residuals) \> 1,
+    can be dangerous
+
+## Explain leverage
+
+## Explain standardized residuals
+
+## Polynomial regression
+
+Non-linear relationships may be modelled by polynomial regression.
+
+Bear example
+
+-   $y=$ Weight
+-   $x_1$ = Length
+-   $x_2$ = Length$^2$
+
+A multiple LINEAR model (linear in the $\beta$'s)
+
+$$y = \beta_0 + \beta_1 x_1 + \beta_2 x_2 + \epsilon$$
+
+## Fitting the model in R
+
+```{r, echo=TRUE}
+data(bears)
+bears2 <- lm(Weight ~ Length + I(Length^2), data=bears)
+summary(bears2)
+```
+
+## A fitted line plot
+
+```{r, echo=FALSE}
+plot(Weight ~ Length, data=bears)
+curve(291.62 -5.29*x + 0.026*x^2, add=TRUE, lwd=2, col="red")
+```
+
+## Careful! Over-fitting!
+
+```{r, echo=FALSE}
+data(bears)
+bears3 <- lm(Weight ~ Length + I(Length^2) + I(Length^3) + I(Length^4) + I(Length^5), data=bears)
+pred <- predict(bears3, newdata=data.frame(Length=seq(90, 190, 1)))
+plot(Weight ~ Length, data=bears, main=bears3$call, cex.main=0.7)
+lines(seq(90, 190, 1), pred, col="red", lwd=2)
+```
+
+## Careful! Over-fitting!
+
+```{r, echo=FALSE}
+data(bears)
+bears3 <- lm(Weight ~ Length + I(Length^2) + I(Length^3) + I(Length^4) + I(Length^5) + I(Length^6) + I(Length^7) + I(Length^8) + I(Length^9) + I(Length^10), data=bears)
+pred <- predict(bears3, newdata=data.frame(Length=seq(90, 190, 1)))
+plot(Weight ~ Length, data=bears, main=bears3$call, cex.main=0.7)
+lines(seq(90, 190, 1), pred, col="red", lwd=2)
+```
+
+## Careful! Over-fitting!
+
+```{r, echo=FALSE}
+data(bears)
+bears3 <- lm(Weight ~ -1 + poly(Length,15), data=bears)
+pred <- predict(bears3, newdata=data.frame(Length=seq(90, 190, 1)))
+plot(Weight ~ Length, data=bears, main=bears3$call, cex.main=0.7)
+lines(seq(90, 190, 1), pred, col="red", lwd=2)
+```
+
+## Transformations
+
+Deviations from model assumptions may be fixed by transforming $y$
+and/or $x$.
+
+Some transformations which may improve linearity and stabilize variance
+are
+
+-   $y' = log(y)$
+-   $x' = log(x)$
+-   $y' = \sqrt{y}$
+
+Then use $y'$ and/or $x'$ instead of $y$ and $x$ to fit the model
+
+## The log(Weight) response model
+
+```{r, echo=TRUE}
+bears4 <- lm(log(Weight) ~ Length, data=bears)
+summary(bears4)
+```
+
+## Explain the transformation and backtransformation
+
+## Residual plots
+
+```{r, echo=TRUE}
+par(mfrow=c(2,2), mar=c(4.5,4,1.5,1.5))
+plot(bears4, ask=FALSE)
+```
+
+## A fitted line plot
+
+```{r, echo=FALSE}
+plot(Weight ~ Length, data=bears)
+curve(exp(0.71 + 0.025*x), add=TRUE, lwd=2, col="red")
+```
+
+## Variable selection
+
+Variable selection is the process of selecting a subset of variables
+that are most relevant for the response in some way.
+
+Various approaches. Some are based on hypothesis testing, some on some
+information criteria (like Akaike's Information Criteria, AIC)
+
+Sometimes combined with stepwise approaches like:
+
+-   Forward selection
+-   Backward selection
+-   Forward/Backward
+-   Backward/Forward
+-   All subsets selection
+
+## Stepwise methods - Backward selection
+
+```{r, echo=TRUE, eval=FALSE }
+data(bodydata)
+library(mixlm)
+body1 <- lm(Weight ~ Height*Circumference*Age, data=bodydata, subset=1:50)
+backward(body1, alpha=0.05)
+```
+
+## Stepwise methods - Forward selection
+
+```{r, echo=TRUE, eval=FALSE }
+data(bodydata)
+library(mixlm)
+body1 <- lm(Weight ~ Height*Circumference*Age, data=bodydata, subset=1:50)
+forward(body1, alpha=0.05)
+```
+
+## Best subsets method
+
+If the number of candidate variables, $k$, is limited, we may compare
+all possible models
+
+There are $2^k$ possible models
+
+Compare all model fits by $R^2$, $R^2_{adj}$ and $SSE$ (also called
+$RSS$)
+
+Choose model based on:
+
+-   Goodness of fit
+-   Simplicity
+
+## Best subsets method - Example
+
+```{r, echo=TRUE, eval=FALSE }
+data(bodydata)
+library(mixlm)
+body1 <- lm(Weight ~ Height*Circumference*Age, data=bodydata, subset=1:50)
+best.subsets(body1, nbest=2)
+```

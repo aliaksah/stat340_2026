@@ -139,7 +139,7 @@ How can we claim that this model gives a better fit than model1?
 
 ## A measure of goodness of fit, the $R^2$
 
-The unconditional (sample) variance of Weight is: $$\sum (y_i - \bar{y})^2 = {SST}$$ Hence, $SST$ (in some literature $SSY$) is a mesure of total variability in y, the response
+The unconditional (sample) variability of Weight is: $$\sum (y_i - \bar{y})^2 = {SST}$$ Hence, $SST$ (in some literature $SSY$) is a measure of total variability in y, the response
 
 Further, $SSE$ is a measure of unexplained variability in y
 

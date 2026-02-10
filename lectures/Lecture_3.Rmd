@@ -28,6 +28,133 @@ $\epsilon_i \sim N(0, \sigma^2)$. Here $y_i$ is the body weight of
 person $i$, $x_{1i}$ the height, $x_{2i}$ is the circumference and
 $x_{3i}$ is the age of the same person.
 
+```{r, echo=FALSE}
+library(BIAS.data)
+```
+
+## Our model with 3 predictors
+
+```{r, echo=FALSE}
+LinearModel.4 <- lm(Weight ~ Height + Circumference + Age, data=bodydata, 
+  subset=1:20)
+sum.model4 <- summary(LinearModel.4)
+print(sum.model4)
+```
+
+## Prediction
+
+A fitted model can be used for prediction of new observations
+
+According to model 4, what is the predicted Weight of some person with
+these values?
+
+```{r, echo=FALSE}
+newObs <- data.frame(Height=171, Circumference=76, Age=30)
+print(newObs)
+```
+
+$
+\widehat{y} = -66.579 + 0.4768\cdot171 + 0.7769\cdot76 - 0.2094\cdot30 
+= 67.72
+$
+
+```{r, echo=TRUE}
+newobs <- data.frame('Height'=171, 'Circumference'=76, 'Age'=30)
+predict.lm(LinearModel.4, newdata=newobs)
+```
+
+## Other intervals in Prediction output
+
+Confidence interval for $E(y|x_1, \ldots, x_p)$
+
+```{r, echo=TRUE}
+predict.lm(LinearModel.4, newdata=newobs, 
+           level=0.95, interval=c("confidence"))
+```
+
+Prediction interval for $y|x_1, \ldots, x_p$
+
+```{r, echo=TRUE}
+predict.lm(LinearModel.4, newdata=newobs, 
+           level=0.95, interval=c("prediction"))
+```
+
+## Compare real and predicted values
+
+Let's predict the 387 extra observations and compare with actual
+observations!
+
+```{r, echo=FALSE}
+pred <- predict(LinearModel.4, newdata=bodydata[-c(1:20),], 
+  interval="prediction", level=0.95)
+head(pred,12)
+
+conf <- predict.lm(LinearModel.4, newdata=bodydata[-c(1:20),], 
+           level=0.95, interval=c("confidence"))
+```
+
+## Predicted vs observed - plot
+
+```{r, echo=FALSE, out.width=700, out.height=400}
+
+newWeight <- bodydata[-c(1:20),1]
+
+ord <- order(newWeight)
+x   <- newWeight[ord]
+
+## central fits
+fit_mean <- pred[ord, 1]         # or your mean-prediction object
+fit_mean_s <- predict(loess(fit_mean ~ x, span = 0.5))
+
+## mean CI
+lwr_ci <- conf[ord, 2]
+upr_ci <- conf[ord, 3]
+lwr_ci_s <- predict(loess(lwr_ci ~ x, span = 0.5))
+upr_ci_s <- predict(loess(upr_ci ~ x, span = 0.5))
+
+## predictive PI
+lwr_pi <- pred[ord, 2]
+upr_pi <- pred[ord, 3]
+lwr_pi_s <- predict(loess(lwr_pi ~ x, span = 0.5))
+upr_pi_s <- predict(loess(upr_pi ~ x, span = 0.5))
+
+plot(x, fit_mean, xlab = "Observed", ylab = "Predicted")
+#curve(1 * x, add = TRUE, col = 2, lwd = 2)
+
+## mean fit
+#lines(x, fit_mean_s, col = "red", lwd = 2)
+
+## confidence band for mean
+lines(x, lwr_ci_s, col = "blue",  lwd = 1.5, lty = 2)
+lines(x, upr_ci_s, col = "blue",  lwd = 1.5, lty = 2)
+
+## prediction band (wider)
+lines(x, lwr_pi_s, col = "darkgreen", lwd = 1.5, lty = 3)
+lines(x, upr_pi_s, col = "darkgreen", lwd = 1.5, lty = 3)
+
+
+
+```
+
+## Checking the prediction intervals
+
+How many observations fell within the prediction intervals?
+
+```{r, echo=TRUE}
+largerthanlower <- (newWeight > pred[,2])
+smallerthanupper <- (newWeight < pred[,3])
+inInterval <- which(largerthanlower & smallerthanupper)
+print(length(inInterval))
+```
+
+Proportion of observations within prediction intervals:
+
+```{r, echo=TRUE}
+length(inInterval)/length(newWeight)
+```
+
+What should we expect?
+
 ## Significance of regression?
 
 We have seen how we can test the significance of single predictor terms

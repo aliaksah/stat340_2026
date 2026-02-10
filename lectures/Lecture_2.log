@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023) (preloaded format=pdflatex 2024.1.19)  30 JAN 2026 11:01
+This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023) (preloaded format=pdflatex 2024.1.19)  10 FEB 2026 10:24
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -747,92 +747,104 @@ No file Lecture_2.nav.
 [1
 
 {/Users/aliaksandrhome/Library/TinyTeX/texmf-var/fonts/map/pdftex/updmap/pdftex.map}{/Users/aliaksandrhome/Library/TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-ec.enc}]
-<Lecture_2_files/figure-beamer/unnamed-chunk-1-1.pdf, id=21, 722.7pt x 505.89pt>
-File: Lecture_2_files/figure-beamer/unnamed-chunk-1-1.pdf Graphic file (type pdf)
-<use Lecture_2_files/figure-beamer/unnamed-chunk-1-1.pdf>
-Package pdftex.def Info: Lecture_2_files/figure-beamer/unnamed-chunk-1-1.pdf  used on input line 156.
-(pdftex.def)             Requested size: 722.69823pt x 505.88875pt.
-[2
+\openout4 = `Lecture_2.vrb'.
 
- <./Lecture_2_files/figure-beamer/unnamed-chunk-1-1.pdf>]
-<Lecture_2_files/figure-beamer/unnamed-chunk-2-1.pdf, id=33, 722.7pt x 505.89pt>
+(./Lecture_2.vrb
+LaTeX Font Info:    Trying to load font information for T1+lmtt on input line 6.
+(/Users/aliaksandrhome/Library/TinyTeX/texmf-dist/tex/latex/lm/t1lmtt.fd
+File: t1lmtt.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
+)
+LaTeX Font Info:    Font shape `T1/lmtt/bx/n' in size <10.95> not available
+(Font)              Font shape `T1/lmtt/b/n' tried instead on input line 7.
+) [2
+
+]
+<Lecture_2_files/figure-beamer/unnamed-chunk-2-1.pdf, id=29, 722.7pt x 505.89pt>
 File: Lecture_2_files/figure-beamer/unnamed-chunk-2-1.pdf Graphic file (type pdf)
 <use Lecture_2_files/figure-beamer/unnamed-chunk-2-1.pdf>
-Package pdftex.def Info: Lecture_2_files/figure-beamer/unnamed-chunk-2-1.pdf  used on input line 165.
+Package pdftex.def Info: Lecture_2_files/figure-beamer/unnamed-chunk-2-1.pdf  used on input line 180.
 (pdftex.def)             Requested size: 722.69823pt x 505.88875pt.
-
-Overfull \vbox (11.28975pt too high) detected at line 165
- []
-
 [3
 
  <./Lecture_2_files/figure-beamer/unnamed-chunk-2-1.pdf>]
-LaTeX Font Info:    Trying to load font information for OT1+lmss on input line 171.
+<Lecture_2_files/figure-beamer/unnamed-chunk-3-1.pdf, id=41, 722.7pt x 505.89pt>
+File: Lecture_2_files/figure-beamer/unnamed-chunk-3-1.pdf Graphic file (type pdf)
+<use Lecture_2_files/figure-beamer/unnamed-chunk-3-1.pdf>
+Package pdftex.def Info: Lecture_2_files/figure-beamer/unnamed-chunk-3-1.pdf  used on input line 189.
+(pdftex.def)             Requested size: 722.69823pt x 505.88875pt.
+
+Overfull \vbox (11.28975pt too high) detected at line 189
+ []
+
+[4
+
+ <./Lecture_2_files/figure-beamer/unnamed-chunk-3-1.pdf>]
+LaTeX Font Info:    Trying to load font information for OT1+lmss on input line 195.
 (/Users/aliaksandrhome/Library/TinyTeX/texmf-dist/tex/latex/lm/ot1lmss.fd
 File: ot1lmss.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 )
-LaTeX Font Info:    Trying to load font information for OML+lmm on input line 171.
+LaTeX Font Info:    Trying to load font information for OML+lmm on input line 195.
 (/Users/aliaksandrhome/Library/TinyTeX/texmf-dist/tex/latex/lm/omllmm.fd
 File: omllmm.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 )
-LaTeX Font Info:    Trying to load font information for OMS+lmsy on input line 171.
+LaTeX Font Info:    Trying to load font information for OMS+lmsy on input line 195.
 (/Users/aliaksandrhome/Library/TinyTeX/texmf-dist/tex/latex/lm/omslmsy.fd
 File: omslmsy.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 )
-LaTeX Font Info:    Trying to load font information for OMX+lmex on input line 171.
+LaTeX Font Info:    Trying to load font information for OMX+lmex on input line 195.
 (/Users/aliaksandrhome/Library/TinyTeX/texmf-dist/tex/latex/lm/omxlmex.fd
 File: omxlmex.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 )
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <10.95> on input line 171.
+(Font)              <10.95> on input line 195.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <8> on input line 171.
+(Font)              <8> on input line 195.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <6> on input line 171.
-LaTeX Font Info:    Trying to load font information for U+msa on input line 171.
+(Font)              <6> on input line 195.
+LaTeX Font Info:    Trying to load font information for U+msa on input line 195.
 (/Users/aliaksandrhome/Library/TinyTeX/texmf-dist/tex/latex/amsfonts/umsa.fd
 File: umsa.fd 2013/01/14 v3.01 AMS symbols A
 )
-LaTeX Font Info:    Trying to load font information for U+msb on input line 171.
+LaTeX Font Info:    Trying to load font information for U+msb on input line 195.
 (/Users/aliaksandrhome/Library/TinyTeX/texmf-dist/tex/latex/amsfonts/umsb.fd
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 )
 LaTeX Font Info:    Font shape `T1/lmss/m/it' in size <10.95> not available
-(Font)              Font shape `T1/lmss/m/sl' tried instead on input line 171.
+(Font)              Font shape `T1/lmss/m/sl' tried instead on input line 195.
 LaTeX Font Info:    Font shape `T1/lmss/m/it' in size <8> not available
-(Font)              Font shape `T1/lmss/m/sl' tried instead on input line 171.
+(Font)              Font shape `T1/lmss/m/sl' tried instead on input line 195.
 LaTeX Font Info:    Font shape `T1/lmss/m/it' in size <6> not available
-(Font)              Font shape `T1/lmss/m/sl' tried instead on input line 171.
-[4
+(Font)              Font shape `T1/lmss/m/sl' tried instead on input line 195.
+[5
 
-] [5
+] [6
 
-{/Users/aliaksandrhome/Library/TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-mathit.enc}{/Users/aliaksandrhome/Library/TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-rm.enc}{/Users/aliaksandrhome/Library/TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-mathsy.enc}] [6
+{/Users/aliaksandrhome/Library/TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-mathit.enc}{/Users/aliaksandrhome/Library/TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-rm.enc}{/Users/aliaksandrhome/Library/TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-mathsy.enc}] [7
 
-{/Users/aliaksandrhome/Library/TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-mathex.enc}] [7
-
-] [8
+{/Users/aliaksandrhome/Library/TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-mathex.enc}] [8
 
 ] [9
 
 ] [10
 
 ]
+<Lecture_2_files/figure-beamer/unnamed-chunk-4-1.pdf, id=101, 325.215pt x 252.945pt>
+File: Lecture_2_files/figure-beamer/unnamed-chunk-4-1.pdf Graphic file (type pdf)
+<use Lecture_2_files/figure-beamer/unnamed-chunk-4-1.pdf>
+Package pdftex.def Info: Lecture_2_files/figure-beamer/unnamed-chunk-4-1.pdf  used on input line 272.
+(pdftex.def)             Requested size: 325.2142pt x 252.94438pt.
+
+Overfull \vbox (77.37877pt too high) detected at line 272
+ []
+
+[11
+
+ <./Lecture_2_files/figure-beamer/unnamed-chunk-4-1.pdf>]
 \openout4 = `Lecture_2.vrb'.
 
-(./Lecture_2.vrb
-LaTeX Font Info:    Trying to load font information for T1+lmtt on input line 4.
-(/Users/aliaksandrhome/Library/TinyTeX/texmf-dist/tex/latex/lm/t1lmtt.fd
-File: t1lmtt.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
-)
-LaTeX Font Info:    Font shape `T1/lmtt/bx/n' in size <10.95> not available
-(Font)              Font shape `T1/lmtt/b/n' tried instead on input line 5.
-LaTeX Font Info:    Trying to load font information for TS1+lmtt on input line 5.
-(/Users/aliaksandrhome/Library/TinyTeX/texmf-dist/tex/latex/lm/ts1lmtt.fd
-File: ts1lmtt.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
-)) [11
+(./Lecture_2.vrb) [12
 
-{/Users/aliaksandrhome/Library/TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-ts1.enc}]
+]
 \openout4 = `Lecture_2.vrb'.
 
 (./Lecture_2.vrb
@@ -866,29 +878,39 @@ Overfull \hbox (14.6392pt too wide) in paragraph at lines 22--22
  []
 
 )
-Overfull \vbox (8.96033pt too high) detected at line 279
+Overfull \vbox (8.96033pt too high) detected at line 306
  []
 
-[12
+[13
 
 ]
 \openout4 = `Lecture_2.vrb'.
 
 (./Lecture_2.vrb
-<Lecture_2_files/figure-beamer/unnamed-chunk-5-1.pdf, id=112, 722.7pt x 505.89pt>
-File: Lecture_2_files/figure-beamer/unnamed-chunk-5-1.pdf Graphic file (type pdf)
-<use Lecture_2_files/figure-beamer/unnamed-chunk-5-1.pdf>
-Package pdftex.def Info: Lecture_2_files/figure-beamer/unnamed-chunk-5-1.pdf  used on input line 10.
+<Lecture_2_files/figure-beamer/unnamed-chunk-7-1.pdf, id=126, 722.7pt x 505.89pt>
+File: Lecture_2_files/figure-beamer/unnamed-chunk-7-1.pdf Graphic file (type pdf)
+<use Lecture_2_files/figure-beamer/unnamed-chunk-7-1.pdf>
+Package pdftex.def Info: Lecture_2_files/figure-beamer/unnamed-chunk-7-1.pdf  used on input line 10.
 (pdftex.def)             Requested size: 722.69823pt x 505.88875pt.
 )
-Overfull \vbox (14.15773pt too high) detected at line 291
+Overfull \vbox (14.15773pt too high) detected at line 318
  []
 
-[13
+[14
 
- <./Lecture_2_files/figure-beamer/unnamed-chunk-5-1.pdf>] [14
+ <./Lecture_2_files/figure-beamer/unnamed-chunk-7-1.pdf>]
+<Lecture_2_files/figure-beamer/unnamed-chunk-8-1.pdf, id=138, 325.215pt x 252.945pt>
+File: Lecture_2_files/figure-beamer/unnamed-chunk-8-1.pdf Graphic file (type pdf)
+<use Lecture_2_files/figure-beamer/unnamed-chunk-8-1.pdf>
+Package pdftex.def Info: Lecture_2_files/figure-beamer/unnamed-chunk-8-1.pdf  used on input line 330.
+(pdftex.def)             Requested size: 325.2142pt x 252.94438pt.
 
-]
+Overfull \vbox (68.77876pt too high) detected at line 330
+ []
+
+[15
+
+ <./Lecture_2_files/figure-beamer/unnamed-chunk-8-1.pdf>]
 \openout4 = `Lecture_2.vrb'.
 
 (./Lecture_2.vrb
@@ -922,35 +944,25 @@ Overfull \hbox (20.38794pt too wide) in paragraph at lines 22--22
  []
 
 )
-Overfull \vbox (27.25612pt too high) detected at line 327
+Overfull \vbox (27.25612pt too high) detected at line 356
  []
 
-[15
-
-]
-LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <14.4> on input line 340.
-LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <10> on input line 340.
-LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <7> on input line 340.
-LaTeX Font Info:    Font shape `T1/lmss/m/it' in size <14.4> not available
-(Font)              Font shape `T1/lmss/m/sl' tried instead on input line 340.
-LaTeX Font Info:    Font shape `T1/lmss/m/it' in size <10> not available
-(Font)              Font shape `T1/lmss/m/sl' tried instead on input line 340.
-LaTeX Font Info:    Font shape `T1/lmss/m/it' in size <7> not available
-(Font)              Font shape `T1/lmss/m/sl' tried instead on input line 340.
 [16
 
 ]
-\openout4 = `Lecture_2.vrb'.
-
-(./Lecture_2.vrb
-Overfull \hbox (66.3778pt too wide) in paragraph at lines 22--22
-[]\T1/lmtt/m/n/10.95 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1[] 
- []
-
-) [17
+LaTeX Font Info:    External font `lmex10' loaded for size
+(Font)              <14.4> on input line 368.
+LaTeX Font Info:    External font `lmex10' loaded for size
+(Font)              <10> on input line 368.
+LaTeX Font Info:    External font `lmex10' loaded for size
+(Font)              <7> on input line 368.
+LaTeX Font Info:    Font shape `T1/lmss/m/it' in size <14.4> not available
+(Font)              Font shape `T1/lmss/m/sl' tried instead on input line 368.
+LaTeX Font Info:    Font shape `T1/lmss/m/it' in size <10> not available
+(Font)              Font shape `T1/lmss/m/sl' tried instead on input line 368.
+LaTeX Font Info:    Font shape `T1/lmss/m/it' in size <7> not available
+(Font)              Font shape `T1/lmss/m/sl' tried instead on input line 368.
+[17
 
 ] [18
 
@@ -998,7 +1010,7 @@ Overfull \hbox (14.6392pt too wide) in paragraph at lines 24--24
  []
 
 )
-Overfull \vbox (36.16034pt too high) detected at line 401
+Overfull \vbox (36.16034pt too high) detected at line 402
  []
 
 [19
@@ -1047,68 +1059,110 @@ Overfull \hbox (20.38794pt too wide) in paragraph at lines 25--25
  []
 
 )
-Overfull \vbox (49.76035pt too high) detected at line 428
+Overfull \vbox (49.76035pt too high) detected at line 429
  []
 
 [20
 
 ]
-Overfull \hbox (23.76704pt too wide) detected at line 438
+Overfull \hbox (45.87971pt too wide) detected at line 439
 \T1/lmss/m/sl/10.95 R[] \OT1/lmss/m/n/10.95 = \T1/lmss/m/n/10.95 1 \OMS/lmsy/m/n/10.95 ^^@ [][]
  []
 
-<Lecture_2_files/figure-beamer/unnamed-chunk-10-1.pdf, id=170, 722.7pt x 505.89pt>
-File: Lecture_2_files/figure-beamer/unnamed-chunk-10-1.pdf Graphic file (type pdf)
-<use Lecture_2_files/figure-beamer/unnamed-chunk-10-1.pdf>
-Package pdftex.def Info: Lecture_2_files/figure-beamer/unnamed-chunk-10-1.pdf  used on input line 438.
+<Lecture_2_files/figure-beamer/unnamed-chunk-12-1.pdf, id=183, 722.7pt x 505.89pt>
+File: Lecture_2_files/figure-beamer/unnamed-chunk-12-1.pdf Graphic file (type pdf)
+<use Lecture_2_files/figure-beamer/unnamed-chunk-12-1.pdf>
+Package pdftex.def Info: Lecture_2_files/figure-beamer/unnamed-chunk-12-1.pdf  used on input line 439.
 (pdftex.def)             Requested size: 401.50146pt x 281.05016pt.
 
-Overfull \hbox (94.2116pt too wide) in paragraph at lines 438--438
+Overfull \hbox (94.2116pt too wide) in paragraph at lines 439--439
 [][]  
  []
 
 
-Overfull \vbox (144.31885pt too high) detected at line 438
+Overfull \vbox (147.27998pt too high) detected at line 439
  []
 
 [21
 
- <./Lecture_2_files/figure-beamer/unnamed-chunk-10-1.pdf>] [22
+ <./Lecture_2_files/figure-beamer/unnamed-chunk-12-1.pdf>] [22
+
+] [23
 
 ]
-<Lecture_2_files/figure-beamer/unnamed-chunk-11-1.pdf, id=190, 451.6875pt x 397.485pt>
-File: Lecture_2_files/figure-beamer/unnamed-chunk-11-1.pdf Graphic file (type pdf)
-<use Lecture_2_files/figure-beamer/unnamed-chunk-11-1.pdf>
-Package pdftex.def Info: Lecture_2_files/figure-beamer/unnamed-chunk-11-1.pdf  used on input line 461.
-(pdftex.def)             Requested size: 451.68639pt x 397.48402pt.
-
-Overfull \vbox (23.8789pt too high) detected at line 461
- []
-
-[23
-
- <./Lecture_2_files/figure-beamer/unnamed-chunk-11-1.pdf>]
-LaTeX Font Info:    Trying to load font information for TS1+lmss on input line 490.
+LaTeX Font Info:    Trying to load font information for TS1+lmss on input line 492.
 (/Users/aliaksandrhome/Library/TinyTeX/texmf-dist/tex/latex/lm/ts1lmss.fd
 File: ts1lmss.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
-)
+) [24
 
-! LaTeX Error: Unicode character ✓ (U+2713)
-               not set up for use with LaTeX.
+{/Users/aliaksandrhome/Library/TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-ts1.enc}]
+\openout4 = `Lecture_2.vrb'.
 
-See the LaTeX manual or LaTeX Companion for explanation.
-Type  H <return>  for immediate help.
- ...                                              
-                                                  
-l.490 \end{frame}
+(./Lecture_2.vrb
+Overfull \hbox (54.88034pt too wide) in paragraph at lines 9--9
+[]\T1/lmtt/m/n/10.95 ##                  Estimate Std. Error    t value     Pr(>|t|)[] 
+ []
+
+
+Overfull \hbox (54.88034pt too wide) in paragraph at lines 9--9
+[]\T1/lmtt/m/n/10.95 ## (Intercept)   -66.5785315 30.0098013 -2.2185596 0.0413297267[] 
+ []
+
+
+Overfull \hbox (54.88034pt too wide) in paragraph at lines 9--9
+[]\T1/lmtt/m/n/10.95 ## Height          0.4768387  0.1599838  2.9805444 0.0088305547[] 
+ []
+
+
+Overfull \hbox (54.88034pt too wide) in paragraph at lines 9--9
+[]\T1/lmtt/m/n/10.95 ## Circumference   0.7768555  0.1858173  4.1807501 0.0007063713[] 
+ []
+
+
+Overfull \hbox (54.88034pt too wide) in paragraph at lines 9--9
+[]\T1/lmtt/m/n/10.95 ## Age            -0.2094104  0.3730630 -0.5613273 0.5823518801[] 
+ []
+
+) [25
+
+]
+\openout4 = `Lecture_2.vrb'.
+
+(./Lecture_2.vrb) [26
+
+]
+\openout4 = `Lecture_2.vrb'.
+
+(./Lecture_2.vrb
+LaTeX Font Info:    Trying to load font information for TS1+lmtt on input line 22.
+(/Users/aliaksandrhome/Library/TinyTeX/texmf-dist/tex/latex/lm/ts1lmtt.fd
+File: ts1lmtt.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
+)) [27
+
+]
+\openout4 = `Lecture_2.vrb'.
+
+(./Lecture_2.vrb) [28
+
+]
+\openout4 = `Lecture_2.vrb'.
+
+(./Lecture_2.vrb) [29
+
+]
+<Lecture_2_files/figure-beamer/unnamed-chunk-20-1.pdf, id=248, 722.7pt x 505.89pt>
+! Illegal unit of measure (pt inserted).
+<to be read again> 
+                   !
+l.627 \end{frame}
                   
 Here is how much of TeX's memory you used:
- 22461 strings out of 476132
- 436083 string characters out of 5793572
+ 22504 strings out of 476132
+ 437281 string characters out of 5793572
  1936539 words of memory out of 5000000
- 43949 multiletter control sequences out of 15000+600000
+ 43965 multiletter control sequences out of 15000+600000
  632125 words of font info for 95 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
- 101i,11n,107p,405b,446s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 101i,17n,107p,483b,452s stack positions out of 10000i,1000n,20000p,200000b,200000s
 
 !  ==> Fatal error occurred, no output PDF file produced!

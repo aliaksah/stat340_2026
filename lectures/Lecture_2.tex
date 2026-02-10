@@ -148,18 +148,42 @@
 \begin{document}
 \frame{\titlepage}
 
-\begin{frame}{The body data}
+\begin{frame}[fragile]{The body data}
 \phantomsection\label{the-body-data}
 A motivating example - The body data
 
-\pandocbounded{\includegraphics[keepaspectratio]{Lecture_2_files/figure-beamer/unnamed-chunk-1-1.pdf}}
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(BIAS.data)}
+\FunctionTok{head}\NormalTok{(bodydata,}\DecValTok{10}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##    Weight Height Age Circumference
+## 1    65.6  174.0  21          71.5
+## 3    80.7  193.5  28          83.2
+## 4    72.6  186.5  23          77.8
+## 5    78.8  187.2  22          80.0
+## 6    74.8  181.5  21          82.5
+## 7    86.4  184.0  26          82.0
+## 8    78.4  184.5  27          76.8
+## 9    62.0  175.0  23          68.5
+## 10   81.6  184.0  21          77.5
+## 11   76.6  180.0  23          81.9
+\end{verbatim}
+\end{frame}
+
+\begin{frame}{Scatterplots}
+\phantomsection\label{scatterplots}
+\pandocbounded{\includegraphics[keepaspectratio]{Lecture_2_files/figure-beamer/unnamed-chunk-2-1.pdf}}
 \end{frame}
 
 \begin{frame}{The Weight versus Height}
 \phantomsection\label{the-weight-versus-height}
 Is there a linear relationship between Weight and Height?
 
-\pandocbounded{\includegraphics[keepaspectratio]{Lecture_2_files/figure-beamer/unnamed-chunk-2-1.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{Lecture_2_files/figure-beamer/unnamed-chunk-3-1.pdf}}
 
 If so, what is the ``best'' fitting line?
 \end{frame}
@@ -174,15 +198,15 @@ Let's use a web applet to discuss the ``best'' fitting line:
 \phantomsection\label{the-main-idea}
 A continuous response variable, \(y\), is assumed to be linearly
 dependent on one or several predictor variables,
-\(x_1, x_2, \ldots, x_k\)?
+\(x_1, x_2, \ldots, x_p\)
 
 A simple regression model (one predictor)
-\[ y = \beta_0 + \beta_1 x + \epsilon \]
+
+\(y = \beta_0 + \beta_1 x + \epsilon, \epsilon \sim N(0, \sigma^2)\)
 
 A multiple regression model (multiple predictors)
-\[ y = \beta_0 + \beta_1 x_1 + \beta_2 x_2 + \cdots+ \beta_k x_k +\epsilon \]
 
-where we typically assume \[ \epsilon \sim N(0, \sigma^2) \]
+\(y = \beta_0 + \beta_1 x_1 + \beta_2 x_2 + \cdots+ \beta_p x_p +\epsilon, \epsilon \sim N(0, \sigma^2)\)
 \end{frame}
 
 \begin{frame}{Estimation of regression coefficients}
@@ -200,18 +224,21 @@ of ``best''.
 \tightlist
 \item
   Least squares estimator : The estimates minimize
-  \(\sum (y_i - (\widehat{\beta}_0 + \widehat{\beta}_1 x_i))^2\)
+  \(SSE(\beta_0,\beta_1) = \sum (y_i - ({\beta}_0 + {\beta}_1 x_i))^2\rightarrow\min\)
 \item
-  Robust estimator : The estimates minimize
-  \(\sum |y_i - (\widehat{\beta}_0 + \widehat{\beta}_1 x_i)|\)
+  Equivalent to the maximum likelihood estimator: The estimates make the
+  observed data ``most likely''
 \item
-  Maximum likelihood estimator: The estimates make the observed data
-  ``most likely''
+  \[
+  f(y_1,...,y_n)\rightarrow\max
+  \]
 \end{itemize}
 \end{frame}
 
 \begin{frame}{Maximum likelihood formulation}
 \phantomsection\label{maximum-likelihood-formulation}
+Recall normal
+pdf\(f(y) = \frac{1}{\sigma\sqrt{2\pi}} \exp\left\{-\frac{1}{2}\left(\frac{y-\mu}{\sigma}\right)^2\right\}\)
 \end{frame}
 
 \begin{frame}{Derivations for maxima}
@@ -229,9 +256,9 @@ These distances are the residuals:
 
 An unbiased estimator for the error variance \(\sigma^2\) depends on
 these distances through
-\[ \widehat{\sigma}^2 = \sum d_i^2/(n-p) = \frac{SSE}{(n-p)} = MSE\]
+\[ \widehat{\sigma}^2 = \sum d_i^2/(n-p-1) = \frac{SSE}{(n-p-1)} = MSE\]
 
-where \(p\) is the number of estimated regression coeffiscients.
+where \(p\) is the number of predictors.
 \end{frame}
 
 \begin{frame}{Example: Regression in R (Model 1)}
@@ -240,16 +267,16 @@ We use samples 1 to 20 of the bodydata as example data (training set)
 
 \[ y_i = \beta_0 +\beta_1 x_{1i} + \epsilon_i \] where \(y\) is Weight,
 \(x_1\) is Height and \(i=1,\ldots, 20\).
+
+\pandocbounded{\includegraphics[keepaspectratio]{Lecture_2_files/figure-beamer/unnamed-chunk-4-1.pdf}}
 \end{frame}
 
 \begin{frame}[fragile]{Example of model fit in R Studio}
 \phantomsection\label{example-of-model-fit-in-r-studio}
 \begin{Shaded}
 \begin{Highlighting}[]
-\FunctionTok{options}\NormalTok{(}\AttributeTok{contrasts=}\FunctionTok{c}\NormalTok{(}\StringTok{\textquotesingle{}contr.sum\textquotesingle{}}\NormalTok{,}\StringTok{\textquotesingle{}contr.poly\textquotesingle{}}\NormalTok{))}
 \NormalTok{LinearModel}\FloatTok{.1} \OtherTok{\textless{}{-}} \FunctionTok{lm}\NormalTok{(Weight }\SpecialCharTok{\textasciitilde{}}\NormalTok{ Height, }\AttributeTok{data=}\NormalTok{bodydata, }\AttributeTok{subset=}\DecValTok{1}\SpecialCharTok{:}\DecValTok{20}\NormalTok{)}
-\NormalTok{sum.model1 }\OtherTok{\textless{}{-}} \FunctionTok{summary}\NormalTok{(LinearModel}\FloatTok{.1}\NormalTok{)}
-\FunctionTok{print}\NormalTok{(sum.model1)}
+\FunctionTok{summary}\NormalTok{(LinearModel}\FloatTok{.1}\NormalTok{)}
 \end{Highlighting}
 \end{Shaded}
 \end{frame}
@@ -287,7 +314,7 @@ We use samples 1 to 20 of the bodydata as example data (training set)
 \end{Highlighting}
 \end{Shaded}
 
-\pandocbounded{\includegraphics[keepaspectratio]{Lecture_2_files/figure-beamer/unnamed-chunk-5-1.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{Lecture_2_files/figure-beamer/unnamed-chunk-7-1.pdf}}
 \end{frame}
 
 \begin{frame}{Weight versus Circumference (Model 2)}
@@ -298,6 +325,8 @@ Now let:
 
 where \(y\) still is Weight, \(x_2\) is Circumference and
 \(i=1,\ldots, 20\).
+
+\pandocbounded{\includegraphics[keepaspectratio]{Lecture_2_files/figure-beamer/unnamed-chunk-8-1.pdf}}
 \end{frame}
 
 \begin{frame}[fragile]{R Commander output}
@@ -329,41 +358,13 @@ How can we claim that this model gives a better fit than model1?
 \begin{frame}{A measure of goodness of fit, the \(R^2\)}
 \phantomsection\label{a-measure-of-goodness-of-fit-the-r2}
 The unconditional (sample) variance of Weight is:
-\[\sum (y_i - \bar{y})^2/(n-1) = \frac{SST}{(n-1)}\] Hence, \(SST\) (in
-some literature \(SSY\)) is a mesure of total variability in y, the
-response
+\[\sum (y_i - \bar{y})^2 = {SST}\] Hence, \(SST\) (in some literature
+\(SSY\)) is a mesure of total variability in y, the response
 
 Further, \(SSE\) is a measure of unexplained variability in y
 
 So, a measure of explained variability is
-\[R^2 = \frac{SST-SSE}{SST} = \frac{SSR}{SST}\]
-\end{frame}
-
-\begin{frame}[fragile]{The ANOVA table}
-\phantomsection\label{the-anova-table}
-The sums of squares are often presented in an ANOVA table:
-
-We use the `Anova'-function in the car-library to get the ANOVA table
-
-\begin{Shaded}
-\begin{Highlighting}[]
-\FunctionTok{Anova}\NormalTok{(LinearModel}\FloatTok{.1}\NormalTok{, }\AttributeTok{type=}\StringTok{"II"}\NormalTok{)}
-\end{Highlighting}
-\end{Shaded}
-
-\begin{verbatim}
-## Anova Table (Type II tests)
-## 
-## Response: Weight
-##           Sum Sq Df F value   Pr(>F)   
-## Height    308.31  1  9.0433 0.007566 **
-## Residuals 613.67 18                    
-## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-\end{verbatim}
-
-The Residuals-line gives the SSE and the total sums of squares, SST,
-equals the sum of all elements in the ``Sum sq'' column.
+\[R^2 = \frac{SST-SSE}{SST} = 1-\frac{SSE}{SST}\]
 \end{frame}
 
 \begin{frame}{Multiple linear regression (Model 3)}
@@ -429,12 +430,12 @@ where \(y\) is Weight, \(x_1\) is Height \(x_2\) is Circumference and
 
 \begin{frame}{\(R^2\)-adjusted}
 \phantomsection\label{r2-adjusted}
-\[R^2 = 1 - \frac{SSE}{SST} \text{The Problem: $R^2$ always increases when adding predictors}\]
+\[R^2 = 1 - \frac{SSE}{SST} \text{, but the Problem: $R^2$ always increases when adding predictors}\]
 
-\[R^2_{\text{adj}} = 1 - \frac{MSE}{Var(y)} = 1 - \frac{SSE/(n-p)}{SST/(n-1)}\]
+\[R^2_{\text{adj}} = 1 - \frac{\widehat\sigma^2}{\widehat{Var}(y)} = 1 - \frac{SSE/(n-p-1)}{SST/(n-1)}\]
 The Solution: \(R^2_{\text{adjusted}}\) penalizes adding parameters
 
-\includegraphics[width=400px]{Lecture_2_files/figure-beamer/unnamed-chunk-10-1}
+\includegraphics[width=400px]{Lecture_2_files/figure-beamer/unnamed-chunk-12-1}
 \end{frame}
 
 \begin{frame}{Hypothesis Test for Regression Coefficients}
@@ -452,12 +453,11 @@ a t-test
 \end{itemize}
 
 \textbf{Test statistic:}
-\[T_j = \frac{\widehat{\beta}_j}{SE(\widehat{\beta}_j)} \sim t_{n-p}\]
+\[T_j = \frac{\widehat{\beta}_j-0}{SE(\widehat{\beta}_j)} \sim t_{n-p-1}\]
 \end{frame}
 
 \begin{frame}{Visual explanation}
 \phantomsection\label{visual-explanation}
-\pandocbounded{\includegraphics[keepaspectratio]{Lecture_2_files/figure-beamer/unnamed-chunk-11-1.pdf}}
 \end{frame}
 
 \begin{frame}{Decision rule}
@@ -472,8 +472,10 @@ extreme or more extreme than the observed value, \textbf{assuming}
 \tightlist
 \item
   \textbf{p-value is small} (e.g., 0.002): It's \textbf{very unlikely}
-  to observe such an extreme T if \(H_0\) were true → Strong evidence
-  against \(H_0\) → \textbf{Reject} \(H_0\) ✓
+  to observe such an extreme
+\item
+  T if \(H_0\) were true → Strong evidence against \(H_0\) →
+  \textbf{Reject} \(H_0\)
 \end{itemize}
 
 \textbf{At significance level of 0.05:}
@@ -481,10 +483,10 @@ extreme or more extreme than the observed value, \textbf{assuming}
 \begin{itemize}
 \tightlist
 \item
-  Reject \(H_0\) if \(|T_j| > t_{\alpha/2, n-p}\) (i.e., p-value
+  Reject \(H_0\) if \(|T_j| > \tau_{\alpha/2, n-p-1}\) (i.e., p-value
   \(< 0.05\))
 \item
-  Fail to reject \(H_0\) if \(|T_j| \leq t_{\alpha/2, n-p}\) (i.e.,
+  Fail to reject \(H_0\) if \(|T_j| \leq \tau_{\alpha/2, n-p-1}\) (i.e.,
   p-value \(\geq 0.05\))
 \end{itemize}
 \end{frame}
@@ -503,7 +505,7 @@ extreme or more extreme than the observed value, \textbf{assuming}
 
 \begin{itemize}
 \item
-  Age is not significant (p = 0.260 \textgreater\textgreater{} 0.05)
+  Age is not significant (p = 0.582 \textgreater\textgreater{} 0.05)
 \item
   Explains why adding Age slightly reduces \(R^2_{\text{adj}}\) - Model
   3 (without Age) is \textbf{better choice} than Model 4
@@ -515,7 +517,7 @@ extreme or more extreme than the observed value, \textbf{assuming}
 \begin{frame}[fragile]{Confidence interval for regression coefficients}
 \phantomsection\label{confidence-interval-for-regression-coefficients}
 A \((1-\alpha)\cdot 100 \%\) for \(\beta_j\) is mathematically given by:
-\[ \left[ \widehat{\beta}_j\pm t_{\alpha/2, (n-p)} SE(\widehat{\beta}_j) \right]\]
+\[ \left[ \widehat{\beta}_j\pm \tau_{\alpha/2, (n-p-1)} SE(\widehat{\beta}_j) \right]\]
 
 In RStudio we can get these (ex. for model 4) by
 
@@ -556,7 +558,7 @@ these values?
 \begin{Shaded}
 \begin{Highlighting}[]
 \NormalTok{newobs }\OtherTok{\textless{}{-}} \FunctionTok{data.frame}\NormalTok{(}\StringTok{\textquotesingle{}Height\textquotesingle{}}\OtherTok{=}\DecValTok{171}\NormalTok{, }\StringTok{\textquotesingle{}Circumference\textquotesingle{}}\OtherTok{=}\DecValTok{76}\NormalTok{, }\StringTok{\textquotesingle{}Age\textquotesingle{}}\OtherTok{=}\DecValTok{30}\NormalTok{)}
-\FunctionTok{predict.lm}\NormalTok{(LinearModel}\FloatTok{.4}\NormalTok{, }\AttributeTok{newdata=}\NormalTok{newobs, }\AttributeTok{level=}\FloatTok{0.95}\NormalTok{)}
+\FunctionTok{predict.lm}\NormalTok{(LinearModel}\FloatTok{.4}\NormalTok{, }\AttributeTok{newdata=}\NormalTok{newobs)}
 \end{Highlighting}
 \end{Shaded}
 
@@ -621,7 +623,7 @@ observations!
 
 \begin{frame}{Predicted vs observed - plot}
 \phantomsection\label{predicted-vs-observed---plot}
-\includegraphics[width=700px,height=400]{Lecture_2_files/figure-beamer/unnamed-chunk-19-1}
+\includegraphics[width=700px,height=400]{Lecture_2_files/figure-beamer/unnamed-chunk-20-1}
 \end{frame}
 
 \begin{frame}[fragile]{Checking the prediction intervals}

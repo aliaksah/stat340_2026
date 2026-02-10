@@ -59,8 +59,11 @@ Estimation of parameters is equivalent to finding the "best fitting" model.
 
 Different estimation methods $\Leftrightarrow$ Different definitions of "best".
 
--   Least squares estimator : The estimates minimize $\sum (y_i - (\widehat{\beta}_0 + \widehat{\beta}_1 x_i))^2$
+-   Least squares estimator : The estimates minimize $SSE(\beta_0,\beta_1) = \sum (y_i - ({\beta}_0 + {\beta}_1 x_i))^2\rightarrow\min$
 -   Equivalent to the maximum likelihood estimator: The estimates make the observed data "most likely"
+-   $$
+    f(y_1,...,y_n)\rightarrow\max
+    $$
 
 ## Maximum likelihood formulation
 
@@ -136,7 +139,7 @@ How can we claim that this model gives a better fit than model1?
 
 ## A measure of goodness of fit, the $R^2$
 
-The unconditional (sample) variance of Weight is: $$\sum (y_i - \bar{y})^2/(n-1) = \frac{SST}{(n-1)}$$ Hence, $SST$ (in some literature $SSY$) is a mesure of total variability in y, the response
+The unconditional (sample) variance of Weight is: $$\sum (y_i - \bar{y})^2 = {SST}$$ Hence, $SST$ (in some literature $SSY$) is a mesure of total variability in y, the response
 
 Further, $SSE$ is a measure of unexplained variability in y
 

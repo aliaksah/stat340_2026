@@ -75,7 +75,7 @@ predict.lm(LinearModel.4, newobs, level=0.95, interval=c("confidence"))
 ```
 
 **Prediction interval for**
-$Y|x_1, \ldots, x_p \in \widehat{\mu}(\mathbf{x}_{\text{new}}) \pm 
+$Y|x_1, \ldots, x_p \in \widehat{\mu}(\mathbf{x}_{\text{new}}) \pm
 t_{\alpha/2,\,n-p-1}\,\text{SE}_{\text{pred}}$
 
 ```{r, echo=TRUE}
@@ -299,7 +299,7 @@ par(mfrow=c(2,2), mar=c(4.5,4,1.5,1.5))
 plot(body2, ask=FALSE)
 ```
 
-## Draw Q-Q plot and std residuals 
+## Draw Q-Q plot and std residuals
 
 ## Another example - Bears
 
@@ -311,6 +311,12 @@ bears1 <- lm(Weight ~ Length, data=bears)
 ```{r, echo=FALSE}
 plot(Weight ~ Length, data=bears, pch=20, cex=2, ylim=c(0,250))
 abline(bears1, col=2, lwd=2)
+```
+
+## Summary
+
+```{r, echo=FALSE}
+summary(bears1)
 ```
 
 ## Residual plots
@@ -384,7 +390,7 @@ lines(seq(90, 190, 1), pred, col="red", lwd=2)
 
 ```{r, echo=FALSE}
 data(bears)
-bears3 <- lm(Weight ~ -1 + poly(Length,15), data=bears)
+bears3 <- lm(Weight ~ + poly(Length,15), data=bears)
 pred <- predict(bears3, newdata=data.frame(Length=seq(90, 190, 1)))
 plot(Weight ~ Length, data=bears, main=bears3$call, cex.main=0.7)
 lines(seq(90, 190, 1), pred, col="red", lwd=2)
@@ -398,9 +404,9 @@ and/or $x$.
 Some transformations which may improve linearity and stabilize variance
 are
 
--   $y' = log(y)$
--   $x' = log(x)$
--   $y' = \sqrt{y}$
+-   $\tilde{y} = log(y)$
+-   $\tilde{x} = log(x)$
+-   $\tilde{y} = \sqrt{y}$
 
 Then use $y'$ and/or $x'$ instead of $y$ and $x$ to fit the model
 
@@ -411,7 +417,7 @@ bears4 <- lm(log(Weight) ~ Length, data=bears)
 summary(bears4)
 ```
 
-## Explain the transformation and backtransformation
+## Explain the transformation and back-transformation
 
 ## Residual plots
 
@@ -430,10 +436,10 @@ curve(exp(0.71 + 0.025*x), add=TRUE, lwd=2, col="red")
 ## Variable selection
 
 Variable selection is the process of selecting a subset of variables
-that are most relevant for the response in some way.
-
-Various approaches. Some are based on hypothesis testing, some on some
-information criteria (like Akaike's Information Criteria, AIC)
+that are most relevant for the response in some way. Various approaches.
+Some are based on hypothesis testing, some on criteria (like Akaike's
+Information Criteria - AIC, Bayesian information criterion - BIC,
+adjuseted $R^2_{adj}$, etc)
 
 Sometimes combined with stepwise approaches like:
 
@@ -443,44 +449,40 @@ Sometimes combined with stepwise approaches like:
 -   Backward/Forward
 -   All subsets selection
 
+```{r, echo=TRUE}
+library(mixlm)
+```
+
 ## Stepwise methods - Backward selection
 
-```{r, echo=TRUE, eval=FALSE }
-data(bodydata)
-library(mixlm)
-body1 <- lm(Weight ~ Height*Circumference*Age, data=bodydata, subset=1:50)
+```{r, echo=TRUE, eval=TRUE}
+body1 <- lm(Weight ~ Height + Circumference + Age, data=bodydata, subset=1:50)
 backward(body1, alpha=0.05)
 ```
 
 ## Stepwise methods - Forward selection
 
-```{r, echo=TRUE, eval=FALSE }
-data(bodydata)
-library(mixlm)
-body1 <- lm(Weight ~ Height*Circumference*Age, data=bodydata, subset=1:50)
-forward(body1, alpha=0.05)
+```{r, echo=TRUE, eval=TRUE}
+body1 <- lm(Weight ~ Height + Circumference + Age, data=bodydata, subset=1:50)
+fs <- forward(body1, alpha=0.05)
 ```
 
 ## Best subsets method
 
-If the number of candidate variables, $k$, is limited, we may compare
-all possible models
+If the number of candidate variables, $p$, is limited, e.g. $\leq20$, we
+may compare all possible models
 
-There are $2^k$ possible models
+There are $2^p$ possible models
 
-Compare all model fits by $R^2$, $R^2_{adj}$ and $SSE$ (also called
-$RSS$)
+Compare all model fits by AIC, BIC, $R^2_{adj}$
 
 Choose model based on:
 
--   Goodness of fit
--   Simplicity
+-   Best-fit - simplicity trade-off
 
 ## Best subsets method - Example
 
-```{r, echo=TRUE, eval=FALSE }
-data(bodydata)
-library(mixlm)
-body1 <- lm(Weight ~ Height*Circumference*Age, data=bodydata, subset=1:50)
-best.subsets(body1, nbest=2)
+```{r, echo=TRUE, eval=TRUE}
+body1 <- lm(Weight ~ Height + Circumference + Age, data=bodydata, subset=1:50)
+bs <- best.subsets(body1)
 ```

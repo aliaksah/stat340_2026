@@ -456,7 +456,13 @@ library(mixlm)
 
 ```{r, echo=TRUE, eval=TRUE}
 body1 <- lm(Weight ~ Height + Circumference + Age, data=bodydata, subset=1:50)
-backward(body1, alpha=0.05)
+bs <- backward(body1, alpha=0.05)
+```
+
+## Stepwise methods - Backward selection
+
+```{r}
+summary(bs)
 ```
 
 ## Stepwise methods - Forward selection
@@ -464,6 +470,13 @@ backward(body1, alpha=0.05)
 ```{r, echo=TRUE, eval=TRUE}
 body1 <- lm(Weight ~ Height + Circumference + Age, data=bodydata, subset=1:50)
 fs <- forward(body1, alpha=0.05)
+
+```
+
+## Stepwise methods - Forward selection
+
+```{r}
+summary(fs)
 ```
 
 ## Best subsets method

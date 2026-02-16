@@ -3648,7 +3648,7 @@ plot(bears4, ask=FALSE)</pre>
 </article></slide><slide class=""><hgroup><h2>Stepwise methods - Backward selection</h2></hgroup><article  id="stepwise-methods---backward-selection">
 
 <pre class = 'prettyprint lang-r'>body1 &lt;- lm(Weight ~ Height + Circumference + Age, data=bodydata, subset=1:50)
-backward(body1, alpha=0.05)</pre>
+bs &lt;- backward(body1, alpha=0.05)</pre>
 
 <pre >## Backward elimination, alpha-to-remove: 0.05
 ## 
@@ -3657,14 +3657,31 @@ backward(body1, alpha=0.05)</pre>
 ##     Step    RSS    AIC  R2pred     Cp F value Pr(&gt;F)
 ## Age    1 964.52 153.98 0.71627 3.3702  1.3702 0.2478</pre>
 
+</article></slide><slide class=""><hgroup><h2>Stepwise methods - Backward selection</h2></hgroup><article  id="stepwise-methods---backward-selection-1">
+
+<pre class = 'prettyprint lang-r'>summary(bs)</pre>
+
 <pre >## 
 ## Call:
 ## lm(formula = Weight ~ Height + Circumference, data = bodydata, 
 ##     subset = 1:50)
 ## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -9.6399 -2.5548  0.2676  3.1122  9.9851 
+## 
 ## Coefficients:
-##   (Intercept)         Height  Circumference  
-##      -88.7749         0.4363         1.0916</pre>
+##                Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)   -88.77490   16.95517  -5.236 3.77e-06 ***
+## Height          0.43630    0.09669   4.512 4.28e-05 ***
+## Circumference   1.09158    0.11835   9.223 4.07e-12 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## s: 4.53 on 47 degrees of freedom
+## Multiple R-squared: 0.7534,
+## Adjusted R-squared: 0.7429 
+## F-statistic: 71.78 on 2 and 47 DF,  p-value: 5.171e-15</pre>
 
 </article></slide><slide class=""><hgroup><h2>Stepwise methods - Forward selection</h2></hgroup><article  id="stepwise-methods---forward-selection">
 
@@ -3680,6 +3697,32 @@ fs &lt;- forward(body1, alpha=0.05)</pre>
 ## Height           2  964.52 153.98 0.71627  3.3702  20.361 4.281e-05 ***
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</pre>
+
+</article></slide><slide class=""><hgroup><h2>Stepwise methods - Forward selection</h2></hgroup><article  id="stepwise-methods---forward-selection-1">
+
+<pre class = 'prettyprint lang-r'>summary(fs)</pre>
+
+<pre >## 
+## Call:
+## lm(formula = Weight ~ Circumference + Height, data = bodydata, 
+##     subset = 1:50)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -9.6399 -2.5548  0.2676  3.1122  9.9851 
+## 
+## Coefficients:
+##                Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)   -88.77490   16.95517  -5.236 3.77e-06 ***
+## Circumference   1.09158    0.11835   9.223 4.07e-12 ***
+## Height          0.43630    0.09669   4.512 4.28e-05 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## s: 4.53 on 47 degrees of freedom
+## Multiple R-squared: 0.7534,
+## Adjusted R-squared: 0.7429 
+## F-statistic: 71.78 on 2 and 47 DF,  p-value: 5.171e-15</pre>
 
 </article></slide><slide class=""><hgroup><h2>Best subsets method</h2></hgroup><article  id="best-subsets-method">
 

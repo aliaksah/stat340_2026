@@ -205,6 +205,12 @@ Let's see how this turns out for the body data model.
 
 ## The F-test illustration
 
+## Recall
+
+```{r, echo=FALSE, eval=TRUE}
+sum.model4
+```
+
 ## The body data
 
 ```{r, echo=TRUE, eval=FALSE}
@@ -229,7 +235,7 @@ cat(' SST = ', SST, ', SSR = ', SSR, ';\n Cummulative SST', CSST, ';\n F = ', (S
 ## The body data - Compare with previous
 
 ```{r, echo=TRUE, eval=FALSE}
-body1 <- lm(Weight ~  Height + Circumference + Age, data=bodydata, subset = 1:20)
+body1 <- lm(Weight ~   Circumference + Height + Age, data=bodydata, subset = 1:20)
 Atab <- anova(body1)
 ```
 
@@ -352,7 +358,6 @@ $$y = \beta_0 + \beta_1 x_1 + \beta_2 x_1^2 + \epsilon$$
 ## Fitting the model in R
 
 ```{r, echo=TRUE}
-data(bears)
 bears2 <- lm(Weight ~ Length + I(Length^2), data=bears)
 summary(bears2)
 ```
@@ -362,6 +367,14 @@ summary(bears2)
 ```{r, echo=FALSE}
 plot(Weight ~ Length, data=bears)
 curve(291.62 -5.29*x + 0.026*x^2, add=TRUE, lwd=2, col="red")
+```
+
+## Model checking
+
+```{r, echo=TRUE}
+par(mfrow=c(2,2), mar=c(4.5,4,1.5,1.5))
+plot(bears2, ask=FALSE)
+
 ```
 
 ## Careful! Over-fitting!

@@ -1,0 +1,374 @@
+---
+title: "ANOVA 1"
+author: "Aliaksandr Hubin"
+date: "Feb 24 2025"
+output: 
+  ioslides_presentation: default
+  beamer_presentation: default
+  slidy_presentation: default
+  # output: word_document
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+## Topics for this lecture
+
+-   Introductory example
+-   The "ANOVA" shiny-applet
+-   The F-test
+-   Estimation and parametrization
+-   Post hoc contrasts and pairwise tests
+-   Errors and power
+
+## Analysis of variance (ANOVA)
+
+**Regression models**
+
+-   Response is numerical
+-   Predictors are numerical, some may be factor (ANCOVA)
+
+**Analysis Of Variance (ANOVA)**
+
+-   Response is numerical
+-   Predictors are all factors (categorical), possibly with many levels
+
+**Fitting the model to data (maximum likelihood) is the same**
+
+**Explanation**
+
+-   Are there any effect of the predictors on the response?
+
+## Example: The "Yields" data
+
+Yield from a crop experiment on $k=3$ different soil types. There are
+$n=10$ random replicates per soil type. A total of $N=k\cdot n = 30$
+observations altogether.
+
+A box-plot. Are the expected yields different?
+
+```{r, echo=FALSE, message=FALSE}
+library(BIAS.data)
+library(mixlm)
+data(yields)
+attach(yields)
+plot(yield ~ soil, data=yields, col="green")
+```
+
+## The model
+
+As in regression analysis we assume a linear model with both an
+explainable part and an unexplainable part (noise)
+
+Let $y_{ij}$ be the observed yield for observation number
+$j \in \{1,\ldots, n_i\}$ soil type $i \in \{1,\ldots, k\}$.
+
+The model (One-way ANOVA): $$y_{ij} = \mu_{i} + \epsilon_{ij}$$
+
+where $\epsilon_{ij} \sim N(0, \sigma^2)$ and $\mu_i$ is the expected
+yield for soil type $i$.
+
+## Hypotheses testing in ANOVA
+
+If there is a soil effect on yield, the expected yields will differ in
+one way or the other.
+
+Hypotheses:
+
+$$H_0: \mu_1 = \mu_2 =\mu_3 $$ vs $$H_1: \mu_i \neq \mu_{i'}$$ for at
+least two different soil types $i$ and $i'$.
+
+Recall F-test in regression? Does it look familiar?
+
+## The ANOVA applet
+
+The ANOVA "idea": Studying means by splitting variability
+
+[ANOVA shiny app](https://solve.shinyapps.io/ANOVA/)
+
+## Splitting up total variability
+
+-   Total variation in $y$: SST=
+    $\sum_{i=1}^{k}\sum_{j=1}^{n}(y_{ij}-\bar{y}_{..})^2$
+
+For the yield data:
+
+```{r, echo=FALSE}
+sum((yield-mean(yield))^2)
+```
+
+-   Variation between levels: SSA =
+    $\sum_{i=1}^{k}\sum_{j=1}^{n}(\bar{y}_{i.}-\bar{y}_{..})^2 =
+    n\sum_{i=1}^{k}(\bar{y}_{i.}-\bar{y}_{..})^2$
+
+For the yield data:
+
+```{r, echo=FALSE}
+soilmeans <- by(yield, soil, mean)
+10*sum((soilmeans - mean(yield))^2)
+```
+
+-   Variation within levels: SSE = SST - SSA =
+    $\sum_{i=1}^{k}\sum_{j=1}^{n}(y_{ij}-\bar{y}_{i.})^2$ = 414.7 - 99.2
+    = 315.5
+
+## Between and within group variances:
+
+Dividing Sums of Squares by their respective degrees of freedom gives:
+
+-   The between soil type (group) variance:
+    $MSA = SSA/(k-1) = 99.2/2 = 49.6$
+-   The within soil type (group) variance:
+    $MSE = SSE/(N-k) = 315.5/27 = 11.685$
+
+where $N = n_1 + n_2 + \cdots n_k$ is the total number of observations.
+
+Why does it make sense to compare these?
+
+## Testing the effect of soil
+
+If there is a soil effect on yield, the expected yields will differ in
+one way or the other.
+
+Hypotheses:
+
+$$H_0: \mu_1 = \mu_2 =\mu_3 $$ vs $$H_1: \mu_i \neq \mu_{i'}$$ for at
+least two different soil types $i$ and $i'$.
+
+Reject $H_0$ if $MSA >> MSE$
+
+## Test observator, F
+
+If $H_0$ is true, then
+
+$$F = \frac{MSA}{MSE} \sim F(\nu_1, \nu_2)$$
+
+```{r, echo=FALSE}
+curve(df(x,2, 27), xlim=c(0,7), lwd=2, col=2, ylab="Fisher(2,27)", xlab="F")
+abline(h=0, v=c(0, 4.24))
+text(5.5, 0.2, labels="F = 49.6/11.7 = 4.24")
+```
+
+## Rejection region
+
+Reject $H_0$ at test level $\alpha$ if
+$F_{obs}> F_{\alpha, \nu_1, \nu_2}$, where $\nu_1$ are the degrees of
+freedom for MSA and $\nu_2$ are the degrees of freedom for MSE.
+
+For example, assume a test level of 5%
+
+From a Fisher table we find $F_{0.05, 2, 27}$ = 3.35
+
+Alternatively, reject if p-value from R is smaller than $\alpha$.
+
+Conclusion?
+
+## Estimation of group effects and error variance
+
+The inutitive estimators for $\mu_i$ are
+$\widehat{\mu}_i = \bar{y}_{i.}$
+
+These are also the least squares estimators (for balanced data), which
+are unbiased and have minimum variance among all unbiased estimators.
+
+As in regression analysis we have $\widehat{\sigma}^2 = MSE$.
+
+## Splitting up $\mu_i$
+
+The means may be split up further. Assume
+
+$$\mu_i = \mu + \alpha_i$$
+
+But, all parameters can not be estimated without some extra restriction
+(choice of parametrization).
+
+-   Parametrization 1: Assume $\sum_{i=1}^k \alpha_i = 0$
+
+A "sum to zero" parametrization ("contr.sum" in R")
+
+-   Parametrization 2: Assume $\alpha_1 = 0$
+
+A "reference level" or "control level" parametrization
+("contr.treatment" in R")
+
+## Draw all parametrizations
+
+## Choice of arametrization in RStudio
+
+Parametrization 1 (Using the lm-function in the mixlm-package)
+
+```{r, echo=TRUE, eval=FALSE}
+mod1 <- lm(yield~soil, data=yields, contrasts = "contr.sum")
+```
+
+Parametrization 2 (Using the lm-function in the mixlm-package
+
+```{r, echo=TRUE, eval=FALSE}
+mod1 <- lm(yield~soil, data=yields, contrasts = "contr.treatment")
+```
+
+## Example: Parametrization 1
+
+```{r, echo=FALSE}
+mod1 <- lm(yield~soil, data=yields, contrasts = "contr.sum")
+round(summary(mod1)$coef,4)
+```
+
+Compare with group and total means:
+
+```{r}
+means <- c(soilmeans,mean(soilmeans))
+names(means) <- c("clay", "loam", "sand", "total-mean")
+print(means)
+```
+
+## Example: Parametrization 2
+
+```{r, echo=FALSE}
+mod1 <- lm(yield~soil, data=yields, contrasts = "contr.treatment")
+round(summary(mod1)$coef,4)
+```
+
+Compare with group and total means:
+
+```{r, echo=FALSE}
+means <- c(soilmeans,mean(soilmeans))
+names(means) <- c("clay", "loam", "sand", "total-mean")
+print(means)
+```
+
+## ANOVA table of Sum of squares
+
+This table does not depend on parametrization
+
+```{r, echo=FALSE}
+anova(mod1)
+```
+
+## Residual analysis
+
+We should also for ANOVA-models check the assumptions by residual
+analysis
+
+```{r, echo=FALSE}
+par(mfrow=c(1,2))
+plot(mod1, which=c(1,2))
+```
+
+## All pairwise comparisons
+
+-   We want to test if there are differences **between the levels**
+    -   Is the yield for `clay` significantly different from the yield
+        for `sand`?
+    -   Is the yield for `clay` significantly different from the yield
+        for `loam`?
+    -   Is the yield for `loam` significantly different from the yield
+        for `sand`?
+    -   ...with $k$ factor levels there are $k(k-1)/2$ pairs...
+-   **Correcting for multiple testing**
+    -   With a 5% rejection level, we will on average in 5% of the tests
+        claim falsely significance (reject $H_0$)
+    -   When making **many** tests, we should be (slightly) stricter
+-   **We perform pairwise tests with Tukey correction!**
+
+## Pair-wise contrasts
+
+If a factor is significant and has more than two levels: Where are the
+differences?
+
+May perform a "post hoc" test with contrasts.
+
+A contrasts is a linear function of the factor effects.
+
+$$\theta = c_1 \mu_1 + c_2 \mu_2 + c_3 \mu_3$$
+
+where $\sum_{i=1}^k c_i= 0$
+
+For pair-wise contrasts, only two $c_i$'s differ from 0.
+
+## Example 1 
+
+Comparing soil type "loam" (level 1) with "clay" (level 2):
+
+$\theta_1 = 1\mu_1 + (-1)\mu_2 + 0 \mu_3 = \mu_1 -\mu_2$
+
+$= 1(\mu + \alpha_1) - 1(\mu + \alpha_2) = \alpha_1 -\alpha_2$
+
+Estimate:
+$\widehat{\theta}_1 = \widehat{\mu}_1 -\widehat{\mu}_2 =  11.5 - 14.3 = \widehat{\alpha}_1 -\widehat{\alpha}_2 = -0.4 - 2.4 = -2.8$
+
+```{r, echo=TRUE}
+library(gmodels)
+options(contrasts=c("contr.sum","contr.poly")) 
+mod1 <- lm(yield~soil, data=yields)
+gmodels::fit.contrast(model=mod1, varname='soil', df=TRUE, coeff=c(1, -1, 0), conf.int=0.95)
+```
+
+## Example 2: "loam" vs "sand"
+
+Define required pairwise contrast:
+
+$\theta_2 = 0\mu_1 + 1\mu_2 - 1\mu_3$
+$= 1(\mu + \alpha_2) - 1(\mu + \alpha_3) = \alpha_2 - \alpha_3$
+
+Estimation
+
+$\widehat{\alpha}_3 = -(-0.4 + 2.4) = -2$
+$\widehat{\theta}_2 = \widehat{\alpha}_2 - \widehat{\alpha}_3 = 2.4 - (-2) = 4.4$
+
+```{r, echo=FALSE}
+gmodels::fit.contrast(model=mod1, varname='soil', df=TRUE, coeff=c(0, 1, -1), conf.int=0.95)
+```
+
+## Multiple testing - Tukey test
+
+If there are many levels of a factor, a Tukey test is preferable.
+
+Controls overall error rate (family-wise error) of all pairwise tests.
+
+Use 'simple.glht'-function in the mixlm-package.
+
+```{r, echo=TRUE, eval=FALSE}
+ptests <- simple.glht(mod1, "soil", corr = c("Tukey"),level = 0.95)
+print(ptests)
+```
+
+## R Commander output - Tukey
+
+```{r, echo=FALSE}
+ptests <- simple.glht(mod1, "soil", corr = c("Tukey"),level = 0.95)
+print(ptests)
+```
+
+## A compact letter display of effects
+
+```{r, echo=FALSE}
+cld(simple.glht(mod1,'soil', level=0.95))
+```
+
+## Pairwise confidence intervals plot
+
+```{r, echo=FALSE}
+par(mar=c(5,6,4,1))
+plot(ptests)
+```
+
+## Type 1 and 2 errors
+
+We should keep in mind the errors which we may make
+
+Type 1: $\alpha$ = P(Rejecting $H_0$ \| $H_0$ is TRUE)
+
+Type 2: $\beta$ = P(Retaining $H_0$ \| $H_0$ is FALSE)
+
+Choosing the test level $\alpha$ always has an impact on $\beta$.
+
+## Test power
+
+The test power is the ability to find existing effects:
+
+Power: $(1-\beta)$ = P(Rejecting $H_0$ \| $H_0$ is FALSE)
+
+Which factors influence the power for a given test?
+
+Back to: [ANOVA shiny app](https://solve.shinyapps.io/ANOVA/)

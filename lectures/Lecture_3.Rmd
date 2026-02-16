@@ -402,11 +402,12 @@ and/or $x$.
 Some transformations which may improve linearity and stabilize variance
 are
 
--   $\tilde{y} = log(y)$
--   $\tilde{x} = log(x)$
--   $\tilde{y} = \sqrt{y}$
+-   $\widetilde{y} = log(y)$
+-   $\widetilde{x} = log(x)$
+-   $\widetilde{y} = \sqrt{y}$
 
-Then use $y'$ and/or $x'$ instead of $y$ and $x$ to fit the model
+Then use $\widetilde{y}$ and/or $\widetilde{x}$ instead of $y$ and $x$
+to fit the model
 
 ## The log(Weight) response model
 

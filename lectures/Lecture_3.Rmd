@@ -140,8 +140,6 @@ print(paste0(" RMSE  predictions: ", round(sqrt(mean((pred[,1]-bodydata[-c(1:20)
 
 ```
 
-## 
-
 ## Checking the prediction intervals
 
 How many observations fell within the prediction intervals?

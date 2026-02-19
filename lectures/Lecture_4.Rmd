@@ -305,6 +305,12 @@ par(mar=c(5,6,4,1))
 plot(ptests)
 ```
 
+## The ANOVA applet
+
+The ANOVA "idea": Studying means by splitting variability
+
+[ANOVA shiny app](https://solve.shinyapps.io/ANOVA/)
+
 ## Type 1 and 2 errors
 
 We should keep in mind the errors which we may make
@@ -323,8 +329,4 @@ Power: $(1-\beta)$ = P(Rejecting $H_0$ \| $H_0$ is FALSE)
 
 Which factors influence the power for a given test?
 
-## The ANOVA applet
-
-The ANOVA "idea": Studying means by splitting variability
-
-[ANOVA shiny app](https://solve.shinyapps.io/ANOVA/)
+## 

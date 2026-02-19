@@ -1,0 +1,302 @@
+---
+title: "ANOVA 2"
+author: "Aliaksandr Hubin"
+date: "Mar 02 2025"
+output: 
+   ioslides_presentation: default
+   beamer_presentation: default
+   slidy_presentation: default
+   output: word_document
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+## Topics for this lecture
+
+-   ANOVA with several factors
+-   The factorial applet
+-   Effect plots
+-   Estimation and hypothesis testing
+-   Tukey test and confidence intervals
+-   ANCOVA - <Example:Regression> with indicator variables
+
+## ANOVA with several factors
+
+-   Each with two or more levels
+-   Assume two factors: A with $i=1,2,...a$ levels, and B with
+    $j=1,2,...,b$ levels
+-   If all levels of A are tested with all levels of B we have a
+    complete crossed design.
+-   Assume there are $k=1,2,...,n$ replicates of all $ab$ level
+    combinations.
+
+## Illustration of two-factor case
+
+<https://solve.shinyapps.io/Factorialdemo/>
+
+## The Model
+
+Model:
+$$y_{ijk} = \mu + \alpha_i + \beta_j + \alpha\beta_{ij} + \epsilon_{ijk}$$
+
+where $\epsilon_{ijk} \sim N(0,\sigma^2)$.
+
+Parametrization (restrictions)
+
+-   Sum-to-zero: $\sum_i {\alpha}_i =0$, $\sum_j {\beta}_j=0$,
+    $\sum_i \alpha\beta_{ij}=0$ and $\sum_j \alpha\beta_{ij}=0$.
+
+-   Reference levels: $\alpha_1 = 0$, $\beta_1 = 0$,
+    $\alpha\beta_{1,j}=0$ for all $j$ and $\alpha\beta_{i,1}=0$ for all
+    $i$.
+
+## Example: Animal diets - The "growth data"
+
+```{r,echo=FALSE, message=FALSE}
+load("growth.Rdata")
+attach(weights)
+barplot(tapply(gain, list(diet, supplement),mean),beside=TRUE, ylim=c(0,35),
+        col=c("orange","yellow","cornsilk"))
+legend(3.7, 34.8, legend=c("Barley","Oats","Wheat"),fill=c("orange","yellow","cornsilk"))
+```
+
+## R analysis
+
+For reference level analysis, see "the R-book" on page 517.
+
+Let's again use the sum-to-zero parametrization here:
+
+```{r, echo=TRUE, message=FALSE}
+mod2 <- lm(gain ~ diet + supplement + diet:supplement, 
+           data=weights, contrasts = "contr.sum")
+```
+
+Equivalent model calls in R:
+
+-   `gain ~ diet + supplement + diet:supplement`
+-   `gain ~ diet*supplement`
+-   `gain ~ (diet + supplement)^2`
+
+## Diet means and sd's
+
+```{r, echo=TRUE, message=FALSE}
+by(weights$gain, weights$diet, 
+   FUN=function(x){c(mean=mean(x),sd=sd(x))})
+```
+
+## Supplement means and sd's
+
+```{r, echo=TRUE, message=FALSE}
+by(weights$gain, weights$supplement, 
+   FUN=function(x){c(mean=mean(x),sd=sd(x))})
+```
+
+## Main effects plot of `Diet`
+
+"Main effect plots" of group means with 95% CI's
+
+```{r,echo=TRUE, message=FALSE}
+library(effects)
+plot(Effect(focal.predictors = c("diet"), mod = mod2))
+```
+
+## Main effects plot of `Supplement`
+
+```{r,echo=TRUE, message=FALSE}
+plot(Effect(c("supplement"), mod2))
+```
+
+## Interaction plots
+
+Means of diet:supplement combinations.
+
+```{r,echo=TRUE, message=FALSE}
+library(effects)
+plot(allEffects(mod2,confidence.level=.99),layout=c(3,1), 
+     rotx=90,alternating=FALSE)
+```
+
+## Model parameter estimation
+
+For balanced data the least squares estimators for the model parameters
+are (sum-to-zero):
+
+$\widehat{\mu} = \bar{y}_{...}$
+
+$\widehat{\alpha}_i = \bar{y}_{i..}-\bar{y}_{...}$
+
+$\widehat{\beta}_j = \bar{y}_{.j.}-\bar{y}_{...}$
+
+$\widehat{\alpha\beta}_{ij} = \bar{y}_{ij.} - \bar{y}_{i..} - \bar{y}_{.j.} + \bar{y}_{...}$
+
+And as usual, the noise variance estimate is:
+
+$\widehat{\sigma}^2 = MSE$
+
+## Summary with estimates of effects:
+
+```{r, echo=FALSE}
+summary(mod2)$coefficients[,c(1:2)]
+```
+
+## We want to test hypotheses
+
+Interaction effects?
+$$H_0:\alpha\beta_{11} = \alpha\beta_{12} = \cdots = \alpha\beta_{ab} = 0$$
+
+Main effect of A? $$H_0:\alpha_1 = \alpha_2=\cdots=\alpha_a = 0$$
+
+Main effect of B? $$H_0:\beta_1 = \beta_2 = \cdots = \beta_b = 0$$
+
+## Splitting of sums of squares
+
+The Total Sums of Squares measures total variability:
+$$SST = \sum_i \sum_j \sum_k (y_{ijk} - \bar{y}_{...})^2$$
+
+Can be split into: $$SST = SSA + SSB + SSAB + SSE$$
+
+Degrees of freedom follow correspondingly as
+$$(N-1) = [(a-1)] + [(b-1)] + [(a-1)(b-1)] + [ab(n-1)]$$
+
+## F-tests
+
+Interaction: Reject $H_0$ if
+$$F = \frac{MSAB}{MSE} = \frac{SSAB/(a-1)(b-1)}{SSE/ab(n-1)}$$ is larger
+than $F_{\alpha,(a-1)(b-1),ab(n-1)}$ or p-value \< $\alpha$.
+
+Main effect A: Reject $H_0$ if
+$$F = \frac{MSA}{MSE} > F_{\alpha,(a-1),ab(n-1)}$$
+
+Main effect B: Reject $H_0$ if
+$$F = \frac{MSB}{MSE} > F_{\alpha,(b-1),ab(n-1)}$$
+
+## The ANOVA-table for the growth data
+
+```{r, echo=TRUE, message=FALSE}
+anova(mod2)
+```
+
+Conclusions?
+
+## A reduced model
+
+```{r, echo=TRUE}
+mod3 <- lm(gain ~ diet + supplement, data=weights, contrasts = "contr.sum")
+anova(mod3)
+```
+
+Note: The complete crossed design gives "orthogonal effects". The SS's
+are independent, and, apart from SSE, they do not change when effects
+are removed/added to the model.
+
+## Tukey tests supplement - Confidence intervals
+
+```{r, message=FALSE, echo=FALSE}
+library(mixlm)
+ptests <- simple.glht(mod3, "supplement", corr = c("Tukey"),level = 0.95)
+print(ptests$confint)
+```
+
+## Compact letter display
+
+A compact letter display (cld) of groups of effects
+
+```{r, echo=TRUE}
+cld(ptests) 
+```
+
+## Analysis of covariance - ANCOVA
+
+The dataset `birth` in the BIAS.data package holds records of 189 birth
+weights from Massachusetts, USA, and some additional variables. Three of
+the variables are,
+
+| Var   | Description                                |
+|-------|--------------------------------------------|
+| `LWT` | Weight of mother.                          |
+| `SMK` | `YES` if mother smokes and `NO` otherwise. |
+| `BWT` | Birth weight (RESPONSE).                   |
+
+The main question is: Does mother's smoking affect birth weight and does
+it depend on the mother weight?
+
+We have both a categorical and a continuous predictor for the response
+variable.
+
+## The data
+
+```{r, echo=FALSE}
+library(BIAS.data)
+data(birth)
+head(birth[,-c(1:2)], 7)
+```
+
+## Scatterplot with separate linear models for smokers and non-smokers
+
+```{r, echo=FALSE}
+library(car)
+scatterplot(BWT~LWT | SMK, regLine=lm, smooth=FALSE,
+            boxplots=FALSE, ellipse=FALSE, by.groups=TRUE,data=birth)
+```
+
+## ANCOVA as regression with indicator variable
+
+Let $y = BWT$ and $x_1 = LWT$ and define $$ 
+x_2 = \left\{ 
+\begin{array}[cc]
+\ 0 & \mbox{if smoker}\\
+1 & \mbox{if non-smoker}
+\end{array} \right.
+$$
+
+Assume the model $$ 
+y_i = \beta_0 + \beta_1 x_{1i} + \beta_2 x_{2i} + \epsilon_i
+$$ where $\epsilon_i \sim N(0, \sigma^2)$.
+
+## Fitting the model in R
+
+```{r, echo=TRUE, message=FALSE}
+birth4 <- lm(BWT ~ LWT + SMK, data=birth, contrasts = "contr.treatment")
+birth4
+```
+
+## Explain coefficients
+
+## The estimated model(s)
+
+```{r, echo=FALSE}
+plot(x = birth$LWT, y = birth$BWT, xlab="LWT", ylab="BWT", col=ifelse(birth$SMK=="YES", 2,4))
+coefs <- birth4$coefficients
+abline(coefs[1], coefs[2], col = "red", lwd=2)
+abline((coefs[1]+coefs[3]), coefs[2], col = "blue", lwd=2)
+```
+
+## The model with interaction term
+
+Assume that we expand the model with an interaction term between LWT and
+SMK $$ 
+y_i = \beta_0 + \beta_1 x_{1i} + \beta_2 x_{2i} + \beta_3 x_{1i}\cdot x_{2i} + \epsilon_i
+$$ with $\epsilon_i \sim N(0, \sigma^2)$.
+
+Lets see how the model is for different values of $x_{2i}$
+
+## Explain coefficients
+
+## The estimated model(s)
+
+```{r, echo=FALSE}
+plot(x = birth$LWT, y = birth$BWT, xlab="LWT", ylab="BWT")
+birth5 <- lm(BWT ~ LWT*SMK, data=birth, contrasts="contr.treatment")
+coefs <- birth5$coefficients
+abline(coefs[1], coefs[2], col = "red", lwd=2)
+abline((coefs[1]+coefs[3]), (coefs[2]+ coefs[4]), col = "blue", lwd=2)
+```
+
+## Model summaries, tests, diagnostics
+
+You should be able to check:
+
+-   Are model assumptions met?
+-   Are there significant effects of LWT and/or SMK?
+-   How is the model fit in terms of $R^2$? Critizise the model!

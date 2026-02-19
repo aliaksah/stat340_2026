@@ -1,7 +1,5 @@
 ---
 title: "Exercises STAT340 - Regression analysis - part II"
-author: "Solve Sæbø" 
-date: "Feb 18 2025"
 params:
   vis.forslag: false
 output:

@@ -15,44 +15,39 @@ editor_options:
 ## Topics for this lecture
 
 -   Introductory example
--   The "ANOVA" shiny-applet
+
+-    "ANOVA"
+
 -   The F-test
+
 -   Estimation and parametrization
+
 -   Post hoc contrasts and pairwise tests
+
 -   Errors and power
 
-## Analysis of variance (ANOVA)
+## Objectives of lecture
 
-**Regression models**
+-   *Basic framework*: The response variable is continuous as for
+    regression but the predictor variables are *factors* like
+    fertilizer, soil type, country, ...
+-   *Basic idea*: The statistical analysis is based on studying the
+    variability in data. Hence the name ANOVA:
+    -   ANalysis Of VAriance.
+-   Objectives as for regression: predict and explain
 
--   Response is numerical
--   Predictors are numerical, some may be factor (ANCOVA)
-
-**Analysis Of Variance (ANOVA)**
-
--   Response is numerical
--   Predictors are all factors (categorical), possibly with many levels
-
-**Fitting the model to data (maximum likelihood) is the same**
-
-**Explanation**
-
--   Are there any effect of the predictors on the response?
-
-## Example: The "Yields" data
+## Example Yields
 
 Yield from a crop experiment on $k=3$ different soil types. There are
 $n=10$ random replicates per soil type. A total of $N=k\cdot n = 30$
 observations altogether.
-
-A box-plot. Are the expected yields different?
 
 ```{r, echo=FALSE, message=FALSE}
 library(BIAS.data)
 library(mixlm)
 data(yields)
 attach(yields)
-plot(yield ~ soil, data=yields, col="green")
+plot(yield ~ soil, data=yields, col="green",main = "Are the expected yields different?")
 ```
 
 ## The model
@@ -68,28 +63,10 @@ The model (One-way ANOVA): $$y_{ij} = \mu_{i} + \epsilon_{ij}$$
 where $\epsilon_{ij} \sim N(0, \sigma^2)$ and $\mu_i$ is the expected
 yield for soil type $i$.
 
-## Hypotheses testing in ANOVA
-
-If there is a soil effect on yield, the expected yields will differ in
-one way or the other.
-
-Hypotheses:
-
-$$H_0: \mu_1 = \mu_2 =\mu_3 $$ vs $$H_1: \mu_i \neq \mu_{i'}$$ for at
-least two different soil types $i$ and $i'$.
-
-Recall F-test in regression? Does it look familiar?
-
-## The ANOVA applet
-
-The ANOVA "idea": Studying means by splitting variability
-
-[ANOVA shiny app](https://solve.shinyapps.io/ANOVA/)
-
 ## Splitting up total variability
 
--   Total variation in $y$: SST=
-    $\sum_{i=1}^{k}\sum_{j=1}^{n}(y_{ij}-\bar{y}_{..})^2$
+SST=
+$\sum_{i=1}^{k}\sum_{j=1}^{n}(y_{ij}-\bar{y}_{..})^2, \quad \bar{y}_{..}\text{ is grand mean}$
 
 For the yield data:
 
@@ -97,9 +74,8 @@ For the yield data:
 sum((yield-mean(yield))^2)
 ```
 
--   Variation between levels: SSA =
-    $\sum_{i=1}^{k}\sum_{j=1}^{n}(\bar{y}_{i.}-\bar{y}_{..})^2 =
-    n\sum_{i=1}^{k}(\bar{y}_{i.}-\bar{y}_{..})^2$
+SSA = $\sum_{i=1}^{k}\sum_{j=1}^{n}(\bar{y}_{i.}-\bar{y}_{..})^2 =
+n\sum_{i=1}^{k}(\bar{y}_{i.}-\bar{y}_{..})^2,  \quad \bar{y}_{i.}\text{i-th group mean}$
 
 For the yield data:
 
@@ -108,7 +84,7 @@ soilmeans <- by(yield, soil, mean)
 10*sum((soilmeans - mean(yield))^2)
 ```
 
--   Variation within levels: SSE = SST - SSA =
+-   SSE = SST - SSA =
     $\sum_{i=1}^{k}\sum_{j=1}^{n}(y_{ij}-\bar{y}_{i.})^2$ = 414.7 - 99.2
     = 315.5
 
@@ -119,11 +95,11 @@ Dividing Sums of Squares by their respective degrees of freedom gives:
 -   The between soil type (group) variance:
     $MSA = SSA/(k-1) = 99.2/2 = 49.6$
 -   The within soil type (group) variance:
-    $MSE = SSE/(N-k) = 315.5/27 = 11.685$
+    $MSE = SSE/(n-k) = 315.5/27 = 11.685$
 
-where $N = n_1 + n_2 + \cdots n_k$ is the total number of observations.
+where $n = n_1 + n_2 + \cdots n_k$ is the total number of observations.
 
-Why does it make sense to compare these?
+**Why does it make sense to compare these?**
 
 ## Testing the effect of soil
 
@@ -141,7 +117,7 @@ Reject $H_0$ if $MSA >> MSE$
 
 If $H_0$ is true, then
 
-$$F = \frac{MSA}{MSE} \sim F(\nu_1, \nu_2)$$
+$$F = \frac{MSA}{MSE} \sim F(\nu_1 = k-1 = 3 -1, \nu_2 = n - k = 30 - 3)$$
 
 ```{r, echo=FALSE}
 curve(df(x,2, 27), xlim=c(0,7), lwd=2, col=2, ylab="Fisher(2,27)", xlab="F")
@@ -152,16 +128,17 @@ text(5.5, 0.2, labels="F = 49.6/11.7 = 4.24")
 ## Rejection region
 
 Reject $H_0$ at test level $\alpha$ if
-$F_{obs}> F_{\alpha, \nu_1, \nu_2}$, where $\nu_1$ are the degrees of
-freedom for MSA and $\nu_2$ are the degrees of freedom for MSE.
+$F_{obs}> F_{\alpha, \nu_1, \nu_2}$, where $\nu_1 = k-1$ are the degrees
+of freedom for MSA and $\nu_2 = n -k$ are the degrees of freedom for
+MSE.
 
 For example, assume a test level of 5%
 
 From a Fisher table we find $F_{0.05, 2, 27}$ = 3.35
 
-Alternatively, reject if p-value from R is smaller than $\alpha$.
+Alternatively, reject if p-value is smaller than $\alpha$.
 
-Conclusion?
+**Conclusion?**
 
 ## Estimation of group effects and error variance
 
@@ -173,7 +150,7 @@ are unbiased and have minimum variance among all unbiased estimators.
 
 As in regression analysis we have $\widehat{\sigma}^2 = MSE$.
 
-## Splitting up $\mu_i$
+## Splitting up $\mu_i$ - i.e. reparametrise
 
 The means may be split up further. Assume
 
@@ -190,8 +167,6 @@ A "sum to zero" parametrization ("contr.sum" in R")
 
 A "reference level" or "control level" parametrization
 ("contr.treatment" in R")
-
-## Draw all parametrizations
 
 ## Choice of arametrization in RStudio
 
@@ -211,7 +186,7 @@ mod1 <- lm(yield~soil, data=yields, contrasts = "contr.treatment")
 
 ```{r, echo=FALSE}
 mod1 <- lm(yield~soil, data=yields, contrasts = "contr.sum")
-round(summary(mod1)$coef,4)
+summary(mod1)$coef
 ```
 
 Compare with group and total means:
@@ -226,7 +201,7 @@ print(means)
 
 ```{r, echo=FALSE}
 mod1 <- lm(yield~soil, data=yields, contrasts = "contr.treatment")
-round(summary(mod1)$coef,4)
+summary(mod1)$coef
 ```
 
 Compare with group and total means:
@@ -255,22 +230,6 @@ par(mfrow=c(1,2))
 plot(mod1, which=c(1,2))
 ```
 
-## All pairwise comparisons
-
--   We want to test if there are differences **between the levels**
-    -   Is the yield for `clay` significantly different from the yield
-        for `sand`?
-    -   Is the yield for `clay` significantly different from the yield
-        for `loam`?
-    -   Is the yield for `loam` significantly different from the yield
-        for `sand`?
-    -   ...with $k$ factor levels there are $k(k-1)/2$ pairs...
--   **Correcting for multiple testing**
-    -   With a 5% rejection level, we will on average in 5% of the tests
-        claim falsely significance (reject $H_0$)
-    -   When making **many** tests, we should be (slightly) stricter
--   **We perform pairwise tests with Tukey correction!**
-
 ## Pair-wise contrasts
 
 If a factor is significant and has more than two levels: Where are the
@@ -286,21 +245,20 @@ where $\sum_{i=1}^k c_i= 0$
 
 For pair-wise contrasts, only two $c_i$'s differ from 0.
 
-## Example 1 
+## Example 1 (With parametrization 1)
 
 Comparing soil type "loam" (level 1) with "clay" (level 2):
 
-$\theta_1 = 1\mu_1 + (-1)\mu_2 + 0 \mu_3 = \mu_1 -\mu_2$
+$\theta_1 = 1\mu_1 + (-1)\mu_2 + 0 \mu_3$
 
 $= 1(\mu + \alpha_1) - 1(\mu + \alpha_2) = \alpha_1 -\alpha_2$
 
 Estimate:
-$\widehat{\theta}_1 = \widehat{\mu}_1 -\widehat{\mu}_2 =  11.5 - 14.3 = \widehat{\alpha}_1 -\widehat{\alpha}_2 = -0.4 - 2.4 = -2.8$
+$\widehat{\theta}_1 = \widehat{\alpha}_1 -\widehat{\alpha}_2 = -0.4 - 2.4 = -2.8$
 
 ```{r, echo=TRUE}
-library(gmodels)
 options(contrasts=c("contr.sum","contr.poly")) 
-mod1 <- lm(yield~soil, data=yields)
+mod1 <- stats::lm(yield~soil, data=yields)
 gmodels::fit.contrast(model=mod1, varname='soil', df=TRUE, coeff=c(1, -1, 0), conf.int=0.95)
 ```
 
@@ -340,12 +298,6 @@ ptests <- simple.glht(mod1, "soil", corr = c("Tukey"),level = 0.95)
 print(ptests)
 ```
 
-## A compact letter display of effects
-
-```{r, echo=FALSE}
-cld(simple.glht(mod1,'soil', level=0.95))
-```
-
 ## Pairwise confidence intervals plot
 
 ```{r, echo=FALSE}
@@ -371,4 +323,8 @@ Power: $(1-\beta)$ = P(Rejecting $H_0$ \| $H_0$ is FALSE)
 
 Which factors influence the power for a given test?
 
-Back to: [ANOVA shiny app](https://solve.shinyapps.io/ANOVA/)
+## The ANOVA applet
+
+The ANOVA "idea": Studying means by splitting variability
+
+[ANOVA shiny app](https://solve.shinyapps.io/ANOVA/)

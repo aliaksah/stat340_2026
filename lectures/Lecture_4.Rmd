@@ -43,7 +43,7 @@ observations altogether.
 
 ```{r, echo=FALSE, message=FALSE}
 library(BIAS.data)
-#library(mixlm)
+library(mixlm)
 data(yields)
 attach(yields)
 plot(yield ~ soil, data=yields, col="green",main = "Are the expected yields different?")

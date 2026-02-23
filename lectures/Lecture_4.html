@@ -3370,13 +3370,10 @@ n\sum_{i=1}^{k}(\bar{y}_{i.}-\bar{y}_{..})^2,  \quad \bar{y}_{i.}\text{i-th grou
 
 </article></slide><slide class=""><hgroup><h2>Example: Parametrization 1</h2></hgroup><article  id="example-parametrization-1">
 
-<pre >## Warning in model.matrix.default(mt, mf, contrasts): non-list contrasts argument
-## ignored</pre>
-
-<pre >##             Estimate Std. Error   t value     Pr(&gt;|t|)
-## (Intercept)     11.5   1.080980 10.638491 3.702061e-11
-## soilloam         2.8   1.528737  1.831577 7.806971e-02
-## soilsand        -1.6   1.528737 -1.046616 3.045565e-01</pre>
+<pre >##             Estimate Std. Error    t value     Pr(&gt;|t|)
+## (Intercept)     11.9  0.6241043 19.0673259 3.406200e-17
+## soil(clay)      -0.4  0.8826168 -0.4531978 6.540275e-01
+## soil(loam)       2.4  0.8826168  2.7191870 1.129846e-02</pre>
 
 <p>Compare with group and total means:</p>
 
@@ -3389,13 +3386,10 @@ print(means)</pre>
 
 </article></slide><slide class=""><hgroup><h2>Example: Parametrization 2</h2></hgroup><article  id="example-parametrization-2">
 
-<pre >## Warning in model.matrix.default(mt, mf, contrasts): non-list contrasts argument
-## ignored</pre>
-
 <pre >##             Estimate Std. Error   t value     Pr(&gt;|t|)
 ## (Intercept)     11.5   1.080980 10.638491 3.702061e-11
-## soilloam         2.8   1.528737  1.831577 7.806971e-02
-## soilsand        -1.6   1.528737 -1.046616 3.045565e-01</pre>
+## soil(loam)       2.8   1.528737  1.831577 7.806971e-02
+## soil(sand)      -1.6   1.528737 -1.046616 3.045565e-01</pre>
 
 <p>Compare with group and total means:</p>
 

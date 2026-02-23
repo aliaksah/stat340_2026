@@ -3338,20 +3338,23 @@ n\sum_{i=1}^{k}(\bar{y}_{i.}-\bar{y}_{..})^2,  \quad \bar{y}_{i.}\text{i-th grou
 
 </article></slide><slide class=""><hgroup><h2>Choice of arametrization in RStudio</h2></hgroup><article  id="choice-of-arametrization-in-rstudio">
 
-<p>Parametrization 1 (Using the lm-function in the mixlm-package)</p>
+<p>Parametrization 1 (Using the lm-function)</p>
 
 <pre class = 'prettyprint lang-r'>mod1 &lt;- lm(yield~soil, data=yields, contrasts = &quot;contr.sum&quot;)</pre>
 
-<p>Parametrization 2 (Using the lm-function in the mixlm-package</p>
+<p>Parametrization 2 (Using the lm-function)</p>
 
 <pre class = 'prettyprint lang-r'>mod1 &lt;- lm(yield~soil, data=yields, contrasts = &quot;contr.treatment&quot;)</pre>
 
 </article></slide><slide class=""><hgroup><h2>Example: Parametrization 1</h2></hgroup><article  id="example-parametrization-1">
 
-<pre >##             Estimate Std. Error    t value     Pr(&gt;|t|)
-## (Intercept)     11.9  0.6241043 19.0673259 3.406200e-17
-## soil(clay)      -0.4  0.8826168 -0.4531978 6.540275e-01
-## soil(loam)       2.4  0.8826168  2.7191870 1.129846e-02</pre>
+<pre >## Warning in model.matrix.default(mt, mf, contrasts): non-list contrasts argument
+## ignored</pre>
+
+<pre >##             Estimate Std. Error   t value     Pr(&gt;|t|)
+## (Intercept)     11.5   1.080980 10.638491 3.702061e-11
+## soilloam         2.8   1.528737  1.831577 7.806971e-02
+## soilsand        -1.6   1.528737 -1.046616 3.045565e-01</pre>
 
 <p>Compare with group and total means:</p>
 
@@ -3364,10 +3367,13 @@ print(means)</pre>
 
 </article></slide><slide class=""><hgroup><h2>Example: Parametrization 2</h2></hgroup><article  id="example-parametrization-2">
 
+<pre >## Warning in model.matrix.default(mt, mf, contrasts): non-list contrasts argument
+## ignored</pre>
+
 <pre >##             Estimate Std. Error   t value     Pr(&gt;|t|)
 ## (Intercept)     11.5   1.080980 10.638491 3.702061e-11
-## soil(loam)       2.8   1.528737  1.831577 7.806971e-02
-## soil(sand)      -1.6   1.528737 -1.046616 3.045565e-01</pre>
+## soilloam         2.8   1.528737  1.831577 7.806971e-02
+## soilsand        -1.6   1.528737 -1.046616 3.045565e-01</pre>
 
 <p>Compare with group and total means:</p>
 
@@ -3441,14 +3447,18 @@ gmodels::fit.contrast(model=mod1, varname=&#39;soil&#39;, df=TRUE, coeff=c(1, -1
 
 </article></slide><slide class=""><hgroup><h2>Multiple testing - Tukey test</h2></hgroup><article  id="multiple-testing---tukey-test">
 
+<p>Type 1: \(\alpha\) = P(Rejecting \(H_0\) | \(H_0\) is TRUE)</p>
+
 <p>If there are many levels of a factor, a Tukey test is preferable.</p>
 
 <p>Controls overall error rate (family-wise error) of all pairwise tests.</p>
 
 <p>Use &lsquo;simple.glht&rsquo;-function in the mixlm-package.</p>
 
-<pre class = 'prettyprint lang-r'>ptests &lt;- simple.glht(mod1, &quot;soil&quot;, corr = c(&quot;Tukey&quot;),level = 0.95)
-print(ptests)</pre>
+<pre class = 'prettyprint lang-r'>library(mixlm)
+ptests &lt;- simple.glht(mod1, &quot;soil&quot;, corr = c(&quot;Tukey&quot;),level = 0.95)
+print(ptests)
+plot(ptests)</pre>
 
 </article></slide><slide class=""><hgroup><h2>R Commander output - Tukey</h2></hgroup><article  id="r-commander-output---tukey">
 

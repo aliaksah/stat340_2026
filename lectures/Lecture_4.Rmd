@@ -53,7 +53,7 @@ plot(yield ~ soil, data=yields, col="green",main = "Are the expected yields diff
 
 Model with dummy variables for soil type:
 
-$$y_j = \beta_0 + \beta_1 \cdot x_{ij} + \beta_2 \cdot x_{2j} + \beta_3 \cdot x_{3j}  + \epsilon_j,\epsilon_j \sim N(0, \sigma^2) $$
+$$y_j = \beta_0 + \beta_1 x_{1j} + \beta_2  x_{2j} + \beta_3  x_{3j}  + \epsilon_j,\epsilon_j \sim N(0, \sigma^2) $$
 
 where:
 
@@ -64,6 +64,22 @@ where:
 -   $\beta_0 + \beta_1 = \mu_1$ = mean of yield for clay
 -   $\beta_0 + \beta_2= \mu_2$ = mean of yield for loam
 -   $\beta_0 + \beta_3 = \mu_3$ = mean of yield for sand
+
+
+## Linear Regression Reformulate
+
+Model with dummy variables for soil type:
+
+$$y_j = \beta_0 + \beta_2  x_{2j} + \beta_3  x_{3j}  + \epsilon_j,\epsilon_j \sim N(0, \sigma^2) $$
+
+where:
+
+-   $x_{2j} = 1$ if soil is loam, else 0
+-   $x_{3j} = 1$ if soil is sand, else 0 and hence $x_{1j} = 1 - x_{2j} - x_{3j}$
+-   $\beta_0 = \mu_1$ = intercept (mean of yield for clay)
+-   $\beta_0 + \beta_2= \mu_2$ = mean of yield for loam
+-   $\beta_0 + \beta_3 = \mu_3$ = mean of yield for sand 
+-   same model but with $p=2$ not $p=3$.
 
 ## ANOVA
 
@@ -203,7 +219,7 @@ mod1 <- lm(yield~soil, data=yields, contrasts = "contr.treatment")
 
 ```{r, echo=FALSE}
 mod1 <- lm(yield~soil, data=yields, contrasts = "contr.sum")
-summary(mod1)$coef
+round(summary(mod1)$coef,4)
 ```
 
 Compare with group and total means:
@@ -218,7 +234,7 @@ print(means)
 
 ```{r, echo=FALSE}
 mod1 <- lm(yield~soil, data=yields, contrasts = "contr.treatment")
-summary(mod1)$coef
+round(summary(mod1)$coef,4)
 ```
 
 Compare with group and total means:
@@ -309,7 +325,7 @@ Controls overall error rate (family-wise error) of all pairwise tests.
 Use 'simple.glht'-function in the mixlm-package.
 
 ```{r, echo=TRUE, eval=FALSE}
-ptests <- simple.glht(mod1, "soil", corr = c("Tukey"),level = 0.95)
+ptests <- mixlm::simple.glht(mod1, "soil", corr = c("Tukey"),level = 0.95)
 print(ptests)
 plot(ptests)
 ```
@@ -334,22 +350,12 @@ The ANOVA "idea": Studying means by splitting variability
 
 [ANOVA shiny app](https://solve.shinyapps.io/ANOVA/)
 
-## Type 1 and 2 errors
 
-We should keep in mind the errors which we may make
+## Topics for next lecture
 
-Type 1: $\alpha$ = P(Rejecting $H_0$ \| $H_0$ is TRUE)
-
-Type 2: $\beta$ = P(Retaining $H_0$ \| $H_0$ is FALSE)
-
-Choosing the test level $\alpha$ always has an impact on $\beta$.
-
-## Test power
-
-The test power is the ability to find existing effects:
-
-Power: $(1-\beta)$ = P(Rejecting $H_0$ \| $H_0$ is FALSE)
-
-Which factors influence the power for a given test?
-
-## 
+-   ANOVA with several factors
+-   The factorial applet
+-   Effect plots
+-   Estimation and hypothesis testing
+-   Tukey test and confidence intervals
+-   ANCOVA - <Example:Regression> with indicator variables

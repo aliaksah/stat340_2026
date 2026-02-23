@@ -24,7 +24,6 @@ editor_options:
 
 -   Post hoc contrasts and pairwise tests
 
--   Errors and power
 
 ## Objectives of lecture
 
@@ -39,7 +38,7 @@ editor_options:
 ## Example Yields
 
 Yield from a crop experiment on $k=3$ different soil types. There are
-$n=10$ random replicates per soil type. A total of $N=k\cdot n = 30$
+$n_i=10$ random replicates per soil type. A total of $n=k\cdot n_i = 30$
 observations altogether.
 
 ```{r, echo=FALSE, message=FALSE}
@@ -50,10 +49,28 @@ attach(yields)
 plot(yield ~ soil, data=yields, col="green",main = "Are the expected yields different?")
 ```
 
-## The model
+## Linear Regression Formulation
 
-As in regression analysis we assume a linear model with both an
-explainable part and an unexplainable part (noise)
+Model with dummy variables for soil type:
+
+$$y_j = \beta_0 + \beta_1 \cdot x_{ij} + \beta_2 \cdot x_{2j} + \beta_3 \cdot x_{3j}  + \epsilon_j,\epsilon_j \sim N(0, \sigma^2) $$
+
+where:
+
+-   $x_{1j} = 1$ if soil is clay, else 0
+-   $x_{2j} = 1$ if soil is loam, else 0
+-   $x_{3j} = 1$ if soil is sand, else 0
+-   $\beta_0 = \mu$ = intercept (grand mean)
+-   $\beta_0 + \beta_1 = \mu_1$ = mean of yield for clay
+-   $\beta_0 + \beta_2= \mu_2$ = mean of yield for loam
+-   $\beta_0 + \beta_3 = \mu_3$ = mean of yield for sand
+
+## ANOVA
+
+Let us use two indices instead of dummy variables
+
+-   $i$ - indexes the group (soil type): $i \in \{1, 2, 3\}$
+-   $j$ - indexes observation within group: $j \in \{1, \ldots, n_i\}$
 
 Let $y_{ij}$ be the observed yield for observation number
 $j \in \{1,\ldots, n_i\}$ soil type $i \in \{1,\ldots, k\}$.
@@ -66,7 +83,7 @@ yield for soil type $i$.
 ## Splitting up total variability
 
 SST=
-$\sum_{i=1}^{k}\sum_{j=1}^{n}(y_{ij}-\bar{y}_{..})^2, \quad \bar{y}_{..}\text{ is grand mean}$
+$\sum_{i=1}^{k}\sum_{j=1}^{n_i}(y_{ij}-\bar{y}_{..})^2, \quad \bar{y}_{..}\text{ is grand mean}$
 
 For the yield data:
 
@@ -74,7 +91,7 @@ For the yield data:
 sum((yield-mean(yield))^2)
 ```
 
-SSA = $\sum_{i=1}^{k}\sum_{j=1}^{n}(\bar{y}_{i.}-\bar{y}_{..})^2 =
+SSA = $\sum_{i=1}^{k}\sum_{j=1}^{n_i}(\bar{y}_{i.}-\bar{y}_{..})^2 =
 n\sum_{i=1}^{k}(\bar{y}_{i.}-\bar{y}_{..})^2,  \quad \bar{y}_{i.}\text{i-th group mean}$
 
 For the yield data:
@@ -85,7 +102,7 @@ soilmeans <- by(yield, soil, mean)
 ```
 
 -   SSE = SST - SSA =
-    $\sum_{i=1}^{k}\sum_{j=1}^{n}(y_{ij}-\bar{y}_{i.})^2$ = 414.7 - 99.2
+    $\sum_{i=1}^{k}\sum_{j=1}^{n_i}(y_{ij}-\bar{y}_{i.})^2$ = 414.7 - 99.2
     = 315.5
 
 ## Between and within group variances:

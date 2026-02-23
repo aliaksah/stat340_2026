@@ -358,13 +358,13 @@ The ANOVA "idea": Studying means by splitting variability
 -   Effect plots
 -   Estimation and hypothesis testing
 -   Tukey test and confidence intervals
--   ANCOVA - <Example:Regression> with indicator variables
+-   ANCOVA 
 
 ## Announcements
 
 - Elias is travelling, online session this Thursday 
 
--[What do we do with mondays](https://www.mentimeter.com/app/presentation/alvmjssjcyvd8zdzrwxw3tqapgghqi35/present?question=3v4by4qckmhx)
+-[What do we do with mondays](https://www.mentimeter.com/app/presentation/alvmjssjcyvd8zdzrwxw3tqapgghqi35/)
 
 - Assignment 1 will be published as a quiz next Tuesday, deadline March 10. 70% needed to pass.
 

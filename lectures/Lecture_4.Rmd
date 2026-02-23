@@ -44,6 +44,7 @@ observations altogether.
 
 ```{r, echo=FALSE, message=FALSE}
 library(BIAS.data)
+#library(mixlm)
 data(yields)
 attach(yields)
 plot(yield ~ soil, data=yields, col="green",main = "Are the expected yields different?")
@@ -169,13 +170,13 @@ A "reference level" or "control level" parametrization
 
 ## Choice of arametrization in RStudio
 
-Parametrization 1 (Using the lm-function)
+Parametrization 1 (Using the lm-function in the mixlm-package)
 
 ```{r, echo=TRUE, eval=FALSE}
 mod1 <- lm(yield~soil, data=yields, contrasts = "contr.sum")
 ```
 
-Parametrization 2 (Using the lm-function)
+Parametrization 2 (Using the lm-function in the mixlm-package
 
 ```{r, echo=TRUE, eval=FALSE}
 mod1 <- lm(yield~soil, data=yields, contrasts = "contr.treatment")
@@ -246,6 +247,11 @@ For pair-wise contrasts, only two $c_i$'s differ from 0.
 
 ## Example 1 (With parametrization 1)
 
+```{r, echo=FALSE}
+options(contrasts=c("contr.sum","contr.poly")) 
+mod1 <- stats::lm(yield~soil, data=yields)
+```
+
 Comparing soil type "loam" (level 1) with "clay" (level 2):
 
 $\theta_1 = 1\mu_1 + (-1)\mu_2 + 0 \mu_3$
@@ -256,8 +262,6 @@ Estimate:
 $\widehat{\theta}_1 = \widehat{\alpha}_1 -\widehat{\alpha}_2 = -0.4 - 2.4 = -2.8$
 
 ```{r, echo=TRUE}
-options(contrasts=c("contr.sum","contr.poly")) 
-mod1 <- stats::lm(yield~soil, data=yields)
 gmodels::fit.contrast(model=mod1, varname='soil', df=TRUE, coeff=c(1, -1, 0), conf.int=0.95)
 ```
 
@@ -288,7 +292,6 @@ Controls overall error rate (family-wise error) of all pairwise tests.
 Use 'simple.glht'-function in the mixlm-package.
 
 ```{r, echo=TRUE, eval=FALSE}
-library(mixlm)
 ptests <- simple.glht(mod1, "soil", corr = c("Tukey"),level = 0.95)
 print(ptests)
 plot(ptests)

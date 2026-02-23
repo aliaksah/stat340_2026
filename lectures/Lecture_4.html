@@ -3338,11 +3338,11 @@ n\sum_{i=1}^{k}(\bar{y}_{i.}-\bar{y}_{..})^2,  \quad \bar{y}_{i.}\text{i-th grou
 
 </article></slide><slide class=""><hgroup><h2>Choice of arametrization in RStudio</h2></hgroup><article  id="choice-of-arametrization-in-rstudio">
 
-<p>Parametrization 1 (Using the lm-function)</p>
+<p>Parametrization 1 (Using the lm-function in the mixlm-package)</p>
 
 <pre class = 'prettyprint lang-r'>mod1 &lt;- lm(yield~soil, data=yields, contrasts = &quot;contr.sum&quot;)</pre>
 
-<p>Parametrization 2 (Using the lm-function)</p>
+<p>Parametrization 2 (Using the lm-function in the mixlm-package</p>
 
 <pre class = 'prettyprint lang-r'>mod1 &lt;- lm(yield~soil, data=yields, contrasts = &quot;contr.treatment&quot;)</pre>
 
@@ -3423,9 +3423,7 @@ print(means)</pre>
 
 <p>Estimate: \(\widehat{\theta}_1 = \widehat{\alpha}_1 -\widehat{\alpha}_2 = -0.4 - 2.4 = -2.8\)</p>
 
-<pre class = 'prettyprint lang-r'>options(contrasts=c(&quot;contr.sum&quot;,&quot;contr.poly&quot;)) 
-mod1 &lt;- stats::lm(yield~soil, data=yields)
-gmodels::fit.contrast(model=mod1, varname=&#39;soil&#39;, df=TRUE, coeff=c(1, -1, 0), conf.int=0.95)</pre>
+<pre class = 'prettyprint lang-r'>gmodels::fit.contrast(model=mod1, varname=&#39;soil&#39;, df=TRUE, coeff=c(1, -1, 0), conf.int=0.95)</pre>
 
 <pre >##                   Estimate Std. Error   t value   Pr(&gt;|t|) DF  lower CI
 ## soil c=( 1 -1 0 )     -2.8   1.528737 -1.831577 0.07806971 27 -5.936709
@@ -3455,8 +3453,7 @@ gmodels::fit.contrast(model=mod1, varname=&#39;soil&#39;, df=TRUE, coeff=c(1, -1
 
 <p>Use &lsquo;simple.glht&rsquo;-function in the mixlm-package.</p>
 
-<pre class = 'prettyprint lang-r'>library(mixlm)
-ptests &lt;- simple.glht(mod1, &quot;soil&quot;, corr = c(&quot;Tukey&quot;),level = 0.95)
+<pre class = 'prettyprint lang-r'>ptests &lt;- simple.glht(mod1, &quot;soil&quot;, corr = c(&quot;Tukey&quot;),level = 0.95)
 print(ptests)
 plot(ptests)</pre>
 

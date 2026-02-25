@@ -1,7 +1,7 @@
 ---
 title: "ANOVA 2"
 author: "Aliaksandr Hubin"
-date: "Mar 02 2025"
+date: "Mar 03 2026"
 output: 
    ioslides_presentation: default
    beamer_presentation: default
@@ -12,14 +12,47 @@ editor_options:
     wrap: 72
 ---
 
-## Topics for this lecture
+## Choice of parametrization in RStudio
 
--   ANOVA with several factors
--   The factorial applet
--   Effect plots
--   Estimation and hypothesis testing
--   Tukey test and confidence intervals
--   ANCOVA - <Example:Regression> with indicator variables
+```{r, echo=FALSE, eval=TRUE}
+library(BIAS.data)
+library(mixlm)
+data(yields)
+```
+
+Parametrization 1 (Using the lm-function in the mixlm-package)
+
+```{r, echo=TRUE, eval=TRUE}
+mod1 <- lm(yield~soil, data=yields, contrasts = "contr.sum")
+round(summary(mod1)$coef,4)
+```
+
+Parametrization 2 (Using the lm-function in the mixlm-package
+
+```{r, echo=TRUE, eval=TRUE}
+mod2 <- lm(yield~soil, data=yields, contrasts = "contr.treatment")
+round(summary(mod2)$coef,4)
+```
+
+## ANOVA table of Sum of squares
+
+This table does not depend on parametrization
+
+```{r, echo=TRUE}
+anova(mod1)
+print("Indifferent to formulation")
+anova(mod2)
+```
+
+## Residual analysis
+
+We should also for ANOVA-models check the assumptions by residual
+analysis
+
+```{r, echo=FALSE}
+par(mfrow=c(2,2))
+plot(mod1, which=c(1,2,3,4))
+```
 
 ## ANOVA with several factors
 
@@ -27,9 +60,10 @@ editor_options:
 -   Assume two factors: A with $i=1,2,...a$ levels, and B with
     $j=1,2,...,b$ levels
 -   If all levels of A are tested with all levels of B we have a
-    complete crossed design.
--   Assume there are $k=1,2,...,n$ replicates of all $ab$ level
-    combinations.
+    complete crossed design
+-   Assume there are $k=1,2,...,r$ replicates of all $ab$ level
+    combinations so
+-   So, the total number of observations is $n = a\cdot b\cdot r$
 
 ## Illustration of two-factor case
 
@@ -38,20 +72,22 @@ editor_options:
 ## The Model
 
 Model:
-$$y_{ijk} = \mu + \alpha_i + \beta_j + \alpha\beta_{ij} + \epsilon_{ijk}$$
+$$y_{ijk} = \mu + \alpha_i + \beta_j + (\alpha\beta)_{ij} + \epsilon_{ijk}$$
 
-where $\epsilon_{ijk} \sim N(0,\sigma^2)$.
+where $\epsilon_{ijk} \sim N(0,\sigma^2)$ and $(\alpha\beta)_{ij}$ is
+the effect due to any interaction between the *i*-th level of and the
+*j*-th level of.
 
 Parametrization (restrictions)
 
 -   Sum-to-zero: $\sum_i {\alpha}_i =0$, $\sum_j {\beta}_j=0$,
-    $\sum_i \alpha\beta_{ij}=0$ and $\sum_j \alpha\beta_{ij}=0$.
+    $\sum_i (\alpha\beta)_{ij}=0$ and $\sum_j (\alpha\beta)_{ij}=0$.
 
 -   Reference levels: $\alpha_1 = 0$, $\beta_1 = 0$,
-    $\alpha\beta_{1,j}=0$ for all $j$ and $\alpha\beta_{i,1}=0$ for all
-    $i$.
+    $(\alpha\beta)_{1,j}=0$ for all $j$ and $(\alpha\beta)_{i,1}=0$ for
+    all $i$.
 
-## Example: Animal diets - The "growth data"
+## Example: Animal diets - "growth data" from R book
 
 ```{r,echo=FALSE, message=FALSE}
 load("growth.Rdata")
@@ -61,6 +97,12 @@ barplot(tapply(gain, list(diet, supplement),mean),beside=TRUE, ylim=c(0,35),
 legend(3.7, 34.8, legend=c("Barley","Oats","Wheat"),fill=c("orange","yellow","cornsilk"))
 ```
 
+## R structure of the data
+
+```{r, echo=FALSE}
+ head(weights,16)
+```
+
 ## R analysis
 
 For reference level analysis, see "the R-book" on page 517.
@@ -68,28 +110,12 @@ For reference level analysis, see "the R-book" on page 517.
 Let's again use the sum-to-zero parametrization here:
 
 ```{r, echo=TRUE, message=FALSE}
-mod2 <- lm(gain ~ diet + supplement + diet:supplement, 
+mod2 <- mixlm::lm(gain ~ diet + supplement + diet:supplement, 
            data=weights, contrasts = "contr.sum")
-```
 
-Equivalent model calls in R:
-
--   `gain ~ diet + supplement + diet:supplement`
--   `gain ~ diet*supplement`
--   `gain ~ (diet + supplement)^2`
-
-## Diet means and sd's
-
-```{r, echo=TRUE, message=FALSE}
-by(weights$gain, weights$diet, 
-   FUN=function(x){c(mean=mean(x),sd=sd(x))})
-```
-
-## Supplement means and sd's
-
-```{r, echo=TRUE, message=FALSE}
-by(weights$gain, weights$supplement, 
-   FUN=function(x){c(mean=mean(x),sd=sd(x))})
+options(contrasts = c("contr.sum", "contr.poly"))
+mod2 <- stats:::lm(gain ~ diet + supplement + diet:supplement, 
+           data=weights)
 ```
 
 ## Main effects plot of `Diet`
@@ -112,12 +138,17 @@ plot(Effect(c("supplement"), mod2))
 Means of diet:supplement combinations.
 
 ```{r,echo=TRUE, message=FALSE}
-library(effects)
 plot(allEffects(mod2,confidence.level=.99),layout=c(3,1), 
      rotx=90,alternating=FALSE)
 ```
 
 ## Model parameter estimation
+
+Still maximum likelihood maximization/ SSE minimization in the
+regression formulation of 2-way ANOVA with interactions to get
+$\widehat{\beta_0},\widehat{\beta_1},...,\widehat{\beta_p}$ which can
+similarly to how we did it last time translated into
+$\widehat{\mu},\widehat{\alpha}_i, \widehat{\beta}_j,\widehat{\alpha\beta}_{ij}$.
 
 For balanced data the least squares estimators for the model parameters
 are (sum-to-zero):
@@ -130,14 +161,45 @@ $\widehat{\beta}_j = \bar{y}_{.j.}-\bar{y}_{...}$
 
 $\widehat{\alpha\beta}_{ij} = \bar{y}_{ij.} - \bar{y}_{i..} - \bar{y}_{.j.} + \bar{y}_{...}$
 
-And as usual, the noise variance estimate is:
+Interpretation: effects are **deviations** from the overall mean $\mu$.
+
+## Model parameter estimation
+
+Now take level 1 of A and B as reference
+
+$\widehat{\mu}^{(ref)} = \bar{y}_{11.}$
+
+$\widehat{\alpha}_i^{(ref)} = \bar{y}_{i1.} - \bar{y}_{11.},\quad i = 2,\ldots,a$
+
+$\widehat{\beta}_j^{(ref)} = \bar{y}_{1j.} - \bar{y}_{11.},\quad j = 2,\ldots,b$
+
+$\widehat{\alpha\beta}_{ij}^{(ref)} = \bar{y}_{ij.} - \bar{y}_{i1.} - \bar{y}_{1j.} + \bar{y}_{11.},
+\quad i=2,\ldots,a,\; j=2,\ldots,b$
+
+Interpretation: effects are **differences** from the reference.
+
+As usual, the noise variance estimate is:
 
 $\widehat{\sigma}^2 = MSE$
 
-## Summary with estimates of effects:
+## Summary with sum to zero:
+
+Sum to zero parametrization - deviations from the grand mean:
 
 ```{r, echo=FALSE}
-summary(mod2)$coefficients[,c(1:2)]
+mod2 <- mixlm::lm(gain ~ diet + supplement + diet:supplement, 
+           data=weights, contrasts = "contr.sum")
+round(summary(mod2)$coefficients,4)
+```
+
+## Summary with reference:
+
+Reference diet: **barley**, supplement: **agrimore**
+
+```{r, echo=FALSE}
+mod2 <- mixlm::lm(gain ~ diet + supplement + diet:supplement, 
+           data=weights, contrasts = "contr.treatment")
+round(summary(mod2)$coefficients,4)
 ```
 
 ## We want to test hypotheses
@@ -152,24 +214,40 @@ Main effect of B? $$H_0:\beta_1 = \beta_2 = \cdots = \beta_b = 0$$
 ## Splitting of sums of squares
 
 The Total Sums of Squares measures total variability:
-$$SST = \sum_i \sum_j \sum_k (y_{ijk} - \bar{y}_{...})^2$$
+$$
+SST = \sum_i \sum_j \sum_k (y_{ijk} - \bar{y}_{...})^2
+$$
 
-Can be split into: $$SST = SSA + SSB + SSAB + SSE$$
+Can be split into:
+$$
+SST = SSA + SSB + SSAB + SSE
+$$
 
 Degrees of freedom follow correspondingly as
-$$(N-1) = [(a-1)] + [(b-1)] + [(a-1)(b-1)] + [ab(n-1)]$$
+$$
+(n - 1) = [(a - 1)] + [(b - 1)] + [(a - 1)(b - 1)] + [n - ab].
+$$
+This corresponds to a linear regression formulation with $SSR = SSA + SSB + SSAB$ and $p = ab - 1$
 
 ## F-tests
 
 Interaction: Reject $H_0$ if
-$$F = \frac{MSAB}{MSE} = \frac{SSAB/(a-1)(b-1)}{SSE/ab(n-1)}$$ is larger
-than $F_{\alpha,(a-1)(b-1),ab(n-1)}$ or p-value \< $\alpha$.
+$$
+F = \frac{MS{AB}}{MSE}
+  = \frac{SS{AB}/[(a-1)(b-1)]}{SSE/[n - ab]}
+$$
+is larger than $F_{\alpha,\,(a-1)(b-1),\,n-ab}$ or p-value $< \alpha$.
 
 Main effect A: Reject $H_0$ if
-$$F = \frac{MSA}{MSE} > F_{\alpha,(a-1),ab(n-1)}$$
+$$
+F = \frac{MSA}{MSE} > F_{\alpha,\,(a-1),\,n-ab}
+$$
 
 Main effect B: Reject $H_0$ if
-$$F = \frac{MSB}{MSE} > F_{\alpha,(b-1),ab(n-1)}$$
+$$
+F = \frac{MSB}{MSE} > F_{\alpha,\,(b-1),\,n-ab}
+$$
+
 
 ## The ANOVA-table for the growth data
 
@@ -190,12 +268,18 @@ Note: The complete crossed design gives "orthogonal effects". The SS's
 are independent, and, apart from SSE, they do not change when effects
 are removed/added to the model.
 
-## Tukey tests supplement - Confidence intervals
+## Tukey tests supplement
 
-```{r, message=FALSE, echo=FALSE}
-library(mixlm)
-ptests <- simple.glht(mod3, "supplement", corr = c("Tukey"),level = 0.95)
-print(ptests$confint)
+```{r, message=FALSE, echo=TRUE}
+ptests <- mixlm::simple.glht(mod3, "supplement", corr = c("Tukey"),level = 0.95)
+print(round(ptests$res,4))
+```
+
+## Tukey tests diet
+
+```{r, message=FALSE, echo=TRUE}
+ptests <- mixlm::simple.glht(mod3, "diet", corr = c("Tukey"),level = 0.95)
+print(round(ptests$res,4))
 ```
 
 ## Compact letter display
@@ -234,7 +318,7 @@ head(birth[,-c(1:2)], 7)
 
 ## Scatterplot with separate linear models for smokers and non-smokers
 
-```{r, echo=FALSE}
+```{r, echo=FALSE,message=FALSE}
 library(car)
 scatterplot(BWT~LWT | SMK, regLine=lm, smooth=FALSE,
             boxplots=FALSE, ellipse=FALSE, by.groups=TRUE,data=birth)
@@ -243,7 +327,7 @@ scatterplot(BWT~LWT | SMK, regLine=lm, smooth=FALSE,
 ## ANCOVA as regression with indicator variable
 
 Let $y = BWT$ and $x_1 = LWT$ and define $$ 
-x_2 = \left\{ 
+x_{2i} = \left\{ 
 \begin{array}[cc]
 \ 0 & \mbox{if smoker}\\
 1 & \mbox{if non-smoker}
@@ -258,10 +342,8 @@ $$ where $\epsilon_i \sim N(0, \sigma^2)$.
 
 ```{r, echo=TRUE, message=FALSE}
 birth4 <- lm(BWT ~ LWT + SMK, data=birth, contrasts = "contr.treatment")
-birth4
+summary(birth4)
 ```
-
-## Explain coefficients
 
 ## The estimated model(s)
 
@@ -281,13 +363,17 @@ $$ with $\epsilon_i \sim N(0, \sigma^2)$.
 
 Lets see how the model is for different values of $x_{2i}$
 
-## Explain coefficients
+## Fitted model in R
+
+```{r, echo=FALSE}
+birth5 <- lm(BWT ~ LWT*SMK, data=birth, contrasts="contr.treatment")
+summary(birth5)
+```
 
 ## The estimated model(s)
 
 ```{r, echo=FALSE}
-plot(x = birth$LWT, y = birth$BWT, xlab="LWT", ylab="BWT")
-birth5 <- lm(BWT ~ LWT*SMK, data=birth, contrasts="contr.treatment")
+plot(x = birth$LWT, y = birth$BWT, xlab="LWT", ylab="BWT", xlim = c(0,250))
 coefs <- birth5$coefficients
 abline(coefs[1], coefs[2], col = "red", lwd=2)
 abline((coefs[1]+coefs[3]), (coefs[2]+ coefs[4]), col = "blue", lwd=2)

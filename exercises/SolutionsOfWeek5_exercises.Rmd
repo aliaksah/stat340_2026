@@ -1,0 +1,333 @@
+---
+title: "Exercises STAT340 - ANOVA - part II"
+params:
+  vis.forslag: false
+output:
+  html_document:
+    toc: true
+    theme: yeti
+    code_folding: hide
+    number_sections: true
+editor_options: 
+  chunk_output_type: console
+  markdown: 
+    wrap: 72
+---
+
+```{=html}
+<style>
+.main-container, .main-content { max-width: 100%; }
+.info { background-color:aliceblue; }
+.task { background-color:lightpink; }
+</style>
+```
+
+```{r forslag, include = FALSE}
+vis.forslag <- params$vis.forslag
+```
+
+```{r forklar forslag, echo = FALSE, results = "asis", include = vis.forslag}
+cat('
+<mark>
+**LØSNINGSFORSLAG!**
+
+Disse vises nedenfor på ulike måter:
+<mark>Gulmerking</mark> av tekstforslag til løsning, eller kommentarer om alternative løsninger.
+* Noe <button>Code</button> som var skjult i øvingsdokumentet.
+<details>
+<summary>
+<mark>
+Noen løsningsforslag er skjult inni hint.
+</mark>
+</summary>
+Da må du utvide hintene for å se løsningsforslagene.  
+
+</details>
+')
+```
+
+<br> <br> <br> <br>
+
+::: info
+**Colloquium exercises:** You are encouraged to work together in groups
+on the exercises. Sharing problems and solutions is often a much quicker
+way to learn, especially for problems of a more practical nature.
+:::
+
+Here are some packages and data you need to use in these exercises. So
+you should run these commands before you start the exercises.
+
+```{r, echo = TRUE, message=FALSE}
+library(mixlm)
+library(car)
+library(effects)
+library(BIAS.data)
+data(NSRdata)
+data(Barley)
+data(birth)
+```
+
+# Ex-2: Yield of barley
+
+In `Barley` there are results from an experiment where the response is
+yield of barley pr 1000 square meter, and the factors varieties of
+barley, soil types, types of fertilizers. In addition was the experiment
+done in two different geographical areas (sites).
+
+-   Assume a two factor model including the main effects of `Variety`
+    and `Soil` and their interaction. State the model and explain all
+    parameters under a sum-to-zero parametrization.
+
+<details>
+
+<summary><mark> Solution </mark></summary>
+
+The model can be written as:
+$$ y_{ijk} = \mu + \alpha_i + \beta_j + (\alpha\beta)_{ij} + \epsilon_{ijk}$$
+where, $\epsilon \sim N(0, \sigma^2)$
+
+The parametrization restrictions for "sum-to-zero"" are: $$
+\begin{eqnarray} 
+\sum_i{\alpha_i} = 0, & \sum_j{\beta_j} = 0, & 
+\sum_{i}{(\alpha\beta)_{ij}} = 0  \text{ and }
+\sum_{j}{(\alpha\beta)_{ij}} = 0
+\end{eqnarray}
+$$
+
+</details>
+
+-   Fit the model in R and estimate all parameters
+
+<details>
+
+<summary><mark> Solution </mark></summary>
+
+```{r, echo=TRUE}
+# either
+mod1 <- mixlm::lm(Yield ~ Variety * Soil, data = Barley, contrasts="contr.sum")
+# or
+mod1 <- stats::lm(Yield ~ Variety * Soil, data = Barley, contrasts = list(x = contr.sum))
+summod1 <- summary(mod1, cor=FALSE)
+print(summod1)
+anova(mod1)
+```
+
+From the model summaries we find the estimated parameters to be:
+
+1.  The estimated overall mean yield: $\hat{\mu}=$ `r coef(mod1)[1]`
+2.  The estimated effects of Variety 1 and 2: $\hat{\alpha}_1=$
+    `r coef(mod1)[2]`, $\hat{\alpha}_2 = -\hat{\alpha}_1 =$
+    `r -coef(mod1)[2]`
+3.  The estimated effects of Soil 1 and 2: $\hat{\beta}_1=$
+    `r coef(mod1)[3]`, $\hat{\beta}_2 = -\hat{\beta}_1 =$
+    `r -coef(mod1)[3]`
+4.  The estimated interaction effects of Variety and Soil:
+    $\hat{\alpha\beta}_{11}=$ `r coef(mod1)[4]`,
+    $\hat{\alpha\beta}_{12}=-\hat{\alpha\beta}_{11}=$
+    `r -coef(mod1)[4]`,
+    $\hat{\alpha\beta}_{21}=-\hat{\alpha\beta}_{11}=$
+    `r -coef(mod1)[4]`,
+    $\hat{\alpha\beta}_{22}=-\hat{\alpha\beta}_{21}=-\hat{\alpha\beta}_{12}=$
+    `r coef(mod1)[4]`
+5.  The estimated within `variety:Soil` levels unexplained variability:
+    $\hat{\sigma}^2=MSE=$ `r round(summod1$sigma^2, 2)`
+
+</details>
+
+-   Make an interaction plot and try to conclude about the presence of
+    interaction from the plot. How would you explain interaction effect
+    in this example for a person with experience in agriculture, but
+    minimal statistical experience?
+
+<details>
+
+<summary><mark> Solution </mark></summary>
+
+```{r, echo=TRUE}
+plot(allEffects(mod1,confidence.level = .95))
+```
+
+From the plot, it seems that a farmer can expect an increase in yield
+when using Variety 2 instead of Variety 1 for Soil = Clay, but vice
+versa for Soil = Sand. If this is so, there is a so-called interaction
+effect of Variety and Soil on yield.
+
+</details>
+
+-   Perform a hypothesis test for the interaction effect. Conclusion?
+
+<details>
+
+<summary><mark> Solution </mark></summary>
+
+```{r, echo=TRUE}
+anova(mod1)
+```
+
+The interaction between `Soil` and `Variety` is insignificant at 5%
+testlevel (p-value \> 0.05). This result indicates that the slight
+non-parallel tendency of the lines in the interaction plot may be due to
+random errors. More data would be needed to verify any interaction
+effect.
+
+</details>
+
+-   Fit a four factor model with Variety, Soil, Fetilizer and Site as
+    factors and with all possible 2-factor, 3-factor and 4-factor
+    interactions. Are there any higher order significant effects?
+    Compare the R-squared and the adjusted R-squared values. What can
+    you conclude from these?
+
+<details>
+
+<summary><mark> Solution </mark></summary>
+
+```{r, echo=TRUE}
+mod2 <- stats::lm(Yield ~ Variety * Soil * Fertilizer * Site, data = Barley)
+anova(mod2)
+summary(mod2)
+```
+
+There is only one main effect and one interaction effect significant at
+5% levels, namely the `Fertilizer` main effect and the `Soil:Fertilizer`
+interaction. However, the least squares estimator is prone to inflated
+variance estimates and difficulties in finding significance when the
+number of variables `k` rises compared to the number of observations `N`
+and if variables are highly correlated. Too many variables to estimate
+from a limited number of observations leaves few degrees of freedom to
+SSE, and tests with low power. Lack of significance may be an
+over-fitting problem. By removing some of the least significant
+variables, the problem is reduced, and a reduced model with significant
+effects may be identified.
+
+The large difference between $R^2$ and $R_{adj}^2$ is also an indication
+of an over-fitted model.
+
+</details>
+
+-   Try to reduce the model by excluding the least significant higher
+    order interactions first, one at a time, in a backward elimination
+    procedure using the 'backward' function from the `mixlm` package.
+    Use the 'hierarchy = TRUE' argument to ensure that the so-called
+    marginality principle is followed. What is the final reduced model?
+
+<details>
+
+<summary><mark> Solution </mark></summary>
+
+```{r, echo=TRUE}
+mod2.red <- backward(mod2, alpha = 0.05, full = TRUE, hierarchy = TRUE)
+anova(mod2.red)
+```
+
+The final reduced model is a model with all four main effects, three of
+which are now significant, five 2-order interactions (three
+significant), and two significant 3-order interactions. The 4-order
+interaction is removed. The marginality principle says that we should
+keep all main effects and interactions that are part of higher order
+significant interaction(s) in the model. This is a good principle for
+practical data analysis.
+
+</details>
+
+-   Perform a model check of the reduced model using residual analysis.
+
+<details>
+
+<summary><mark> Solution </mark></summary>
+
+The `backward` function has fitted the reduced model:
+
+```{r, echo=TRUE, fig.height=7}
+par(mfrow = c(2,2))
+plot(mod2.red, which = c(1,2,4,5))
+```
+
+The residual plots give no evidence of any problems with the model
+assumptions.
+
+</details>
+
+-   You can make the third order interaction effects plot between
+    `Variety`,`Site` and `Soil` like this:
+
+```{r effectPlot, eval = TRUE, echo=TRUE}
+eff <- allEffects(mod2.red, confidence.level = .95)
+plot(eff[2])
+```
+
+Try to explain the plot. Why do you think the interaction between
+`Variety`,`Site` and `Soil` was significant?
+
+<details>
+
+<summary><mark> Solution </mark></summary>
+
+The interaction effect is significant because the lines are not
+parallel. The effect of Soil on Yield is different for the two Varieties
+and the effect of Soil on Yield for one Variety may depend on Site. This
+is a three-way interaction effect.
+
+</details>
+
+# Ex-2: Indicator variable (ANCOVA model)
+
+This exercise is a follow up on the exercise from week 3 on multiple
+regression using the `mtcars` data set.
+
+-   The `am` variable is really an indicator variable for transmission
+    system of the cars (The variable is coded as 0=automatic, 1=manual).
+    Fit a multiple linear model with "cyl", "wt", "am" and the
+    interaction between "wt" and "am" and report the summary of the
+    model with parameter estimates and tests.
+
+NOTE: Make sure the `am` is treated as a categorical variable in the
+model by writing `factor(am)` in the model formula in the linear model
+function. Use the default "sum to zero" parametrization when you fit the
+model.
+
+<details>
+
+<summary><mark> Solution </mark></summary>
+
+```{r, echo=TRUE}
+cars <- lm(mpg ~ cyl + wt * factor(am), data=mtcars, contrasts="contr.sum")
+summary(cars)
+```
+
+</details>
+
+-   Write up the assumed model which has been run here. Also write up
+    the estimated models for automatic and manual transmission,
+    respectively.
+
+<details>
+
+<summary><mark> Solution </mark></summary>
+
+The model is:
+
+$$ y = \beta_0 + \beta_1 x_1 + \beta_2 x_2 + \beta_3 x_3 + \beta_4 x_2\cdot x_3 + \epsilon $$
+
+where $y$=`mpg`, $x_1$=`cyl`, $x_2$=`wt`, $x_3$=`am` and
+$\epsilon \sim N(0, \sigma^2)$.
+
+For automatic transmission (`am`=$x_3$=1) we have the estimated model:
+$$ 
+\begin{split}
+\hat{y} &= 40.2523 - 1.1814x_1 - 4.4676x_2 - 5.9693 + 2.0987x_2\\
+&=34.283 - 1.1814x_1 - 2.3689x_2
+\end{split}
+$$
+
+For manual transmission (`am`=$x_3$=-1) we have $$ 
+\begin{split}
+\hat{y} &= 40.2523 - 1.1814x_1 - 4.4676x_2 + 5.9693 - 2.0987x_2\\
+&= 46.2216 - 1.1814x_1 - 6.5663x_2
+\end{split}
+$$
+
+We observe that the negative effect of weight on mileage is larger for
+manual transmission than for automatic.
+
+</details>

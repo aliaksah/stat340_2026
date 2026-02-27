@@ -12,7 +12,21 @@ editor_options:
     wrap: 72
 ---
 
-## Choice of parametrization in RStudio
+## Chapters for ANOVA/ANCOVA
+
+**R book**
+
+**Chapter 11:** Analysis of Variance and
+
+**Chapter 12:** Analysis of Covariance
+
+**ISLR**
+
+Not covered per se, but you can check for relevant materials
+
+**Chapter 3, Section 3.3.1**: Qualitative Predictors
+
+## Last time we estimated
 
 ```{r, echo=FALSE, eval=TRUE}
 library(BIAS.data)
@@ -213,41 +227,34 @@ Main effect of B? $$H_0:\beta_1 = \beta_2 = \cdots = \beta_b = 0$$
 
 ## Splitting of sums of squares
 
-The Total Sums of Squares measures total variability:
-$$
+The Total Sums of Squares measures total variability: $$
 SST = \sum_i \sum_j \sum_k (y_{ijk} - \bar{y}_{...})^2
 $$
 
-Can be split into:
-$$
+Can be split into: $$
 SST = SSA + SSB + SSAB + SSE
 $$
 
-Degrees of freedom follow correspondingly as
-$$
+Degrees of freedom follow correspondingly as $$
 (n - 1) = [(a - 1)] + [(b - 1)] + [(a - 1)(b - 1)] + [n - ab].
-$$
-This corresponds to a linear regression formulation with $SSR = SSA + SSB + SSAB$ and $p = ab - 1$
+$$ This corresponds to a linear regression formulation with
+$SSR = SSA + SSB + SSAB$ and $p = ab - 1$
 
 ## F-tests
 
-Interaction: Reject $H_0$ if
-$$
+Interaction: Reject $H_0$ if $$
 F = \frac{MS{AB}}{MSE}
   = \frac{SS{AB}/[(a-1)(b-1)]}{SSE/[n - ab]}
-$$
-is larger than $F_{\alpha,\,(a-1)(b-1),\,n-ab}$ or p-value $< \alpha$.
+$$ is larger than $F_{\alpha,\,(a-1)(b-1),\,n-ab}$ or p-value
+$< \alpha$.
 
-Main effect A: Reject $H_0$ if
-$$
+Main effect A: Reject $H_0$ if $$
 F = \frac{MSA}{MSE} > F_{\alpha,\,(a-1),\,n-ab}
 $$
 
-Main effect B: Reject $H_0$ if
-$$
+Main effect B: Reject $H_0$ if $$
 F = \frac{MSB}{MSE} > F_{\alpha,\,(b-1),\,n-ab}
 $$
-
 
 ## The ANOVA-table for the growth data
 

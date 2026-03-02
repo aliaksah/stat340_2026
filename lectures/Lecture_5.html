@@ -3281,15 +3281,15 @@ round(summary(mod2)$coef,4)</pre>
 
 </article></slide><slide class=""><hgroup><h2>The Model</h2></hgroup><article  id="the-model">
 
-<p>Model: \[y_{ijk} = \mu + \alpha_i + \beta_j + (\alpha\beta)_{ij} + \epsilon_{ijk}\]</p>
+<p>Model: \[y_{ijk} = \mu_{ij} + \epsilon_{ijk} = \mu + \alpha_i + \beta_j + (\alpha\beta)_{ij} + \epsilon_{ijk}\]</p>
 
-<p>where \(\epsilon_{ijk} \sim N(0,\sigma^2)\) and \((\alpha\beta)_{ij}\) is the effect due to any interaction between the <em>i</em>-th level of and the <em>j</em>-th level of.</p>
+<p>where \(\epsilon_{ijk} \sim N(0,\sigma^2)\) and \((\alpha\beta)_{ij}\) is the effect due to any interaction between the <em>i</em>-th level of \(A\) and the <em>j</em>-th level of \(B\).</p>
 
 <p>Parametrization (restrictions)</p>
 
 <ul>
 <li><p>Sum-to-zero: \(\sum_i {\alpha}_i =0\), \(\sum_j {\beta}_j=0\), \(\sum_i (\alpha\beta)_{ij}=0\) and \(\sum_j (\alpha\beta)_{ij}=0\).</p></li>
-<li><p>Reference levels: \(\alpha_1 = 0\), \(\beta_1 = 0\), \((\alpha\beta)_{1,j}=0\) for all \(j\) and \((\alpha\beta)_{i,1}=0\) for all \(i\).</p></li>
+<li><p>Reference levels: \(\alpha_1 = 0\), \(\beta_1 = 0\), \((\alpha\beta)_{1j}=0\) for all \(j\) and \((\alpha\beta)_{i1}=0\) for all \(i\).</p></li>
 </ul>
 
 </article></slide><slide class=""><hgroup><h2>Example: Animal diets - &ldquo;growth data&rdquo; from R book</h2></hgroup><article  id="example-animal-diets---growth-data-from-r-book">
@@ -3318,15 +3318,20 @@ round(summary(mod2)$coef,4)</pre>
 
 </article></slide><slide class=""><hgroup><h2>R analysis</h2></hgroup><article  id="r-analysis">
 
-<p>For reference level analysis, see &ldquo;the R-book&rdquo; on page 517.</p>
-
-<p>Let’s again use the sum-to-zero parametrization here:</p>
+<p>Let’s see how to use both parametrizations here:</p>
 
 <pre class = 'prettyprint lang-r'>mod2 &lt;- mixlm::lm(gain ~ diet + supplement + diet:supplement, 
            data=weights, contrasts = &quot;contr.sum&quot;)
 
 options(contrasts = c(&quot;contr.sum&quot;, &quot;contr.poly&quot;))
 mod2 &lt;- stats:::lm(gain ~ diet + supplement + diet:supplement, 
+           data=weights)
+
+mod1&lt;- mixlm::lm(gain ~ diet + supplement + diet:supplement, 
+           data=weights, contrasts = &quot;contr.treatment&quot;)
+
+options(contrasts = c(&quot;contr.treatment&quot;, &quot;contr.poly&quot;))
+mod1 &lt;- stats:::lm(gain ~ diet + supplement + diet:supplement, 
            data=weights)</pre>
 
 </article></slide><slide class=""><hgroup><h2>Main effects plot of <code>Diet</code></h2></hgroup><article  id="main-effects-plot-of-diet">
@@ -3355,7 +3360,7 @@ plot(Effect(focal.predictors = c(&quot;diet&quot;), mod = mod2))</pre>
 
 </article></slide><slide class=""><hgroup><h2>Model parameter estimation</h2></hgroup><article  id="model-parameter-estimation">
 
-<p>Still maximum likelihood maximization/ SSE minimization in the regression formulation of 2-way ANOVA with interactions to get \(\widehat{\beta_0},\widehat{\beta_1},...,\widehat{\beta_p}\) which can similarly to how we did it last time translated into \(\widehat{\mu},\widehat{\alpha}_i, \widehat{\beta}_j,\widehat{(\alpha\beta)}_{ij}\). For balanced data the least squares estimators for the model parameters are (sum-to-zero):</p>
+<p>Still likelihood maximization/ SSE minimization in the regression formulation of 2-way ANOVA with interactions to get \(\widehat{\beta_0},\widehat{\beta_1},...,\widehat{\beta_p}\) which can similarly to how we did it last time translated into \(\widehat{\mu},\widehat{\alpha}_i, \widehat{\beta}_j,\widehat{(\alpha\beta)}_{ij}\). For balanced data the least squares estimators for the model parameters are (sum-to-zero):</p>
 
 <p>\(\widehat{\mu} = \bar{y}_{...}\)</p>
 
@@ -3667,7 +3672,9 @@ y_i = \beta_0 + \beta_1 x_{1i} + \beta_2 x_{2i} + \beta_3 x_{1i}\cdot x_{2i} + \
 <li>Are model assumptions met?</li>
 <li>Are there significant effects of LWT and/or SMK?</li>
 <li>How is the model fit in terms of \(R^2\)? Critizise the model!</li>
-</ul></article></slide>
+</ul>
+
+</article></slide><slide class=""><hgroup><h2>Assignment posted today!</h2></hgroup><article  id="assignment-posted-today"></article></slide>
 
 
   <slide class="backdrop"></slide>

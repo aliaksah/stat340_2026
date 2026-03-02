@@ -79,11 +79,11 @@ plot(mod1, which=c(1,2,3,4))
 ## The Model
 
 Model:
-$$y_{ijk} = \mu + \alpha_i + \beta_j + (\alpha\beta)_{ij} + \epsilon_{ijk}$$
+$$y_{ijk} = \mu_{ij} + \epsilon_{ijk} = \mu + \alpha_i + \beta_j + (\alpha\beta)_{ij} + \epsilon_{ijk}$$
 
 where $\epsilon_{ijk} \sim N(0,\sigma^2)$ and $(\alpha\beta)_{ij}$ is
-the effect due to any interaction between the *i*-th level of and the
-*j*-th level of.
+the effect due to any interaction between the *i*-th level of $A$ and
+the *j*-th level of $B$.
 
 Parametrization (restrictions)
 
@@ -91,7 +91,7 @@ Parametrization (restrictions)
     $\sum_i (\alpha\beta)_{ij}=0$ and $\sum_j (\alpha\beta)_{ij}=0$.
 
 -   Reference levels: $\alpha_1 = 0$, $\beta_1 = 0$,
-    $(\alpha\beta)_{1,j}=0$ for all $j$ and $(\alpha\beta)_{i,1}=0$ for
+    $(\alpha\beta)_{1j}=0$ for all $j$ and $(\alpha\beta)_{i1}=0$ for
     all $i$.
 
 ## Example: Animal diets - "growth data" from R book
@@ -112,9 +112,7 @@ legend(3.7, 34.8, legend=c("Barley","Oats","Wheat"),fill=c("orange","yellow","co
 
 ## R analysis
 
-For reference level analysis, see "the R-book" on page 517.
-
-Let's again use the sum-to-zero parametrization here:
+Let's see how to use both parametrizations here:
 
 ```{r, echo=TRUE, message=FALSE}
 mod2 <- mixlm::lm(gain ~ diet + supplement + diet:supplement, 
@@ -122,6 +120,13 @@ mod2 <- mixlm::lm(gain ~ diet + supplement + diet:supplement,
 
 options(contrasts = c("contr.sum", "contr.poly"))
 mod2 <- stats:::lm(gain ~ diet + supplement + diet:supplement, 
+           data=weights)
+
+mod1<- mixlm::lm(gain ~ diet + supplement + diet:supplement, 
+           data=weights, contrasts = "contr.treatment")
+
+options(contrasts = c("contr.treatment", "contr.poly"))
+mod1 <- stats:::lm(gain ~ diet + supplement + diet:supplement, 
            data=weights)
 ```
 
@@ -151,8 +156,8 @@ plot(allEffects(mod2,confidence.level=.99),layout=c(3,1),
 
 ## Model parameter estimation
 
-Still maximum likelihood maximization/ SSE minimization in the
-regression formulation of 2-way ANOVA with interactions to get
+Still likelihood maximization/ SSE minimization in the regression
+formulation of 2-way ANOVA with interactions to get
 $\widehat{\beta_0},\widehat{\beta_1},...,\widehat{\beta_p}$ which can
 similarly to how we did it last time translated into
 $\widehat{\mu},\widehat{\alpha}_i, \widehat{\beta}_j,\widehat{(\alpha\beta)}_{ij}$.
@@ -394,3 +399,5 @@ You should be able to check:
 -   Are model assumptions met?
 -   Are there significant effects of LWT and/or SMK?
 -   How is the model fit in terms of $R^2$? Critizise the model!
+
+## Assignment posted today!

@@ -235,7 +235,7 @@ $\hat{\mu}_3 = \hat{\mu} + \hat{\alpha}_3 = \hat{\mu} -(\hat{\alpha}_1 + \hat{\a
 `r round(coefs[1] -(coefs[2]+coefs[3]),2)`
 
 The estimate of the error variance is
-$\hat{\sigma}^2 = MSE= SSE/(N-3) = 60.724/57 = 1.065$.
+$\hat{\sigma}^2 = MSE= SSE/(n-3) = 60.724/57 = 1.065$.
 
 The $\sigma^2$ is the variance for log-chlorine levels measured in the
 same city.

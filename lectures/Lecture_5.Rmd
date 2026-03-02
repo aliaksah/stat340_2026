@@ -26,35 +26,28 @@ Not covered per se, but you can check for relevant materials
 
 **Chapter 3, Section 3.3.1**: Qualitative Predictors
 
-## Last time we estimated
+## Last time: two parametrizations
 
-```{r, echo=FALSE, eval=TRUE}
+```{r, echo=FALSE, eval=TRUE,message=FALSE}
 library(BIAS.data)
 library(mixlm)
 data(yields)
 ```
-
-Parametrization 1 (Using the lm-function in the mixlm-package)
 
 ```{r, echo=TRUE, eval=TRUE}
 mod1 <- lm(yield~soil, data=yields, contrasts = "contr.sum")
 round(summary(mod1)$coef,4)
 ```
 
-Parametrization 2 (Using the lm-function in the mixlm-package
-
 ```{r, echo=TRUE, eval=TRUE}
 mod2 <- lm(yield~soil, data=yields, contrasts = "contr.treatment")
 round(summary(mod2)$coef,4)
 ```
 
-## ANOVA table of Sum of squares
+## anova(mod1) and anova(mod2)
 
-This table does not depend on parametrization
-
-```{r, echo=TRUE}
+```{r, echo=FALSE}
 anova(mod1)
-print("Indifferent to formulation")
 anova(mod2)
 ```
 
@@ -162,7 +155,7 @@ Still maximum likelihood maximization/ SSE minimization in the
 regression formulation of 2-way ANOVA with interactions to get
 $\widehat{\beta_0},\widehat{\beta_1},...,\widehat{\beta_p}$ which can
 similarly to how we did it last time translated into
-$\widehat{\mu},\widehat{\alpha}_i, \widehat{\beta}_j,\widehat{\alpha\beta}_{ij}$.
+$\widehat{\mu},\widehat{\alpha}_i, \widehat{\beta}_j,\widehat{(\alpha\beta)}_{ij}$.
 
 For balanced data the least squares estimators for the model parameters
 are (sum-to-zero):
@@ -173,7 +166,7 @@ $\widehat{\alpha}_i = \bar{y}_{i..}-\bar{y}_{...}$
 
 $\widehat{\beta}_j = \bar{y}_{.j.}-\bar{y}_{...}$
 
-$\widehat{\alpha\beta}_{ij} = \bar{y}_{ij.} - \bar{y}_{i..} - \bar{y}_{.j.} + \bar{y}_{...}$
+$\widehat{(\alpha\beta)}_{ij} = \bar{y}_{ij.} - \bar{y}_{i..} - \bar{y}_{.j.} + \bar{y}_{...}$
 
 Interpretation: effects are **deviations** from the overall mean $\mu$.
 
@@ -187,7 +180,7 @@ $\widehat{\alpha}_i^{(ref)} = \bar{y}_{i1.} - \bar{y}_{11.},\quad i = 2,\ldots,a
 
 $\widehat{\beta}_j^{(ref)} = \bar{y}_{1j.} - \bar{y}_{11.},\quad j = 2,\ldots,b$
 
-$\widehat{\alpha\beta}_{ij}^{(ref)} = \bar{y}_{ij.} - \bar{y}_{i1.} - \bar{y}_{1j.} + \bar{y}_{11.},
+$\widehat{(\alpha\beta)}_{ij}^{(ref)} = \bar{y}_{ij.} - \bar{y}_{i1.} - \bar{y}_{1j.} + \bar{y}_{11.},
 \quad i=2,\ldots,a,\; j=2,\ldots,b$
 
 Interpretation: effects are **differences** from the reference.

@@ -3221,16 +3221,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; }
 
 <p><strong>Chapter 3, Section 3.3.1</strong>: Qualitative Predictors</p>
 
-</article></slide><slide class=""><hgroup><h2>Last time we estimated</h2></hgroup><article  id="last-time-we-estimated">
-
-<pre >## 
-## Attaching package: &#39;mixlm&#39;</pre>
-
-<pre >## The following objects are masked from &#39;package:stats&#39;:
-## 
-##     glm, lm</pre>
-
-<p>Parametrization 1 (Using the lm-function in the mixlm-package)</p>
+</article></slide><slide class=""><hgroup><h2>Last time: two parametrizations</h2></hgroup><article  id="last-time-two-parametrizations">
 
 <pre class = 'prettyprint lang-r'>mod1 &lt;- lm(yield~soil, data=yields, contrasts = &quot;contr.sum&quot;)
 round(summary(mod1)$coef,4)</pre>
@@ -3240,8 +3231,6 @@ round(summary(mod1)$coef,4)</pre>
 ## soil(clay)      -0.4     0.8826 -0.4532   0.6540
 ## soil(loam)       2.4     0.8826  2.7192   0.0113</pre>
 
-<p>Parametrization 2 (Using the lm-function in the mixlm-package</p>
-
 <pre class = 'prettyprint lang-r'>mod2 &lt;- lm(yield~soil, data=yields, contrasts = &quot;contr.treatment&quot;)
 round(summary(mod2)$coef,4)</pre>
 
@@ -3250,11 +3239,7 @@ round(summary(mod2)$coef,4)</pre>
 ## soil(loam)       2.8     1.5287  1.8316   0.0781
 ## soil(sand)      -1.6     1.5287 -1.0466   0.3046</pre>
 
-</article></slide><slide class=""><hgroup><h2>ANOVA table of Sum of squares</h2></hgroup><article  id="anova-table-of-sum-of-squares">
-
-<p>This table does not depend on parametrization</p>
-
-<pre class = 'prettyprint lang-r'>anova(mod1)</pre>
+</article></slide><slide class=""><hgroup><h2>anova(mod1) and anova(mod2)</h2></hgroup><article  id="anovamod1-and-anovamod2">
 
 <pre >## Analysis of Variance Table
 ## 
@@ -3264,12 +3249,6 @@ round(summary(mod2)$coef,4)</pre>
 ## Residuals 27  315.5  11.685                  
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</pre>
-
-<pre class = 'prettyprint lang-r'>print(&quot;Indifferent to formulation&quot;)</pre>
-
-<pre >## [1] &quot;Indifferent to formulation&quot;</pre>
-
-<pre class = 'prettyprint lang-r'>anova(mod2)</pre>
 
 <pre >## Analysis of Variance Table
 ## 
@@ -3376,7 +3355,7 @@ plot(Effect(focal.predictors = c(&quot;diet&quot;), mod = mod2))</pre>
 
 </article></slide><slide class=""><hgroup><h2>Model parameter estimation</h2></hgroup><article  id="model-parameter-estimation">
 
-<p>Still maximum likelihood maximization/ SSE minimization in the regression formulation of 2-way ANOVA with interactions to get \(\widehat{\beta_0},\widehat{\beta_1},...,\widehat{\beta_p}\) which can similarly to how we did it last time translated into \(\widehat{\mu},\widehat{\alpha}_i, \widehat{\beta}_j,\widehat{\alpha\beta}_{ij}\).</p>
+<p>Still maximum likelihood maximization/ SSE minimization in the regression formulation of 2-way ANOVA with interactions to get \(\widehat{\beta_0},\widehat{\beta_1},...,\widehat{\beta_p}\) which can similarly to how we did it last time translated into \(\widehat{\mu},\widehat{\alpha}_i, \widehat{\beta}_j,\widehat{(\alpha\beta)}_{ij}\).</p>
 
 <p>For balanced data the least squares estimators for the model parameters are (sum-to-zero):</p>
 
@@ -3386,7 +3365,7 @@ plot(Effect(focal.predictors = c(&quot;diet&quot;), mod = mod2))</pre>
 
 <p>\(\widehat{\beta}_j = \bar{y}_{.j.}-\bar{y}_{...}\)</p>
 
-<p>\(\widehat{\alpha\beta}_{ij} = \bar{y}_{ij.} - \bar{y}_{i..} - \bar{y}_{.j.} + \bar{y}_{...}\)</p>
+<p>\(\widehat{(\alpha\beta)}_{ij} = \bar{y}_{ij.} - \bar{y}_{i..} - \bar{y}_{.j.} + \bar{y}_{...}\)</p>
 
 <p>Interpretation: effects are <strong>deviations</strong> from the overall mean \(\mu\).</p>
 
@@ -3400,7 +3379,7 @@ plot(Effect(focal.predictors = c(&quot;diet&quot;), mod = mod2))</pre>
 
 <p>\(\widehat{\beta}_j^{(ref)} = \bar{y}_{1j.} - \bar{y}_{11.},\quad j = 2,\ldots,b\)</p>
 
-<p>\(\widehat{\alpha\beta}_{ij}^{(ref)} = \bar{y}_{ij.} - \bar{y}_{i1.} - \bar{y}_{1j.} + \bar{y}_{11.},
+<p>\(\widehat{(\alpha\beta)}_{ij}^{(ref)} = \bar{y}_{ij.} - \bar{y}_{i1.} - \bar{y}_{1j.} + \bar{y}_{11.},
 \quad i=2,\ldots,a,\; j=2,\ldots,b\)</p>
 
 <p>Interpretation: effects are <strong>differences</strong> from the reference.</p>

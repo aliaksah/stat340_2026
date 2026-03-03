@@ -3320,18 +3320,19 @@ round(summary(mod2)$coef,4)</pre>
 
 <p>Let’s see how to use both parametrizations here:</p>
 
-<pre class = 'prettyprint lang-r'>mod2 &lt;- mixlm::lm(gain ~ diet + supplement + diet:supplement, 
-           data=weights, contrasts = &quot;contr.sum&quot;)
-
-options(contrasts = c(&quot;contr.sum&quot;, &quot;contr.poly&quot;))
-mod2 &lt;- stats:::lm(gain ~ diet + supplement + diet:supplement, 
-           data=weights)
-
+<pre class = 'prettyprint lang-r'>#mixlm
 mod1&lt;- mixlm::lm(gain ~ diet + supplement + diet:supplement, 
            data=weights, contrasts = &quot;contr.treatment&quot;)
-
+#base R
 options(contrasts = c(&quot;contr.treatment&quot;, &quot;contr.poly&quot;))
-mod1 &lt;- stats:::lm(gain ~ diet + supplement + diet:supplement, 
+mod1 &lt;- stats::lm(gain ~ diet + supplement + diet:supplement, 
+           data=weights)
+#mixlm
+mod2 &lt;- mixlm::lm(gain ~ diet + supplement + diet:supplement, 
+           data=weights, contrasts = &quot;contr.sum&quot;)
+#base R
+options(contrasts = c(&quot;contr.sum&quot;, &quot;contr.poly&quot;))
+mod2 &lt;- stats::lm(gain ~ diet + supplement + diet:supplement, 
            data=weights)</pre>
 
 </article></slide><slide class=""><hgroup><h2>Main effects plot of <code>Diet</code></h2></hgroup><article  id="main-effects-plot-of-diet">

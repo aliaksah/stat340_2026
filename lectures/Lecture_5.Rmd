@@ -115,19 +115,21 @@ legend(3.7, 34.8, legend=c("Barley","Oats","Wheat"),fill=c("orange","yellow","co
 Let's see how to use both parametrizations here:
 
 ```{r, echo=TRUE, message=FALSE}
-mod2 <- mixlm::lm(gain ~ diet + supplement + diet:supplement, 
-           data=weights, contrasts = "contr.sum")
-
-options(contrasts = c("contr.sum", "contr.poly"))
-mod2 <- stats:::lm(gain ~ diet + supplement + diet:supplement, 
-           data=weights)
-
+#mixlm
 mod1<- mixlm::lm(gain ~ diet + supplement + diet:supplement, 
            data=weights, contrasts = "contr.treatment")
-
+#base R
 options(contrasts = c("contr.treatment", "contr.poly"))
-mod1 <- stats:::lm(gain ~ diet + supplement + diet:supplement, 
+mod1 <- stats::lm(gain ~ diet + supplement + diet:supplement, 
            data=weights)
+#mixlm
+mod2 <- mixlm::lm(gain ~ diet + supplement + diet:supplement, 
+           data=weights, contrasts = "contr.sum")
+#base R
+options(contrasts = c("contr.sum", "contr.poly"))
+mod2 <- stats::lm(gain ~ diet + supplement + diet:supplement, 
+           data=weights)
+
 ```
 
 ## Main effects plot of `Diet`

@@ -337,8 +337,8 @@ scatterplot(BWT~LWT | SMK, regLine=lm, smooth=FALSE,
 Let $y = BWT$ and $x_1 = LWT$ and define $$ 
 x_{2i} = \left\{ 
 \begin{array}[cc]
-\ 0 & \mbox{if smoker}\\
-1 & \mbox{if non-smoker}
+\ 0 & \mbox{if non smoker}\\
+1 & \mbox{if smoker}
 \end{array} \right.
 $$
 

@@ -163,7 +163,7 @@ text(x1,x2, labels=as.character(1:25),pos=2)
 ```
 
 ```{r, echo=TRUE}
-dist(mypoints, method ="euclidian")
+dist(mypoints, method ="euclidean")
 ```
 
 ## Manhattan distance

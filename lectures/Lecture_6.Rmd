@@ -571,7 +571,7 @@ kmeans_result$withinss      # Within Cluster Sum of Squares
 kmeans_result$tot.withinss  # Total Within Sum of Squares
 ```
 
-## Choosing k: Elbow Plot
+## Choosing K: Elbow Plot
 
 ```{r kmeans-elbow, echo=FALSE, fig.width=7, fig.height=4}
 set.seed(123)

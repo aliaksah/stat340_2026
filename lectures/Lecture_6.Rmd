@@ -17,7 +17,7 @@ editor_options:
 -   Cluster analysis
 -   Similarity and distance
 -   K-means clustering
--   PAM clustering
+-   Partitioning Around Medoids (PAM) clustering
 -   Hierarchical clustering
 
 ## Chapters for cluster analysis

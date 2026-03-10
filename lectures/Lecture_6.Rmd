@@ -39,6 +39,7 @@ o   Section 25.4: Hierarchical Cluster Analysis
 -   K-means clustering
 -   Partitioning Around Medoids (PAM) clustering
 -   Hierarchical clustering
+-   Case study: Assignment 1
 
 ## Cluster analysis
 
@@ -110,10 +111,10 @@ text(x1,x2, labels=as.character(1:25),pos=2)
 
 Euclidean distance is shortest distance on a map
 
-E.g. distance between two observations $(x_{11}, x_{21})$ and
-$(x_{12}, x_{22})$
+E.g. distance between two observations $(x_{11}, x_{12})$ and
+$(x_{21}, x_{22})$
 
-$$D_e = \sqrt{(x_{11} - x_{12})^2 + (x_{21} - x_{22})^2}$$
+$$D_e = \sqrt{(x_{11} - x_{21})^2 + (x_{12} - x_{22})^2}$$
 
 ## Euclidean distance: example
 
@@ -179,7 +180,7 @@ Manhattan
 Manhattan distance between two observations
 $x_1 = (6.255,5.495), x_2 = (3.919,2.683)$
 
-$$D_m = |x_{11} - x_{12}| + |x_{21} - x_{22}|$$
+$$D_m = |x_{11} - x_{21}| + |x_{12} - x_{22}|$$
 
 ```{r, echo=FALSE}
 # Points
@@ -1376,12 +1377,12 @@ With a dendrogram, we **cut** it at some height to obtain $K$ clusters
     context.
 
 3.  **Internal validation**: Use quality metrics (e.g., **silhouette**
-    coefficient, **within-cluster sum of squares, F scores**) for
-    different $K$.
+    coefficient, **WCSS**) for different $K$.
 
 4.  **External validation (if labels available)**: Compare at different
     heights to ground-truth using the **Adjusted Rand Index (ARI)**.
-    Range [−1, 1]; 1 = perfect, 0 = random.
+    Range [−1, 1]; 1 = perfect, 0 = random. Or **F scores** for
+    continuous labels.
 
 ```{r,echo=FALSE,warning=FALSE,message=FALSE}
 library(cluster)

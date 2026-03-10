@@ -54,12 +54,13 @@ o   Section 25.4: Hierarchical Cluster Analysis
 
 ## Groups in data
 
--   A data set with $n$ cases (rows) and $p$ variables (columns)$\mathbf{X} =
-\begin{bmatrix}
-x_{11} & \cdots & x_{1p} \\
-\vdots & \vdots & \vdots \\
-x_{n1} & \cdots & x_{np}
-\end{bmatrix}$
+-   A data set with $n$ cases (rows) and $p$ variables
+    (columns)$\mathbf{X} =
+    \begin{bmatrix}
+    x_{11} & \cdots & x_{1p} \\
+    \vdots & \vdots & \vdots \\
+    x_{n1} & \cdots & x_{np}
+    \end{bmatrix}$
 
 -   We look for groups in the data cases
 
@@ -1375,7 +1376,8 @@ With a dendrogram, we **cut** it at some height to obtain $K$ clusters
     context.
 
 3.  **Internal validation**: Use quality metrics (e.g., **silhouette**
-    coefficient, **within-cluster sum of squares**) for different $K$.
+    coefficient, **within-cluster sum of squares, F scores**) for
+    different $K$.
 
 4.  **External validation (if labels available)**: Compare at different
     heights to ground-truth using the **Adjusted Rand Index (ARI)**.
@@ -1533,7 +1535,7 @@ plot(1:max_k, wss, type = "b", pch = 19,
 
     sil <- silhouette(cutree(hc, k = 3), dist(iris[,1:4]))
     mean(sil[, 3]) # Average silhouette width
-    
+
     sil <- silhouette(cutree(hc, h = 3), dist(iris[,1:4]))
     mean(sil[, 3]) # Average silhouette width
 
@@ -1585,7 +1587,6 @@ plot(h, wss, type = "b", pch = 19,
      main = "Elbow plot for HC")
 ```
 
-
 ## Other clustering methods not covered
 
 **Model-based clustering:**
@@ -1624,3 +1625,310 @@ plot(h, wss, type = "b", pch = 19,
 
 **Others:** Self-organizing maps (Kohonen maps), dynamic time warping
 for time-series clustering.
+
+## Assignment results
+
+```{r load-and-process, include=FALSE}
+# Read CSV file
+df <- read.csv2("Compulsory 1 2026.csv", stringsAsFactors = FALSE)
+
+# Extract binary answer matrix (25 questions)
+# Columns 8, 10, 12, ..., 56 contain scores (1.0 or 0.0)
+score_col_indices <- seq(8, 56, by = 2)
+score_matrix <- as.matrix(df[, score_col_indices])
+score_matrix <- matrix(as.numeric(score_matrix == "1.0"),
+                       nrow = nrow(score_matrix),
+                       ncol = ncol(score_matrix))
+
+# Get total scores
+total_scores <- as.numeric(df$score)
+
+n_answers  <- nrow(score_matrix)
+n_questions <- ncol(score_matrix)
+
+# Binary Hamming distance (number of differing positions)
+hamming_binary <- function(x, y) {
+  sum(x != y)
+}
+
+# Create distance matrix
+dist_matrix <- matrix(0, n_answers, n_answers)
+for (i in 1:(n_answers - 1)) {
+  for (j in (i + 1):n_answers) {
+    d <- hamming_binary(score_matrix[i, ], score_matrix[j, ])
+    dist_matrix[i, j] <- d
+    dist_matrix[j, i] <- d
+  }
+}
+
+dist_obj <- as.dist(dist_matrix)
+
+# Function to find optimal k for PAM using F-type ratio and min cluster size
+find_optimal_k_pam <- function(dist_obj, total_scores,
+                               max_k = 8, min_cluster_size = 3) {
+  best_k      <- 2
+  best_metric <- -Inf
+
+  for (k in 2:max_k) {
+    pam_fit  <- pam(dist_obj, k = k, diss = TRUE)
+    clusters <- pam_fit$clustering
+    cluster_sizes <- table(clusters)
+
+    # Skip if any cluster is too small
+    if (min(cluster_sizes) < min_cluster_size) next
+
+    # Between- and within-cluster variance of total scores
+    cluster_means <- tapply(total_scores, clusters, mean)
+    overall_mean  <- mean(total_scores)
+
+    between_var <- sum(cluster_sizes * (cluster_means - overall_mean)^2)
+    within_var  <- sum(tapply(total_scores, clusters,
+                              function(x) sum((x - mean(x))^2)))
+
+    if (within_var > 0) {
+      metric <- between_var / within_var
+      if (metric > best_metric) {
+        best_metric <- metric
+        best_k      <- k
+      }
+    }
+  }
+
+  best_k
+}
+
+# Choose number of clusters
+optimal_k <- find_optimal_k_pam(dist_obj, total_scores,
+                                max_k = 8, min_cluster_size = 3)
+
+# Final PAM clustering
+pam_fit  <- pam(dist_obj, k = optimal_k, diss = TRUE)
+clusters <- pam_fit$clustering
+
+# Cluster statistics
+cluster_stats <- data.frame(
+  cluster    = 1:optimal_k,
+  size       = as.numeric(table(clusters)),
+  mean_score = tapply(total_scores, clusters, mean),
+  sd_score   = tapply(total_scores, clusters, sd),
+  min_score  = tapply(total_scores, clusters, min),
+  max_score  = tapply(total_scores, clusters, max)
+)
+
+# Sort by mean score
+cluster_stats <- cluster_stats[order(cluster_stats$mean_score), ]
+
+# Performance labels
+if (optimal_k == 2) {
+  perf_labels <- c("Group 1", "Group 2")
+} else if (optimal_k == 3) {
+  perf_labels <- c("Low", "Medium", "High")
+} else {
+  perf_labels <- paste0("Group ", 1:optimal_k)
+}
+cluster_stats$performance <- perf_labels
+
+# Map cluster -> performance label
+cluster_mapping <- setNames(cluster_stats$performance, cluster_stats$cluster)
+answer_performance <- factor(cluster_mapping[as.character(clusters)],
+                              levels = perf_labels)
+
+results_df <- data.frame(
+  answer_id  = 1:n_answers,
+  performance = answer_performance,
+  score       = total_scores
+)
+
+# ANOVA on total score by cluster
+anova_model   <- aov(score ~ performance, data = results_df)
+anova_summary <- summary(anova_model)
+f_stat  <- anova_summary[[1]]$"F value"[1]
+p_value <- anova_summary[[1]]$"Pr(>F)"[1]
+```
+
+## Overview
+
+**Assignment 1 – STAT340 (2026)**
+
+-   Answers: `r n_answers`
+-   Questions: `r n_questions`
+-   Mean score: `r round(mean(total_scores), 2)` / 25
+-   Correct rate: `r round(mean(total_scores) / 25 * 100, 1)` %
+
+------------------------------------------------------------------------
+
+## Score distribution
+
+```{r score-dist}
+par(mfrow = c(1, 2), mar = c(4, 4, 2, 1))
+
+hist(total_scores, breaks = 10, col = "lightblue", border = "black",
+     main = "Score distribution", xlab = "Score", ylab = "Frequency",
+     cex.main = 1.3, cex.lab = 1.1)
+abline(v = mean(total_scores), col = "red", lwd = 3, lty = 2)
+
+boxplot(total_scores, col = "lightblue", main = "Boxplot",
+        ylab = "Score", cex.main = 1.3, cex.lab = 1.1)
+points(jitter(rep(1, n_answers), 0.1), total_scores,
+       pch = 16, col = rgb(0, 0, 0, 0.3))
+
+par(mfrow = c(1, 1))
+```
+
+## How to run clustering here?
+
+Which distance?
+
+Which method?
+
+How to select the number of clusters?
+
+## **Clustering setup**
+
+-   Data: 25-dimensional binary vectors (correct/incorrect)
+-   Distance: binary Hamming distance (number of different answers)
+-   Method: PAM (Partitioning Around Medoids) on the distance matrix
+-   Number of clusters: chosen by an F-type criterion
+    -   For each k = 2, ..., 8:
+        -   run PAM,
+        -   compute F-ratio = between-cluster variance / within-cluster
+            variance (of the scores),
+        -   require at least 3 answers per cluster.
+    -   Choose k with the largest F-ratio.
+
+## PAM clustering
+
+**Optimal number of clusters (PAM):** `r optimal_k`
+
+```{r pam-sizes}
+barplot(table(answer_performance),
+        col = 2:(optimal_k + 1),
+        main = "Cluster sizes (PAM)",
+        xlab = "Group", ylab = "Number of answers")
+```
+
+## Cluster statistics
+
+```{r cluster-table}
+display_table <- cluster_stats[, c("performance", "size", "mean_score",
+                                   "sd_score", "min_score", "max_score")]
+display_table$mean_score <- round(display_table$mean_score, 2)
+display_table$sd_score   <- round(display_table$sd_score, 2)
+colnames(display_table) <- c("Group", "N", "Mean", "SD", "Min", "Max")
+
+knitr::kable(display_table, align = c("l", rep("c", 5)), row.names = FALSE)
+```
+
+## Score distributions by group
+
+```{r cluster-dists}
+par(mfrow = c(1, optimal_k), mar = c(4, 4, 3, 1))
+
+for (i in 1:optimal_k) {
+  perf_level    <- perf_labels[i]
+  scores_subset <- total_scores[answer_performance == perf_level]
+
+  hist(scores_subset, breaks = 5, col = i + 1, border = "black",
+       main = paste(perf_level, "(n =", length(scores_subset), ")"),
+       xlab = "Score", ylab = "Freq", xlim = c(19, 26),
+       cex.main = 1.2, cex.lab = 1.1)
+  abline(v = mean(scores_subset), col = "black", lwd = 2, lty = 2)
+}
+
+par(mfrow = c(1, 1))
+```
+
+## Boxplot by group
+
+```{r boxplot}
+boxplot(score ~ performance, data = results_df,
+        col = 2:(optimal_k + 1), border = "black",
+        main = "Score by performance group",
+        xlab = "Group", ylab = "Score",
+        cex.main = 1.4, cex.lab = 1.2, lwd = 1.5)
+
+for (i in 1:optimal_k) {
+  perf_level    <- perf_labels[i]
+  scores_subset <- results_df$score[results_df$performance == perf_level]
+  points(jitter(rep(i, length(scores_subset)), 0.15),
+         scores_subset, pch = 16, col = rgb(0, 0, 0, 0.4))
+}
+
+group_means <- tapply(results_df$score, results_df$performance, mean)
+points(1:optimal_k, group_means, pch = 18, col = "yellow", cex = 3)
+```
+
+## Answer pattern heatmap
+
+```{r heatmap}
+sorted_idx   <- order(answer_performance, total_scores)
+sorted_matrix <- score_matrix[sorted_idx, ]
+sorted_perf   <- answer_performance[sorted_idx]
+
+par(mar = c(4, 4, 3, 2))
+image(1:n_questions, 1:n_answers, t(sorted_matrix),
+      col = c("red", "green"), xlab = "Question", ylab = "answer",
+      main = "Answer patterns (green = correct, red = incorrect)",
+      cex.main = 1.3, cex.lab = 1.1)
+
+group_boundaries <- cumsum(table(sorted_perf))
+for (i in 1:(length(group_boundaries) - 1)) {
+  abline(h = group_boundaries[i] + 0.5, lwd = 2)
+}
+```
+
+## ANOVA results
+
+**One-way ANOVA: score \~ performance group**
+
+```{r anova-table, echo = FALSE}
+anova_table <- data.frame(
+  Source = c("Between groups", "Within groups"),
+  Df  = anova_summary[[1]]$Df,
+  SS  = round(anova_summary[[1]]$"Sum Sq", 2),
+  MS  = round(anova_summary[[1]]$"Mean Sq", 2),
+  F   = c(round(f_stat, 2), NA),
+  p   = c(format.pval(p_value, digits = 3, eps = 0.001), NA)
+)
+
+anova_summary
+```
+
+**Result:** F = `r round(f_stat, 2)`, p
+`r ifelse(p_value < 0.001, "< 0.001", paste0("= ", round(p_value, 3)))`
+
+## Post-hoc: Tukey HSD
+
+```{r tukey}
+if (optimal_k > 1) {
+  tukey_result <- TukeyHSD(anova_model)
+  tukey_df     <- as.data.frame(tukey_result$performance)
+
+  tukey_display <- data.frame(
+    Comparison = rownames(tukey_df),
+    Diff       = round(tukey_df$diff, 2),
+    `p-value`  = format.pval(tukey_df$"p adj", digits = 3, eps = 0.001),
+    Sig        = ifelse(tukey_df$"p adj" < 0.001, "***",
+                        ifelse(tukey_df$"p adj" < 0.01, "**",
+                               ifelse(tukey_df$"p adj" < 0.05, "*", "ns")))
+  )
+
+  tukey_result
+}
+```
+
+## Summary
+
+-   Binary Hamming distance on 25-question 0/1 answer patterns.
+-   PAM clustering on the Hamming distance matrix.
+-   Number of clusters chosen by an F-type criterion with minimum
+    cluster size 3.
+-   ANOVA and Tukey HSD show how groups differ in total score.
+-   What have we done wrong?
+
+## Assumptions
+
+```{r}
+par(mfrow=c(2,2))
+plot(anova_model, ask = FALSE)
+```

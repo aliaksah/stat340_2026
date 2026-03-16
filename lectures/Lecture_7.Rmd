@@ -34,7 +34,7 @@ o   Section 25.5: Discriminant Analysis
 1.  Discrimination
 
 -   Separating objects in an existing data set
--   Find which variables that best separate the $g$ groups
+-   Find which variables that best separate the $K$ groups
 
 2.  Classification
 
@@ -49,7 +49,7 @@ o   Section 25.5: Discriminant Analysis
 
 -   We have $n$ data cases (rows in the data set).
 
--   We have $p$ predictor variables (columns of $\mathbf{X}$).
+-   We have $p$ predictor variables.
 
 -   **Regression**
 
@@ -82,22 +82,22 @@ o   Section 25.5: Discriminant Analysis
 
 -   This famous (Fisher's or Anderson's) iris data set gives the
     measurements in centimeters of the variables X1=sepal length,
-    X2=sepal width, X3=petal length and X4=sepal width, respectively
+    X2=sepal width, X3=petal length and X4=petal width, respectively
 
--   Can we classify to versicolor or virginica based on X-variables?
+-   Can we classify based on X-variables?
 
 -   What's the best method?
 
 ```{r, echo=FALSE, message=FALSE}
 library(BIAS.data)
-data(iris.train)
-head(iris.train,5)
+data(iris)
+iris[c(5,55,125),]
 ```
 
 ## Pairs plot
 
 ```{r, echo=FALSE}
-pairs(iris.train[,-5], col=iris.train[,"Species"], pch=20, cex=2, lower.panel = NULL)
+pairs(iris[,-5], col=iris[,"Species"], pch=20, cex=2, lower.panel = NULL)
 ```
 
 ## Example 2: Lizards
@@ -106,7 +106,7 @@ pairs(iris.train[,-5], col=iris.train[,"Species"], pch=20, cex=2, lower.panel = 
 
 ## Example 2: Lizards
 
-We have in addition to sex measured $k=3$ variables on lizards:
+We have in addition to sex measured $K=3$ variables on lizards:
 
 -   Mass : Weight of lizard (in grams)
 -   SVL : Snout-vent length (in millimeters)
@@ -127,10 +127,10 @@ pairs(Lizard[,-4], col=Lizard$Sex, pch=20,cex=2)
 
 ## Finding decision regions
 
-In discriminant analysis we search for decision regions for the $g$
+In discriminant analysis we search for decision regions for the $K$
 known groups (classes).
 
-Regions $R_1, R_2, \ldots, R_g$
+Regions $R_1, R_2, \ldots, R_K$
 
 ![](Lizards1.png)
 
@@ -138,7 +138,7 @@ Regions $R_1, R_2, \ldots, R_g$
 
 -   Perfect discrimination/classification may not be possible.
 
--   The idea is to find decision regions $R_1, R_2, \ldots, R_g$ that
+-   The idea is to find decision regions $R_1, R_2, \ldots, R_K$ that
     minimizes the probability of doing misclassification.
 
 -   *Intuitively we would allocate an observation to the group which is
@@ -168,7 +168,7 @@ $$
     ## Bayes theorem: Recap
 
     $$
-    P(A \mid B) = \frac{P(B \mid A)\,P(A)}{P(B)}.
+    P(A \mid B) = \frac{P(B \mid A)\,P(A)}{P(B)}=\frac{P(A\cdot B)}{P(B)}.
     $$
 
     ```{r, echo=FALSE, fig.height=4.5}
@@ -319,7 +319,7 @@ $f_2= N(\widehat{\mu}_2, \widehat{\sigma}^2)$.
 **Classification rule**: Classify a new lizard as *female* if it is more
 likely a posteriori
 
-$$\color{blue}{\frac{p(c_f|x^*)}{p(c_m|x^*)} = \frac{f_1(x^*)\cdot p_1}{f_2(x^*)\cdot p_2}\geq 1}$$
+$$\color{blue}{\frac{p(c_f|x^*)}{p(c_m|x^*)} =\frac{f_1(x^*)\cdot p_1}{p(x^*)}\cdot\frac{p(x^*)}{f_2(x^*)\cdot p_2}= \frac{f_1(x^*)\cdot p_1}{f_2(x^*)\cdot p_2}\geq 1}$$
 
 or, alternatively in other words if
 
@@ -332,9 +332,10 @@ The decision boundary is when $f_1(x) \cdot p_1 = f_2(x) \cdot p_2$
 With equal priors of 0.5 and common variance $\sigma^2$:
 $$0.5 \frac{1}{\sqrt{2\pi\sigma^2}}e^{-\frac{(x-\mu_1)^2}{2\sigma^2}} = 0.5\frac{1}{\sqrt{2\pi\sigma^2}}e^{-\frac{(x-\mu_2)^2}{2\sigma^2}}$$
 
-Taking logarithms and simplifying: $$-(x-\mu_1)^2 = -(x-\mu_2)^2$$
+Taking logarithms and simplifying:
+$$-(x-\mu_1)^2/2\sigma^2 = -(x-\mu_2)^2/2\sigma^2$$
 $$x^2 - 2x\mu_1 + \mu_1^2 = x^2 - 2x\mu_2 + \mu_2^2$$
-$$2x(\mu_2 - \mu_1) = \mu_2^2 - \mu_1^2, \text{ hence }\color{red}{x = \frac{\mu_1 + \mu_2}{2}}$$
+$$2x(\mu_2 - \mu_1) = \mu_2^2 - \mu_1^2 \text{ is linear, hence }\color{red}{x = \frac{\mu_1 + \mu_2}{2}}$$
 
 A single **separating point** (in 1D), extends to a **line** in 2D,
 **etc.**
@@ -567,7 +568,7 @@ confusion(Lizard$Sex, preds$class) # confusion matrix
 ## LDA in R with non-uniform priors
 
 ```{r, echo=TRUE}
-DAModel.2 <- lda(Sex~HLS, data=Lizard, prior=c(0.2, 0.8))
+DAModel.2 <- lda(Sex~HLS, data=Lizard, prior=c(0.8, 0.2))
 confusion(Lizard$Sex, predict(DAModel.2)$class) # confusion matrix
 ```
 
@@ -613,8 +614,8 @@ covariates is straightforward:
 
 ## The Bivariate Normal Distribution
 
-For two variables $(X_1, X_2)$, the bivariate normal distribution is
-characterized by:
+For two random variables $(X_1, X_2)$, the bivariate normal distribution
+is characterized by:
 
 -   **Means**: $\mu_1$ and $\mu_2$
 -   **Variances**: $\sigma_1^2$ and $\sigma_2^2$
@@ -698,7 +699,7 @@ points(mu[1], mu[2], pch=19, col="red", cex=2)
 
 ## LDA with Two Covariates: The Setup
 
-For lizard example with HLS and Mass ($k=2$):
+For lizard example with HLS and Mass ($p=2$):
 
 **Female class** ($c_1$):
 $$\mathbf{X}|c_1 \sim N_2(\boldsymbol{\mu}_1, \boldsymbol{\Sigma})$$
@@ -786,11 +787,19 @@ legend("topleft",
 
 ## Tri-variate discrimination
 
-Using all variables ($k=3$)
+Using all variables ($K=3$)
 
 A linear discriminator is a flat plane in the 3D-space
 
 ![](Lizards3.png)
+
+## LDA with three predictors
+
+```{r, echo = TRUE}
+lda_3var <- lda(Sex ~ HLS + Mass + SVL,data  = Lizard, prior = c(0.5, 0.5))
+pred_3var <- predict(lda_3var)$class
+confusion(Lizard$Sex, pred_3var)
+```
 
 ## From LDA to QDA: Relaxing the assumption
 
@@ -808,16 +817,16 @@ More parameters to estimate (may overfit with small data)
 spreads/correlations. Or when we see a clearly non-linear decision
 boundary
 
-## Why is QDA "Quadratic"? (One covariate)
+## Why is QDA "Quadratic"? 
 
 **Key difference**: Each class has its own variance $\sigma_1^2$ and
-$\sigma_2^2$
+$\sigma_2^2$ and $p_1$ = $p_2$
 
 Decision boundary where $f_1(x) \cdot p_1 = f_2(x) \cdot p_2$:
 
-$\frac{p_1}{\sqrt{2\pi\sigma_1^2}}e^{-\frac{(x-\mu_1)^2}{2\sigma_1^2}} = \frac{p_2}{\sqrt{2\pi\sigma_2^2}}e^{-\frac{(x-\mu_2)^2}{2\sigma_2^2}}$Taking
+$\frac{0.5}{\sqrt{2\pi\sigma_1^2}}e^{-\frac{(x-\mu_1)^2}{2\sigma_1^2}} = \frac{0.5}{\sqrt{2\pi\sigma_2^2}}e^{-\frac{(x-\mu_2)^2}{2\sigma_2^2}}$taking
 logarithms:
-$\log(p_1) - \frac{1}{2}\log(\sigma_1^2) - \frac{(x-\mu_1)^2}{2\sigma_1^2} = \log(p_2) - \frac{1}{2}\log(\sigma_2^2) - \frac{(x-\mu_2)^2}{2\sigma_2^2}$
+$-\frac{1}{2}\log(\sigma_1^2) - \frac{(x-\mu_1)^2}{2\sigma_1^2} = - \frac{1}{2}\log(\sigma_2^2) - \frac{(x-\mu_2)^2}{2\sigma_2^2}$
 
 **Quadratic equation in** $x$ since $x^2$ is no longer removed
 
@@ -825,67 +834,13 @@ $ax^2 + bx + c = 0$
 
 **Result**: porabolic **boundaries** in higher dimensions
 
-## Visualizing QDA with Different Variances (2D)
+## Running QDA with Different covariances (2D)
 
-```{r, echo=FALSE, message=FALSE, fig.height=4.5, warning=FALSE}
-library(MASS)
-library(mvtnorm)
-data(Lizard)
-
+```{r, echo=TRUE, message=FALSE, fig.height=4.5, warning=FALSE}
 # Fit QDA with two predictors (HLS and Mass)
 qda_biv <- qda(Sex ~ HLS + Mass, data = Lizard, prior = c(0.5, 0.5))
-
-# Class-specific means (levels: m, f)
-mu_m_qda <- qda_biv$means["m", c("HLS", "Mass")]
-mu_f_qda <- qda_biv$means["f", c("HLS", "Mass")]
-
-# Class-specific covariance matrices
-X_f <- as.matrix(Lizard[Lizard$Sex == "f", c("HLS", "Mass")])
-X_m <- as.matrix(Lizard[Lizard$Sex == "m", c("HLS", "Mass")])
-S_f_qda <- cov(X_f)
-S_m_qda <- cov(X_m)
-
-# Grid over a larger HLS–Mass space to see curvature better
-hls_seq  <- seq(min(Lizard$HLS)  - 20, max(Lizard$HLS)  + 20, length.out = 200)
-mass_seq <- seq(min(Lizard$Mass) - 20, max(Lizard$Mass) + 20, length.out = 200)
-grid_qda <- expand.grid(HLS = hls_seq, Mass = mass_seq)
-X_grid   <- as.matrix(grid_qda[, c("HLS", "Mass")])
-
-# Class scores (proportional to posterior with equal priors)
-score_f <- dmvnorm(X_grid, mean = mu_f_qda, sigma = S_f_qda) * 0.5
-score_m <- dmvnorm(X_grid, mean = mu_m_qda, sigma = S_m_qda) * 0.5
-
-# Difference for contouring: score_f - score_m = 0 → decision boundary
-z_diff <- matrix(score_f - score_m,
-                 nrow = length(hls_seq),
-                 ncol = length(mass_seq))
-
-# Plot observed data with enlarged axes
-plot(Lizard$HLS, Lizard$Mass,
-     xlim = c(77,170),
-     ylim = c(-10,20),
-     col  = ifelse(Lizard$Sex == "f", "red", "blue"),
-     pch  = 19, cex = 1.5,
-     xlab = "HLS (Hind Limb Span)", ylab = "Mass",
-     main = "QDA: Curved Decision Boundary (HLS + Mass)")
-
-# Add curved QDA decision boundary
-contour(hls_seq, mass_seq, z_diff, levels = 0,
-        add = TRUE, col = "darkgreen", lwd = 3, drawlabels = FALSE)
-
-# Add class means
-points(mu_f_qda["HLS"], mu_f_qda["Mass"],
-       pch = 4, col = "black",  cex = 3, lwd = 3)
-points(mu_m_qda["HLS"], mu_m_qda["Mass"],
-       pch = 4, col = "black", cex = 3, lwd = 3)
-
-legend("topleft",
-       legend = c("Female", "Male", "QDA boundary", "Class means"),
-       col    = c("red", "blue", "darkgreen", "black"),
-       pch    = c(19, 19, NA, 4),
-       lty    = c(NA, NA, 1, NA),
-       lwd    = c(NA, NA, 3, 3),
-       cex    = 0.8)
+qda_biv <- predict(qda_biv)$class
+confusion(Lizard$Sex, qda_biv)
 
 ```
 
@@ -898,7 +853,7 @@ library(ellipse)
 data(Lizard)
 
 # Fit LDA first to reuse means (or use qda means; both fine for visual)
-lda_biv <- lda(Sex ~ HLS + Mass, data = Lizard, prior = c(0.5, 0.5))
+lda_biv <- qda(Sex ~ HLS + Mass, data = Lizard, prior = c(0.5, 0.5))
 
 # Class means ONLY for HLS and Mass; levels: "m","f"
 mu_m_biv <- lda_biv$means["m", c("HLS", "Mass")]
@@ -983,7 +938,7 @@ legend("topleft",
 We shall use snout-vent length (in millimeters)
 
 ```{r, echo=TRUE}
-DAModel.4 <- lda(Sex~SVL, data=Lizard, prior=rep(0.5,2))
+DAModel.4 <- qda(Sex~SVL, data=Lizard, prior=rep(0.5,2))
 confusion(Lizard$Sex, predict(DAModel.4)$class) # confusion matrix
 ```
 
@@ -1047,7 +1002,7 @@ res$class
 ## Confusion matrix for CV
 
 ```{r, echo=TRUE}
-res <- lda(Sex ~ SVL, data=Lizard,
+res <- qda(Sex ~ SVL, data=Lizard,
 prior = c(0.5, 0.5), CV = TRUE)
 confusion(Lizard$Sex, res$class)
 ```
@@ -1383,3 +1338,7 @@ There is a wide range of classifiers available in R, e.g.:
 -   Support Vector Machines (**svm**)
 -   Random Forest (**randomForest**)
 -   Neural Networks (**nnet**)
+
+## Next two lectures (online videos)
+
+Links posted on canvas

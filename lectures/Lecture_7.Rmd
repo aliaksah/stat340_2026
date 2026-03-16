@@ -31,13 +31,10 @@ o   Section 25.5: Discriminant Analysis
 
 ## "Separating and predicting"
 
-1.  Discrimination
+1.  Discrimination/Classification
 
 -   Separating objects in an existing data set
 -   Find which variables that best separate the $K$ groups
-
-2.  Classification
-
 -   Predict group membership for a new observation
 -   Allocate new objects to known groups
 

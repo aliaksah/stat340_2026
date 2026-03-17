@@ -103,7 +103,7 @@ pairs(iris[,-5], col=iris[,"Species"], pch=20, cex=2, lower.panel = NULL)
 
 ## Example 2: Lizards
 
-We have in addition to sex measured $K=3$ variables on lizards:
+We have in addition to sex measured $p=3$ variables on lizards:
 
 -   Mass : Weight of lizard (in grams)
 -   SVL : Snout-vent length (in millimeters)
@@ -820,7 +820,7 @@ legend("topleft",
 
 ## Tri-variate discrimination
 
-Using all variables ($K=3$)
+Using all variables ($p=3$)
 
 A linear discriminator is a flat plane in the 3D-space
 
@@ -987,7 +987,7 @@ confusion(Lizard$Sex, predict(DAModel.4)$class) # confusion matrix
 -   $P(\text{classify as male} | \text{true female}) = 2/12 \approx 0.17$
     (**FPR** for males)
 -   Apparent error rate (APER) = $\frac{3 + 2}{25} = 0.2$
--   Accuracy = $1 - \text{APER} = \frac{10+12}{25} = 0.8$
+-   Accuracy = $1 - \text{APER} = \frac{10+10}{25} = 0.8$
 
 ## Validation of the model
 
@@ -997,9 +997,9 @@ confusion(Lizard$Sex, predict(DAModel.4)$class) # confusion matrix
 
     -   **Leave-one-out Cross-Validation (LOOCV)**: available in R,
         choose the option `CV = TRUE`.
-    -   **K-fold Cross-Validation**: split the data into $K$ folds, fit
-        the model on $K-1$ folds and test on the remaining fold, repeat
-        $K$ times and average the error.
+    -   **k-fold Cross-Validation**: split the data into $k$ folds, fit
+        the model on $k-1$ folds and test on the remaining fold, repeat
+        $k$ times and average the error.
 
 -   Another option is the **bootstrap**:
 

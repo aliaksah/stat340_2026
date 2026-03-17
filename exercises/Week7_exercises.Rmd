@@ -1,0 +1,51 @@
+---
+title: Exercise Eight
+---
+
+<link rel="stylesheet" type="text/css" href="shared/custom.css">
+
+```{=html}
+<script src = "shared/custom.js"></script>
+```
+
+```{r, include=FALSE}
+knitr::opts_chunk$set(comment = NULL, warning = FALSE)
+```
+
+```{r, echo=FALSE, message=FALSE}
+load("iris.train.Rdata")
+load("iris.test.Rdata")
+source('plotDAlocal.R')
+library(car)
+library(MASS)
+library(mixlm)
+```
+
+# Ex-1: Discrimination and classification
+
+a.  Consider the iris data set `iris.train.RData` from BIAS library as introduced in lesson 10, here with two species versicolor and virginica. Use R: Graphics \> Scatterplot matrix to make pairs plots for the four sepal and petal variables, and plot by groups to obtain different coloring for the two species. Which variable appears to be discriminating the species best? Are there any pairwise combinations of variables that looks promising with regard to classification? Which variable is discriminating the specieds the worst?
+
+
+
+b.  Explain the difference between “discrimination” and “classification”.
+
+
+c.  Explain what is meant by the assumption “We assume apriori that versicolor and virginica are equally likely”.
+
+
+d.  Fit an LDA model to the iris data using Sepal.Length as the predictor. Assume equal prior probabilities for both species. Use the `print()`-function on your fitted model in the script-window to obtain some more information. What are the sample means of each species for this predictor variable? Also try the plot-function on your model object. What do you obtain?
+
+
+e.  Refit the model from exercise d. and perform a Leave-One-Out Cross-Validation. Compare the confusion matrices and the apparent error rates (APER) for both the fit (exercise d.) and the cross-validated APER.
+
+
+f.  Fit a new lda-model with both Petal.length and Petal.width as predictors. Use LOO-Cross-validation, and choose to display both predictions and posterior probabilities. What is the cross-validated APER for this model? The first 40 observations (numbers 61-100) in the data are Versicolor, the next 40 (numbers 110-150) are Virginica. From the predictions, which observations are wrongly classified in the cross-validation? Explain the posterior probabilities and how these are used to classify samples.
+
+
+g.  Refit the model with Petal.length and Petal.width as predictors but instead use quadratic dicriminant analysis,qda. Use cross-validation. Report the cross-validated error of this model and make a graph like in exercise g. Comment on the results.
+
+h.  What is the model assumption difference between an LDA and a QDA model?
+
+
+i.  Use the models in f. and g. to predict the samples in `iris.test.Rdata`. Below you can see how this can be done in the R-script window after loading the test data. In the code it is assumed that `ldamod` is the fitted linear model and `qdamod` is the fitted quadratic model. You may need to change these to fit your model names. Copy each line of the code, change model name in the first line if necessary, paste into the script window and press "submit". How well do the two classifiers perform on the test data?
+

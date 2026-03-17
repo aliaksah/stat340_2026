@@ -3303,7 +3303,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; }
 
 </article></slide><slide class=""><hgroup><h2>Example 2: Lizards</h2></hgroup><article  id="example-2-lizards-1">
 
-<p>We have in addition to sex measured \(K=3\) variables on lizards:</p>
+<p>We have in addition to sex measured \(p=3\) variables on lizards:</p>
 
 <ul>
 <li>Mass : Weight of lizard (in grams)</li>
@@ -3703,7 +3703,7 @@ confusion(Lizard$Sex, pred_2var)</pre>
 
 </article></slide><slide class=""><hgroup><h2>Tri-variate discrimination</h2></hgroup><article  id="tri-variate-discrimination">
 
-<p>Using all variables (\(K=3\))</p>
+<p>Using all variables (\(p=3\))</p>
 
 <p>A linear discriminator is a flat plane in the 3D-space</p>
 
@@ -3871,7 +3871,7 @@ confusion(Lizard$Sex, predict(DAModel.4)$class) # confusion matrix</pre>
 <li>\(P(\text{classify as female} | \text{true male}) = 3/13 \approx 0.23\) (<strong>FNR</strong> for males)</li>
 <li>\(P(\text{classify as male} | \text{true female}) = 2/12 \approx 0.17\) (<strong>FPR</strong> for males)</li>
 <li>Apparent error rate (APER) = \(\frac{3 + 2}{25} = 0.2\)</li>
-<li>Accuracy = \(1 - \text{APER} = \frac{10+12}{25} = 0.8\)</li>
+<li>Accuracy = \(1 - \text{APER} = \frac{10+10}{25} = 0.8\)</li>
 </ul>
 
 </article></slide><slide class=""><hgroup><h2>Validation of the model</h2></hgroup><article  id="validation-of-the-model">
@@ -3882,7 +3882,7 @@ confusion(Lizard$Sex, predict(DAModel.4)$class) # confusion matrix</pre>
 
 <ul>
 <li><strong>Leave-one-out Cross-Validation (LOOCV)</strong>: available in R, choose the option <code>CV = TRUE</code>.</li>
-<li><strong>K-fold Cross-Validation</strong>: split the data into \(K\) folds, fit the model on \(K-1\) folds and test on the remaining fold, repeat \(K\) times and average the error.</li>
+<li><strong>k-fold Cross-Validation</strong>: split the data into \(k\) folds, fit the model on \(k-1\) folds and test on the remaining fold, repeat \(k\) times and average the error.</li>
 </ul></li>
 <li><p>Another option is the <strong>bootstrap</strong>:</p>
 

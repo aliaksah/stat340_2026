@@ -1,0 +1,151 @@
+---
+title: "Proposed solution to STAT340 - Group exercise 7"
+subtitle: Clustering
+author: "Ida Marie Munthe Sakseide"
+output: pdf_document
+---
+
+# Exercise 1 - Bird presence & abundance in Norway
+
+a)  **[...]Use the single linkage method to fill in the missing distances in this table.**
+
+After the 1^st^ iteration:
+
+```{r iter2, eval = TRUE, echo = FALSE, indent = "   ", fig.align = "center", rows.print = 5}
+d <- matrix(c(0, 125.2, 126.3, 125.2, 0, 106.7, 126.3, 106.7, 0), nrow = 3, ncol = 3)
+rownames(d) <- c("A", "B", "C/D")
+colnames(d) <- rownames(d)
+knitr::kable(d)
+```
+
+**[...] Write down the table and fill in the missing “cluster names” (?/?) as well as the missing distances (NA).**
+
+After the 2^nd^ iteration:
+
+```{r iter3, eval = TRUE, echo = FALSE, indent = "   ", fig.align = "center", rows.print = 5}
+d <- matrix(c(0, 125.2, 125.2, 0), nrow = 2, ncol = 2)
+rownames(d) <- c("A", "B/C/D")
+colnames(d) <- rownames(d)
+knitr::kable(d)
+```
+
+b)  **Sketch the corresponding dendrogram for this hierachical clustering.**
+
+```{r dendrogram, fig.align='center'}
+d <- matrix(c(0, 125.2, 129.0, 126.3, 125.2, 0, 106.7, 126.3, 129.0, 106.7, 0, 96.7, 
+              126.3, 126.3, 96.7, 0), nrow = 4, ncol = 4, byrow = TRUE)
+rownames(d) <- c("A", "B", "C", "D")
+colnames(d) <- rownames(d)
+
+clust <- hclust(as.dist(d), method = "single")
+plot(clust, hang = -1, main = "Single linkage",xlab = "", sub = "")
+```
+
+c)  **Load the data for the four most common birds using load(WinterBirds4.RData) and run hierarchical clustering with single linkage and Euclidean distances. Plot the dendrogram. This should yield the same dendrogram as the one you sketched in exercise b).**
+
+See dendrogram in b).
+
+**Use the results from here to check your answer in exercise a).**
+
+-   The distance matrix `round(edistBirds4, digits = 1)` is equivalent to the table that you started with (before the first iteration).
+-   The distances between the clusters are stored in the `height` element of the dendrogram. You can retrieve it with the command `round(clustBirds4$height, digits = 1)`.
+
+Here's how to check your answers in a):
+
+```{r, include=FALSE}
+load("data\\WinterBirds4.RData")
+edistBirds4 <- dist(Birds4, method = "euclidean")     # calculating an Euclidean distance matrix
+clustBirds4 <- hclust(edistBirds4, method = "single") # hierachical clustering with single linkage
+```
+
+```{r}
+round(clustBirds4$height, digits = 1)
+```
+
+-   The 1^st^ number in the distance between the groups that were merged into one cluster during the first iteration. Those were the species with the *smallest* Euclidean distance, mallard (C) and crow (D).
+
+-   The 2^nd^ number is the distance between the newly formed cluster (C, D) and the species that is closest to one of the elements in (C, D) -- remember that we use single linkage here! The shortest distance is (C, D)--B = 106.7.
+
+-   The 3^rd^ value is the shortest distance between the cluster formed by C, D, & B and the last species (A), i.e. ((C, D), B)--A = 125.2.
+
+    d)  Load the file `WinterBirds.RData` containing data for 25 bird species. Compute a Euclidean distance matrix and compare different linkage methods.
+
+```{r dist2, eval = TRUE, echo = FALSE, message=FALSE, warning=FALSE, indent = "   ", fig.align = "center"}
+load("data\\WinterBirds.RData")
+library(ggdendro)
+library(tidyverse)
+edistBirds <- dist(Birds, method = "euclidean")
+```
+
+```{r hclust2a, eval = TRUE, echo = FALSE, indent = "   ", fig.align = "center"}
+clustBirds.sin <- hclust(edistBirds, method = "single")
+
+ggdendrogram(clustBirds.sin, rotate = TRUE) + ggtitle("Single linkage")
+```
+
+```{r hclust2b, eval = TRUE, echo = FALSE, indent = "   ", fig.align = "center"}
+clustBirds.com <- hclust(edistBirds, method = "complete")
+
+ggdendrogram(clustBirds.com, rotate = TRUE) + ggtitle("Complete linkage")
+```
+
+```{r hclust2c, eval = TRUE, echo = FALSE, indent = "   ", fig.align = "center"}
+clustBirds.avg <- hclust(edistBirds, method = "average")
+
+ggdendrogram(clustBirds.avg, rotate = TRUE) + ggtitle("Average linkage")
+```
+
+\newpage
+
+e)  Repeat exercise d) with average linkage, but change the distance method from Euclidean to Manhattan. Compare the two average linkage dendrograms. Does the grouping change much?
+
+```{r hclust3, eval = TRUE, echo = FALSE, indent = "   ", fig.align = "center"}
+# Computing a Manhattan distance matrix.
+mdistBirds <- dist(Birds, method = "manhattan")
+
+# Hierachical clustering with average linkage.
+clustBirds.avg.m <- hclust(edistBirds, method = "average")
+
+# Plot the plot!
+ggdendrogram(clustBirds.avg.m, rotate = TRUE) + ggtitle("Average linkage, manhattan distance")
+```
+
+The dendrograms look quite the same! However, this might not always be the case.
+
+f)  **Let's return to the research question: which birds have similar distribution in Norway during winter? How does your answer depend on linkage method and distance measure?**
+
+Answer will depend on which linkage method we use.
+
+g)  **You can read about other distance measures in the help file for distance measures in `R`. Write `?dist` in the console window and press enter. For instance, under "Details" you can read about "binary" distance. What do you think, does binary distance measure *abundance* or *occurrence* distances between the birds?**
+
+It measures occurrence.
+
+Under "Details" in `?dist`, the following is written about binary distance:
+
+"The vectors are regarded as binary bits, so non-zero elements are ‘on’ and zero elements are ‘off’. The distance is the proportion of bits in which only one is on amongst those in which at least one is on".
+
+We need only distinguish the zero-values from the non-zero in our dataset. We will illustrate this with a simple example. Let's say we are checking if two species of birds is present on 4 different sites.
+
+Below there is one site where at least one is 'on', meaning at least one bird species is present. For this site both are `on` (both species are present at the same site). Therefore the distance is 0:
+
+\``{r} foo <- rbind(c(0,1,0,0), c(0,1,0,0)) rownames(foo) <- c("Species A", "Species B") colnames(foo) <- c("Site A", "Site B", "Site C", "Site D") print(foo) dist(foo, method = "binary")`
+
+Below there are two sites where at least one is `on`. In one of these, only one is `on`. Therefore the distance is 0.5:
+
+\``{r} foo <- rbind(c(1,0,0,0), c(1,1,0,0)) rownames(foo) <- c("Species A", "Species B") colnames(foo) <- c("Site A", "Site B", "Site C", "Site D") print(foo) dist(foo, method = "binary")`
+
+If the two species cannot tolerate one another, we get a maximal distance of 1:
+
+\``{r} foo <- rbind(c(1,1,0,0), c(0,0,1,1)) rownames(foo) <- c("Species A", "Species B") colnames(foo) <- c("Site A", "Site B", "Site C", "Site D") print(foo) dist(foo, method = "binary")`
+
+Even if we are counting the *number of birds* on each island, instead of simply checking if it's there or not, the answer remains unchanged. This is because we are comparing zero-values to non-zero-values:
+
+\``{r} foo <- rbind(c(14,6,0,0), c(0,0,86,49)) rownames(foo) <- c("Species A", "Species B") colnames(foo) <- c("Site A", "Site B", "Site C", "Site D") print(foo) dist(foo, method = "binary")`
+
+Let's return to the winterbirds data, and calculate the binary distance between 4 of the bird species:
+
+```{r}
+dist(Birds4, method="binary")
+```
+
+Binary distance will always have a value of between 0 and 1, and is a measure of occurrence between bird species. For instance, crow and redpoll are the closest species in binary distance. This means that the occurrence pattern of crow is more similar to the occurrence pattern of common redpoll compared to any of the other 2 species.

@@ -1,0 +1,160 @@
+---
+title: Exercise Eight
+---
+
+<link rel="stylesheet" type="text/css" href="shared/custom.css">
+
+```{=html}
+<script src = "shared/custom.js"></script>
+```
+
+```{r, include=FALSE}
+knitr::opts_chunk$set(comment = NULL, warning = FALSE)
+```
+
+```{r, echo=FALSE, message=FALSE}
+load("iris.train.Rdata")
+load("iris.test.Rdata")
+source('plotDAlocal.R')
+library(car)
+library(MASS)
+library(mixlm)
+```
+
+# Ex-1: Discrimination and classification
+
+a.  Consider the iris data set `iris.train.RData` from BIAS library as introduced in lesson 10, here with two species versicolor and virginica. Use R: Graphics \> Scatterplot matrix to make pairs plots for the four sepal and petal variables, and plot by groups to obtain different coloring for the two species. Which variable appears to be discriminating the species best? Are there any pairwise combinations of variables that looks promising with regard to classification? Which variable is discriminating the specieds the worst?
+
+::: ans
+```{r, echo=FALSE}
+scatterplotMatrix(~Petal.Length+Petal.Width+Sepal.Length+Sepal.Width | Species, reg.line=FALSE, smooth=FALSE,
+   spread=FALSE, span=0.5, ellipse=FALSE, levels=c(.5, .9), id.n=0, diagonal= 'density', by.groups=FALSE, 
+  data=iris.train)
+```
+
+The two classes are best separated from the point of view of Petal.Length. We observe in the upper left plot showing probability distribution estimates that the distribution for the two species appear to be well separated for this variable. Also Petal.width separates well, and the scatterplot of Petal.length versus Petal.width is promising with regard to finding a linear discriminator between the two groups which is even better than the two variables can achieve separately. The Sepal.Width looks like the worst discriminator for which the two species overlap a lot in their distribution.
+:::
+
+b.  Explain the difference between “discrimination” and “classification”.
+
+::: ans
+Discrimination corresponds to the model fitting process in statistical inference. We seek good variables for discriminating classes. Classification corresponds to the actual prediction of new samples, that is, to allocate new samples to classes using the presumably best "classifier"-model estimated from the training data.
+:::
+
+c.  Explain what is meant by the assumption “We assume apriori that versicolor and virginica are equally likely”.
+
+::: ans
+This means that both species are equally probable if you sample a random plant from the population.
+:::
+
+d.  Fit an LDA model to the iris data using Sepal.Length as the predictor. Assume equal prior probabilities for both species. Use the `print()`-function on your fitted model in the script-window to obtain some more information. What are the sample means of each species for this predictor variable? Also try the plot-function on your model object. What do you obtain?
+
+::: ans
+```{r, echo=FALSE}
+mod1.lda <- lda(Species ~ Sepal.Length, data = iris.train, prior = c(0.5, 0.5))
+print(mod1.lda)
+plot(mod1.lda)
+```
+
+The means are reported in the print output as `Group means`. We observe that Virginica on average have longer Sepals than Versicolor. The plot-function will in the case of a single predictor display histograms for each group. We see that the two species are partly overlapping and that discrimiating the two groups is difficult for this variable.
+:::
+
+e.  Refit the model from exercise d. and perform a Leave-One-Out Cross-Validation. Compare the confusion matrices and the apparent error rates (APER) for both the fit (exercise d.) and the cross-validated APER.
+
+::: ans
+The fitted model again:
+
+```{r, message=FALSE, warning=FALSE}
+DAModel.11 <- lda(Species~Sepal.Length, data=iris.train, prior=rep(0.5,2))
+confusion(iris.train$Species[], predict(DAModel.11)$class)  # confusion matrix
+```
+
+The cross-validation results:
+
+```{r, message=FALSE, warning=FALSE}
+DAModel.12 <- lda(Species~Sepal.Length, data=iris.train, prior=rep(0.5,2))
+confusion(iris.train$Species, lda(Species~Sepal.Length, data=iris.train, prior=rep(0.5,2), CV=TRUE)$class)  
+```
+
+The confusion matrix is given in the first part of the output. We observe that the cross-validated results are equal to the model fit results. 32 out of 40 versicolor are correctly classified, whereas 29 out of 40 virginica are correct. In total 61 out of 80 are correctly classified giving an accuracy of 0.7625 as reported. The APER is 1-accuracy, hence APER=1-0.7625 = 0.2375. We typically seek classifiers that minimize the classification error rate.
+:::
+
+f.  Fit a new lda-model with both Petal.length and Petal.width as predictors. Use LOO-Cross-validation, and choose to display both predictions and posterior probabilities. What is the cross-validated APER for this model? The first 40 observations (numbers 61-100) in the data are Versicolor, the next 40 (numbers 110-150) are Virginica. From the predictions, which observations are wrongly classified in the cross-validation? Explain the posterior probabilities and how these are used to classify samples.
+
+::: ans
+```{r, echo=FALSE}
+DAModel.14 <- lda(Species~Petal.Length+Petal.Width, data=iris.train, prior=rep(0.5,2))
+confusion(iris.train$Species, lda(Species~Petal.Length+Petal.Width, data=iris.train, prior=rep(0.5,2), 
+  CV=TRUE)$class)  # confusion matrix
+lda(Species~Petal.Length+Petal.Width, data=iris.train, prior=rep(0.5,2), CV=TRUE)$class  # Predicted classes
+
+```
+
+The cross.validated APER is 1-0.925 = 0.075. Hence, only 7.5% (6 out of 80) of the observations were mis-classified. The identifying numbers of these misclassifications are 71, 78, 84, 120, 134 and 135 (corresponding to rows 11,18,24,50,64,65 in iris.train).
+
+The posterior distribution for the six mis-classified samples are printed below.
+
+```{r, echo=FALSE}
+err <- c(11,18,24,50,64,65)
+lda(Species~Petal.Length+Petal.Width, data=iris.train, prior=rep(0.5,2), CV=TRUE)$posterior[err,]
+```
+
+We see that observation 71 (row 11 in iris.train), which truly is Versicolor, has an estimated posterior probability of actually being Versicolor equal to only 0.226. Therefore, it was rather classified as Virginica with probability 0.774. Each sample is in this way classified to the most probable group according to the estimated model with its estimated posterior probabilities. Observation 84 (Versicolor) was close to the borderline between the groups with almost 50-50 probability of belonging to each group, but it was wrongly classified since it was a marginally larger probability of Virginica (0.544). The strongest misclassification was number 120 with a 80.4% estimated probability of Versicolor, although the plant really was Virginica.
+:::
+
+g.  Refit the model with Petal.length and Petal.width as predictors but instead use quadratic dicriminant analysis,qda. Use cross-validation. Report the cross-validated error of this model and make a graph like in exercise g. Comment on the results.
+
+::: ans
+```{r, echo=FALSE}
+DAModel.15 <- qda(Species~Petal.Length+Petal.Width, data=iris.train, prior=rep(0.5,2))
+confusion(iris.train$Species, qda(Species~Petal.Length+Petal.Width, data=iris.train, prior=rep(0.5,2), 
+  CV=TRUE)$class)  # confusion matrix
+plotDA(DAModel.15,regions=TRUE, contours=FALSE, resolution=100)
+```
+
+This has an accuracy of 0.95 and, hence, an APER of 1-0.95 = 0.05. This is slightly better than the linear model. From the plot we see that quadratic discriminant analysis, which allows the groups to have different variances yields a non-linear decision border between the groups. The group with largest estimated variance tends do have the largest decision region.
+:::
+
+h.  What is the model assumption difference between an LDA and a QDA model?
+
+::: ans
+In LDA we assume equal variance structure for all classes, whereas in QDA we assume different variance structures for all classes.
+:::
+
+i.  Use the models in f. and g. to predict the samples in `iris.test.Rdata`. Below you can see how this can be done in the R-script window after loading the test data. In the code it is assumed that `ldamod` is the fitted linear model and `qdamod` is the fitted quadratic model. You may need to change these to fit your model names. Copy each line of the code, change model name in the first line if necessary, paste into the script window and press "submit". How well do the two classifiers perform on the test data?
+
+Here for the lda-model:
+
+```{r, eval=FALSE}
+usemod <- ldamod
+pred <- predict(usemod, newdata = iris.test)
+confusion(iris.test$Species, pred$class)
+```
+
+And for the qda-model:
+
+```{r, eval=FALSE}
+usemod <- qdamod
+pred <- predict(usemod, newdata = iris.test)
+confusion(iris.test$Species, pred$class)
+```
+
+::: ans
+Lda-results:
+
+```{r, echo=FALSE}
+usemod <- DAModel.14
+pred <- predict(usemod, newdata = iris.test)
+confusion(iris.test$Species, pred$class)
+```
+
+Qda-results:
+
+```{r, echo=FALSE}
+usemod <- DAModel.15
+pred <- predict(usemod, newdata = iris.test)
+confusion(iris.test$Species, pred$class)
+```
+
+Both models give perfect classification of all samples, accuracy=1.0 and APER=0.0.
+:::

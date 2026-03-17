@@ -207,7 +207,43 @@ $$
          cex = 0.9)
     ```
 
-## Bayes theorem: Formula and example
+## Bayes theorem: color blindness example
+
+-   C = “person is color blind”
+-   M = “person is male”, F = “person is female”
+-   P(M) = 0.52 ⇒ P(F) = 0.48
+-   P(C \| M) = 0.08 (8% of men are color blind)
+-   P(C \| F) = 0.02 (2% of women are color blind)
+
+## **Law of total probability (in simple words)**
+
+P(M) = 0.52 ⇒ P(F) = 0.48 and P(C \| M) = 0.08 and P(C \| F) = 0.02
+
+\
+To find the **overall chance that a random person is color blind**, we
+add:\
+“chance of picking a man who is color blind”
+
+\+ “chance of picking a woman who is color blind
+$P(C) = P(C \mid M) P(M) + P(C \mid F) P(F)$
+$= 0.08 \cdot 0.52 + 0.02 \cdot 0.48 = 0.052.$
+
+So about 5.2% of the population is color blind.
+
+## **Bayes theorem (female given color blind)**
+
+-   P(M) = 0.52 ⇒ P(F) = 0.48 and P(C \| M) = 0.08 and P(C \| F) = 0.02
+
+    \
+    We now flip the question: **given that a person is color blind, what
+    is the chance this person is a woman?**
+    $P(F \mid C) = \frac{P(C \mid F) P(F)}{P(C)}
+    = \frac{0.02 \cdot 0.48}{0.02 \cdot 0.48 + 0.08\cdot 0.52} \approx 0.185$
+
+So if you meet a color blind person, there is about an 18.5% chance that
+this person is a woman.
+
+## Bayes for LDA: Lizard example
 
 **Goal:** Find the probability that a lizard is **male** given we
 observed HLS = 130.
@@ -814,7 +850,7 @@ More parameters to estimate (may overfit with small data)
 spreads/correlations. Or when we see a clearly non-linear decision
 boundary
 
-## Why is QDA "Quadratic"? 
+## Why is QDA "Quadratic"?
 
 **Key difference**: Each class has its own variance $\sigma_1^2$ and
 $\sigma_2^2$ and $p_1$ = $p_2$
@@ -1336,6 +1372,58 @@ There is a wide range of classifiers available in R, e.g.:
 -   Random Forest (**randomForest**)
 -   Neural Networks (**nnet**)
 
-## Next two lectures (online videos)
+## Practical information: upcoming weeks
 
-Links posted on canvas
+-   Next two **lectures** (PCA and PCA regression) will be given as
+    **video recordings from last years**.
+-   During the scheduled lecture slots, we will **stream two invited
+    talks** that connect to the course topics (see next slides).
+-   Please make sure to **watch the PCA and PCA regression videos**
+    before the Q&A / exercise sessions.
+
+## Invited talk on Mar 24: 
+
+-   Speaker: **Andrew McInerney**
+-   Title: "[A Smooth Information Criterion for Selection and Fusion of
+    Categorical
+    Predictors](https://www.mn.uio.no/math/english/research/groups/statistics-data-science/events/seminars/spring_2026/andrew_mcInerney.html)"
+-   Time and place: **Mar 24, 2026, 14:15–15:15** (during our normal
+    lecture slot).
+-   Topic in brief: smooth information-criterion-based method within
+    GLMs that
+    -   performs **factor selection** and **fusion of categorical
+        levels**,
+    -   replaces the discrete L0-type BIC penalty with a **smooth
+        surrogate**,
+    -   avoids tuning-parameter search and scales to many levels.
+-   This links to our course theme of **model selection**.
+
+## Invited talk on Apr 7: 
+
+-   Speaker: **Aliaksandr Hubin**
+-   Title: "[Explainable Bayesian deep learning through input-skip
+    Latent Binary Bayesian Neural
+    Networks](https://www.mn.uio.no/math/english/research/groups/statistics-data-science/events/seminars/spring_2026/aliaksandr-hubin.html)"
+-   Time and place: **Apr 7, 2026, 14:15–15:15**.
+-   Topic in brief: input-skip LBBNNs (ISLaB) that
+    -   allow covariates to **skip to later layers or be excluded**
+        entirely,
+    -   yield extremely **sparse** networks (over 99–99.9% weight
+        reduction) while keeping high accuracy,
+    -   provide **built-in explanations** via active paths and
+        uncertainty-aware predictions.
+-   This connects directly to our discussions of classification and
+    discrimination.
+
+## Next assignment and schedule
+
+-   The next **assignment** will be published **shortly after the
+    lecture on April 14**.
+-   You will have time to work on it while watching the PCA / PCA
+    regression videos and attending the talks.
+-   I will go through the assignment in **detail on Apr 14** in the
+    lecture.
+-   Use the time before Apr 14 to
+    -   watch the videos,
+    -   attend the exercises sessions and lectures to watch invited
+        seminars

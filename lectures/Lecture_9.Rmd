@@ -1,0 +1,318 @@
+---
+title: "Multivariate statistics II: PCR and PLSR"
+author: "Solve Sæbø"
+date: "Mar 18 2025"
+output: 
+   # ioslides_presentation: default
+   # beamer_presentation: default
+   # slidy_presentation: default
+  output: word_document
+---
+
+## Topics for this lecture
+
+* Motivation for dimension reduction in regression
+* Principal Components regression (PCR)
+* Partial Least Squares Regression (PLSR)
+
+## Motivation for dimension reduction in regression
+
+* The ordinary least squares estimator is much used since:
+  1. It is an unbiased estimator
+  2. Among all unbiased estimators it has minimum variance
+  
+* However, it has some problems:
+  1. Requires $n>p$ (more observations than variables)
+  2. May suffer from inflated variances when $n \sim p$, or...
+  3. ...if the predictors are highly collinear
+
+## Example - Chemometrics/Spectroscopy
+
+* Near Infra Red (NIR)-spectroscopy absorbance spectra.
+* $p=700$ wavelenghts for $n=100$ samples.
+
+```{r, echo=FALSE, message=FALSE}
+library(pls)
+load("NIRdata.Rdata")
+Y <- Absorbance
+X <- NIR
+plotx <- seq(1102,2500,2)
+Ycol <- cut(Y,3, labels=1:3)
+matplot(plotx,t(X), type="l", lty=1, col=Ycol, ylab="Absorbance", xlab="Wavelength",main="Absorbance spectra")
+legend(x="topleft", col=1:3, lty=1, legend = c("Low protein", "Medium protein", "High protein"))
+```
+
+## OLS under multi-collinearity, I
+
+* Regression with one wavelength, w1522
+
+```{r, echo=FALSE, message=FALSE}
+library(pls)
+load("NIRdata.Rdata")
+attach(NIRdata)
+lmfit1 <- lm(Absorbance~NIR.w1522, data=NIRdata)
+summary(lmfit1)
+detach(NIRdata)
+```
+
+## OLS under multi-collinearity, II
+
+* Regression with two highly correlated predictors
+
+```{r, echo=FALSE, message=FALSE}
+attach(NIRdata)
+lmfit2 <- lm(Absorbance ~ NIR.w1522 + NIR.w1532, data=NIRdata)
+summary(lmfit2)
+detach(NIRdata)
+```
+
+## A graphical view of multicollinearity
+
+*  A dynamic 3D-plot of wavelengths 1522 and 1524 vs protein (Y) using the `rgl` package. Try yourself!
+
+```{r, echo=TRUE, eval=FALSE}
+library(rgl)
+attach(NIRdata)
+plot3d(NIR.w1522, NIR.w1532, Absorbance, col= "blue", radius=0.05, type="s", xlab="w1522", ylab="w1524", zlab="Absorbance")
+detach(NIRdata)
+```
+
+## 3D plot
+
+```{r, echo=FALSE, message=FALSE}
+library(scatterplot3d)
+attach(NIRdata)
+scatterplot3d(NIR.w1522, NIR.w1532, Absorbance, color="blue", pch=16, main="Absorbance vs w1522 and w1524")
+detach(NIRdata)
+```
+
+
+
+## OLS and overfitting
+
+* Pick a random set of 100 variables as predictors. 
+* Fit a linear model
+* Compute the $R^2$ and adjusted $R^2$
+
+```{r, echo=TRUE, eval=FALSE}
+vars <- sample(2:701, 50, replace=FALSE)
+fmla <- as.formula(paste("Absorbance ~ ", paste(names(NIRdata)[vars], collapse= "+")))
+lmfit3 <- lm(fmla, data=NIRdata)
+res <- summary(lmfit3)
+res$r.squared
+res$adj.r.squared
+```
+
+```{r, echo=FALSE}
+vars <- sample(2:701, 50, replace=FALSE)
+fmla <- as.formula(paste("Absorbance ~ ", paste(names(NIRdata)[vars], collapse= "+")))
+lmfit3 <- lm(fmla, data=NIRdata)
+res <- summary(lmfit3)
+res$r.squared
+res$adj.r.squared
+```
+
+
+## How to handle these problems
+
+* Forward variable selection in OLS? (data reduction)
+* Use alternative estimator, e.g. PCR or PLSR (data reduction to 'principal components')
+
+## PCA of NIR data
+
+* Let's return to the 3D plot from above
+* Locate the principal components
+* Discuss the variances of the two principal components
+* How many PC's are needed to capture 99% of the variability in the entire NIR data?
+
+## PCR
+
+* In PCR the principal components (PCs) replace the original X-variables as predictors in regression.
+* Let $a$ be the number of PCs we choose to use (e.g. explaining 99% X-variability) 
+* Typically we use $a<<k$ components in the model.
+
+The model with $a$ components:
+
+$$Y = \alpha_0 + \alpha_1 Z_1 + \alpha_2 Z_2 \cdots+ \alpha_a Z_a +\epsilon$$
+
+* The $\alpha$'s are estimated by the Ordinary Least Squares method.
+
+## Example, NIR data
+
+*  Run PCA on the Wavelength data, check results, scree plot
+
+```{r, echo=TRUE, eval=FALSE}
+pcafmla <- as.formula(paste("~ ", paste(colnames(NIRdata)[2:600], collapse= "+")))
+PCAModel.3 <- prcomp(pcafmla, scale.= FALSE, data=NIRdata)
+screeplot(PCAModel.3)
+```
+
+## The Scree plot
+
+```{r, echo=FALSE}
+pcafmla <- as.formula(paste("~ ", paste(colnames(NIRdata)[2:600], collapse= "+")))
+PCAModel.3 <- prcomp(pcafmla, scale.= FALSE, data=NIRdata)
+screeplot(PCAModel.3)
+```
+
+## Saving some principal components as extra variables to the data
+
+```{r, echo=TRUE}
+  PCAdata <<- within(NIRdata, {
+    PC5 <- PCAModel.3$x[,5]
+    PC4 <- PCAModel.3$x[,4]
+    PC3 <- PCAModel.3$x[,3]
+    PC2 <- PCAModel.3$x[,2]
+    PC1 <- PCAModel.3$x[,1]
+  })
+```
+
+## Regression model, PC1-PC5
+
+```{r, echo=TRUE}
+LinearModel.4 <- lm(Y ~ PC1 + PC2 + PC3 + PC4 + PC5, data=PCAdata)
+sumfit <- summary(LinearModel.4)
+round(sumfit$coefficients,3)
+```
+* Note that PC1 is not significant
+
+## Running the PCR in RStudio with the pls package
+
+* After estimation of the $\alpha$'s the regression coefficients for the _original_ variables may be computed by a reverse transformation.
+
+* These are easiest computed using the `pcr` function in the `pls` package.
+
+```{r, echo=TRUE, eval=FALSE}
+library(pls)
+pcrfit <- pcr(Absorbance ~ ., data=NIRdata, scale=FALSE)
+summary(pcrfit)
+coefs.pc11 <- coef(pcrfit, 11)
+```
+
+
+## The regression coefficients plotted
+
+* Here are the coefficients based on 11 PC's
+
+![](PCRcoefsNIR.png)
+
+## Better to be presisly wrong...
+
+...than approximately right
+
+The PCR-estimates for the model with original predictors has typically these properties:
+
+* They are biased if $a<k$ (but being closer to zero than OLS)
+* Have smaller variances than the least squares estimates.
+
+Prediction error may be smaller for PCR than OLS model since:
+
+Expected squared prediction error = 
+
+$\sigma^2$ + var(estimates) + bias(estimates)$^2$
+
+## Choosing the number of components, $a$
+
+* Cross-validation. As Leave-one-out (LOO-CV), or K-fold.
+* Root Mean Squared Error of Prediction (RMSEP)
+
+$$RMSEP_{LOO-CV} = \sqrt{\frac{1}{n}\sum_{i=n}^{n}(y_{i}-\hat{y}_{(i)})^2}$$
+where $\hat{y}_{(i)}$ is a prediction of $y_{i}$ based on a data set where observation $i$ has been left out.
+
+* Compare RMSEP for $a=1,2,\ldots$ and choose a simple, but good predictor.
+
+## LOO-CV example  - R-code
+
+```{r, echo=TRUE, eval=FALSE}
+MVRModel.7 <- pcr(Absorbance ~ ., data=NIRdata, scale=FALSE, ncomp=15, validation="LOO")
+summary(MVRModel.7)
+```
+
+## Summary with RMSEP-values
+```{r, echo=FALSE}
+MVRModel.7 <- pcr(Absorbance ~ ., data=NIRdata, scale=FALSE, ncomp=15, validation="LOO")
+summary(MVRModel.7)
+```
+
+
+## Plotting RMSEP
+
+```{r, echo=TRUE}
+plot(RMSEP(MVRModel.7))
+```
+
+
+## Partial Least Squares Regression
+
+A problem with PCR is that the PC's may not be good predictors for a response variable.
+
+Partial Least Squares, on the other hand, is seeking PC's that 
+
+* have maximum _covariance_ between predictors and the response
+* are orthogonal to each other
+* search more directly for y-relevant information for prediction
+
+## An example
+
+Let's sketch a situation were PLS will find other latent components than PCA
+
+## Fitting the PLSR model in RStudio
+
+```{r, echo=TRUE, eval=FALSE}
+MVRModel.8 <- plsr(Absorbance ~ ., data=NIRdata, scale=FALSE, ncomp=15)
+summary(MVRModel.8)
+```
+
+## Summary
+
+```{r, echo=FALSE}
+MVRModel.8 <- plsr(Absorbance ~ ., data=NIRdata, scale=FALSE, ncomp=15)
+summary(MVRModel.8)
+```
+
+
+## Running LOO-CV and RMSEP plot
+
+```{r, echo=TRUE, eval=FALSE}
+MVRModel.8 <- plsr(Absorbance ~ ., data=NIRdata, scale=FALSE, ncomp=15, validation='LOO')
+plot(RMSEP(MVRModel.8))
+```
+
+## The RMSEP plot
+
+```{r, echo=FALSE}
+MVRModel.8 <- plsr(Absorbance ~ ., data=NIRdata, scale=FALSE, ncomp=15, validation='LOO')
+plot(RMSEP(MVRModel.8))
+```
+
+
+## The regression coefficients plotted
+
+* Here are the coefficients based on 8 PLS PC's
+
+![](PLScoefsNIR.png)
+
+## Significance testing in PLSR
+
+* No analytical expression for standard errors of estimates!
+* No estimate of noise variance!
+* Testing based on something called Jack-knifing
+
+## Jack-knifing
+
+* Leave-one-out method
+* A estimate the variance of the regression coefficients is computed from the saved estimated coefficients from the $n$ LOO-estimations.
+* Readily computed in the `pls` package using the `jack.test` function.
+
+$$Var(\hat{\beta}) = \frac{n-1}{n}\sum_{i=1}^{n}(\hat{\beta}_{(-i)} - \hat{\beta})^2$$
+
+ 
+## Jack-knifing in RStudio
+
+```{r, echo=TRUE, eval=FALSE}
+MVRModel.8 <- plsr(Absorbance ~ ., data=NIRdata, scale=FALSE, ncomp=15, validation='LOO', jackknife=TRUE)
+j.test <- jack.test(MVRModel.8, ncomp = 8, use.mean = FALSE)
+print(j.test)
+```
+
+

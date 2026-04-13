@@ -1,0 +1,433 @@
+---
+title: "Exercises STAT340 - PCA"
+params:
+  vis.forslag: false
+output:
+  html_document:
+    toc: true
+    theme: yeti
+    code_folding: hide
+    number_sections: true
+editor_options: 
+  chunk_output_type: console
+  markdown: 
+    wrap: 72
+---
+
+```{=html}
+<style>
+.main-container, .main-content { max-width: 100%; }
+.info { background-color:aliceblue; }
+.task { background-color:lightpink; }
+</style>
+```
+
+```{r forslag, include = FALSE}
+vis.forslag <- params$vis.forslag
+```
+
+```{r forklar forslag, echo = FALSE, results = "asis", include = vis.forslag}
+cat('
+<mark>
+**LØSNINGSFORSLAG!**
+
+Disse vises nedenfor på ulike måter:
+<mark>Gulmerking</mark> av tekstforslag til løsning, eller kommentarer om alternative løsninger.
+* Noe <button>Code</button> som var skjult i øvingsdokumentet.
+<details>
+<summary>
+<mark>
+Noen løsningsforslag er skjult inni hint.
+</mark>
+</summary>
+Da må du utvide hintene for å se løsningsforslagene.  
+
+</details>
+')
+```
+
+<br> <br> <br> <br>
+
+# Track and Field data
+
+The data set `trackfieldrecords` is a `list` with two data tables: The
+`trackfieldrecords$runMen` and `trackfieldrecords$runWomen` containing
+national records (a few years ago…) for several track and field events
+like 100m, 200m and so on up to marathon. <br>
+
+## Join data (data wrangling)
+
+Instead of having separate data for men and women, let us join the data
+into a single table. This means we *join* the data tables by putting
+them next to each other, but making certain the rows (countries) are
+aligned correctly. First we load the data and inspect the two data
+tables
+
+```{r, results='hide', message=F}
+library(tidyverse)
+library(BIAS.data)
+
+data(trackfieldrecords)
+head(trackfieldrecords$runMen)  # men's records
+head(trackfieldrecords$runWomen)  # women's records
+```
+
+We notice that the womens records have an `M` before each distance, just
+like the men. This must be wrong? Let us replace the `M` by a `W`, to
+indicate which records are for men and which for women:
+
+```{r}
+old.names <- colnames(trackfieldrecords$runWomen)
+new.names <- str_replace(old.names, "M", "W")
+colnames(trackfieldrecords$runWomen) <- new.names
+```
+
+Then we are ready to join the two tables, and we use the column `Nation`
+as the joining information. This will ensure all records for the same
+nation are in the same row. This is important, it may be that nations
+are listed in different order in the two tables. Never ever assume such
+information is listed in the exact same order in two different data
+tables!
+
+```{r}
+all.records <- full_join(trackfieldrecords$runMen, trackfieldrecords$runWomen, by = "Nation") %>% 
+  select(Nation, starts_with("W"), starts_with("M"))  # just a new ordering of the columns
+```
+
+<br>
+
+## Inspect data
+
+Explore the data by making a correlation plot. for example by using
+`ggcorr()`-function from the `GGally`-package (you need to install it).
+
+```{r, message=F}
+library(GGally)
+ggcorr(all.records)
+```
+
+What is the big picture we see from this?
+
+<details>
+
+<summary><mark> Solution </mark></summary>
+
+All correlations are positive, and also pretty high. These are
+correlations between the variables. It simply means that if a nation has
+good/bad running records for one variable, it has similar good/bad for
+the others as well. This indicates to us that these variables carry to a
+large degree the same information. We then expect a PCA should show most
+information is captured with 1 or at least very few components.
+
+</details>
+
+<br>
+
+## PCA
+
+Run a PCA with the `prcomp()`-function (and with `scale = FALSE`) on the
+data and print out a `summary()` of the resulting object (do not include
+the first column with names of nations). How many components is needed
+to explain at least 99% of the variation in the data?
+
+Also, print the loadings for the first two principal components. Try to
+give an interpretation of them, and explain why so much of the total
+variability is found in the first component.
+
+<details>
+
+<summary><mark> Solution </mark></summary>
+
+```{r}
+pca.obj <- prcomp(all.records[,-1], scale=FALSE)
+summary(pca.obj)
+pca.obj$rotation[,1:2]
+```
+
+Variation in data is now mainly due to the varying distances. Large
+values for large distances and small values for short distances. This is
+an example of data where PC1 picks up the 'obvious' and overwhelming
+cause of why the data varies. From the loadings, see that the loading
+weight for the 42k's (Marathon) is totally dominating with a weight of
+0.97 (Women) and 0.23 (Men). All other weights are small. PC1 is
+therefore more or less identical to the Marathon variables. Note that
+this 'signal' may not be very interesting, everyone knows it takes more
+time to run a Marathon than a 100m, and therefore the variance for these
+variables are much bigger. We should consider scaling these data, to get
+rid of this rather obvious, and uninteresting, source of variation.
+
+</details>
+
+<br>
+
+## Standardizing
+
+Re-run the PCA with option `scale. = TRUE` in `prcomp()`, which means
+the variables are standardized prior to the PCA. How many variables are
+needed to explain 99% of the variation in this case? How much is
+explained by the two first components? How would you interpret the
+loadings of PC1, PC2 and PC3?
+
+<details>
+
+<summary><mark> Solution </mark></summary>
+
+```{r}
+pca.obj <- prcomp(all.records[,-1], scale. = TRUE)
+summary(pca.obj)
+pca.obj$rotation[,1:3]
+```
+
+We need 11 components to achieve 99% explained variance.
+
+We notice PC1 has almost the same coordinate for all variables,
+indicating an average over all distances. We may think of this as a
+general 'goodness' in the nation's records, regardless of distance. The
+distance-effect is now in PC2 instead. In PC3 we see the effect of
+gender (men versus women).
+
+</details>
+
+<br>
+
+## Scores and loadings
+
+Make a score-plot and a loading-plot with the first two components using
+the code below. You may use `geom_text()` instead of `geom_point()` and
+use `Nation` as the label in `geom_text()`.
+
+```{r}
+score.tbl <- as.data.frame(pca.obj$x) %>% 
+  bind_cols(all.records)
+relative.evar <- round(pca.obj$sdev^2 / sum(pca.obj$sdev^2), 2)
+ggplot(score.tbl) +
+  geom_text(aes(x = PC1, y = PC2, label = Nation)) +
+  labs(x = str_c("PC1 (", relative.evar[1], ")"),
+       y = str_c("PC2 (", relative.evar[2], ")"))
+
+loading.tbl <- as_tibble(pca.obj$rotation, rownames = "Variables")
+origin.tbl <- as_tibble(pca.obj$rotation - pca.obj$rotation, rownames = "Variables") %>% 
+  bind_rows(loading.tbl)
+ggplot(loading.tbl, aes(x = PC1, y = PC2)) +
+  geom_point() +
+  geom_text(aes(label = Variables), nudge_y = 0.05) +
+  geom_line(aes(group = Variables), data = origin.tbl, color = "maroon2")
+```
+
+Give comments to how the nations distribute relative to the loadings.
+
+Then, edit the code to plot instead PC1 versus PC3. Comment as above.
+
+<details>
+
+<summary><mark> Solution </mark></summary>
+
+Consider first the score-plot with PC1-PC2 and where the countries are
+located here. In such plots we typically look for either
+clusters/groupings in the data, or for gradients, i.e. the objects
+(countries) are 'ordered' in some direction. For those interested in
+track-and-fields will notice countries with small (negative) values
+along PC1 are those who tend to dominate these sports, while on the
+other end we find countries rarely seen on the Olympic podium. Thus,
+here PC1 simply reflects the 'goodness' of the nations in terms of their
+records. A larger PC1 loading means a larger (=poorer) record.
+
+Considering the PC1-PC2 loading-plot, i.e. the variables, we see the
+clear gradient along PC2 reflecting the distances. Nations are
+distributed along this axis depending if their athletes tend to be good
+in short or long distances.
+
+For the PC1-PC3 plots, the PC1 axis is as before. Here we see that the
+PC3 axis separate men and women records, and mostly in the shorter
+distances. Nations at the top (large PC3 score) have men's records with
+larger times compared to the women's record, i.e. the records are more
+equal between the genders.
+
+</details>
+
+<br> <br> <br>
+
+# Sediments data
+
+Virtually all environments on this planet may be characterized by their
+*microbial composition*, i.e. which micro-organisms they inhabit and at
+which abundances we observe the various taxa. This is done by
+*sequencing*, and the *read-count* from sequencing is a measure of the
+abundance for the various taxa.
+
+The data `sediments` contains the read-counts of 4112 prokaryotes
+(micro-organisms, mainly bacteria) in seafloor sediments collected at 12
+selected locations along the Norwegian coast. Each variable is the
+abundance of a named genus. A large value means a large abundance, but
+the *sequencing depth* varies between the samples (rows), i.e. if you
+sum the values in each row they are not identical.
+
+The first column is the type of environment of the sample, here
+described as either `Natural` or `Polluted`.
+
+<br>
+
+## PCA
+
+Make a PCA of the numerical data (not `Environment`). How much of the
+total variation is explained by the first PCs?
+
+<details>
+
+<summary><mark> Solution </mark></summary>
+
+```{r, message=F}
+library(tidyverse)
+library(BIAS.data)
+data(sediments)
+
+pca.obj <- prcomp(sediments[,-1], scale. = F)
+summary(pca.obj)
+```
+
+Here 98.2% of the variation is described by the first two PC's, and
+almost 95% by the first PC alone. This means we essentially only need 1
+principal component to describe almost all variation in these data.
+
+</details>
+
+<br>
+
+## Scoreplot
+
+Make a score-plot, and color by the `Environment` using the code below.
+Imagine you are to explain this plot to someone else, what would you
+say? What is your interpretation of PC1 here?
+
+```{r, message=F}
+library(tidyverse)
+score.tbl <- as.data.frame(pca.obj$x) %>% 
+  bind_cols(sediments)
+relative.evar <- round(pca.obj$sdev^2 / sum(pca.obj$sdev^2), 2)
+ggplot(score.tbl) +
+  geom_point(aes(x = PC1, y = PC2, color = Environment), size = 3) +
+  labs(x = str_c("PC1 (", relative.evar[1], ")"),
+       y = str_c("PC2 (", relative.evar[2], ")"))
+```
+
+<details>
+
+<summary><mark> Solution </mark></summary>
+
+The score plot gives us the original data in the new coordinate system.
+We take a look at where the points are located and look for
+clusters/grouping. When colored by environment the score plot tells us
+that there is a difference between natural and polluted environments.
+
+Here the variation of the PC1 axis explains almost everything (95%), and
+any variation in the y-axis direction is probably just random noise. A
+plot like this should be wide but short (low), i.e. a long x-axis and a
+very short y-axis, to avoid the viewer from starting to 'interpret'
+variation along the y-axis.
+
+</details>
+
+<br>
+
+## Loading-plot
+
+Make a loading-plot using the code below. Again, try to explain what
+this plot shows.
+
+If we wanted to quickly determine if seafloor sediments are polluted or
+not, which organisms should we look for in our samples? Is a large
+abundance of this an indication of a polluted or clean environment?
+
+```{r, message=F}
+loading.tbl <- as_tibble(pca.obj$rotation, rownames = "Variables")
+origin.tbl <- as_tibble(pca.obj$rotation - pca.obj$rotation, rownames = "Variables") %>% 
+  bind_rows(loading.tbl)
+ggplot(loading.tbl, aes(x = PC1, y = PC2)) +
+  geom_point() +
+  geom_text(aes(label = Variables), nudge_y = 0.05) +
+  geom_line(aes(group = Variables), data = origin.tbl, color = "maroon2")
+```
+
+<details>
+
+<summary><mark> Solution </mark></summary>
+
+The loading-plot shows how strongly each variable influences a PC. The
+angles between the vectors tell us how variables correlate with one
+another (described above) if two variables form a small angle, the two
+variables are correlated. It is hard to tell from our plot as they are
+very clustered. But we can see Lutibacter and Oceanispirochaeta are
+positively correlated, while Lutibacter is negatively correlated to
+Viruses.
+
+The loading-plot can tell us which variables are mostly correlated with
+PC1 and PC2. We saw from the score-plot that PC1 separate polluted from
+natural sites (see score plot). In the loading-plot we see that
+Sulfurovum is the genus that has the (by far!) largest absolute loading
+along PC1. A high abundance of this is associated with polluted sites,
+since it has a negative loading along PC1, and polluted sites also had a
+negative score along PC1. Thus, if we observe a very high abundance of
+this taxon compared to the rest, we predict it is a polluted
+environment.
+
+</details>
+
+<br>
+
+## Standardizing
+
+Try to re-run the analyses above, but standardize the data prior to the
+PCA. What does these results tell us?
+
+<details>
+
+<summary><mark> Solution </mark></summary>
+
+```{r}
+data(sediments)
+
+pca.obj <- prcomp(sediments[,-1], scale. = T)
+summary(pca.obj)
+```
+
+When scaled, 80% of the variation is described by the first two PC's,
+much less than before.
+
+```{r}
+score.tbl <- as.data.frame(pca.obj$x) %>% 
+  bind_cols(sediments)
+relative.evar <- round(pca.obj$sdev^2 / sum(pca.obj$sdev^2), 2)
+ggplot(score.tbl) +
+  geom_point(aes(x = PC1, y = PC2, color = Environment), size = 3) +
+  labs(x = str_c("PC1 (", relative.evar[1], ")"),
+       y = str_c("PC2 (", relative.evar[2], ")"))
+```
+
+When scaled the major difference. along PC1, is still between polluted
+and natural sites, but not as clear as before.
+
+```{r}
+loading.tbl <- as_tibble(pca.obj$rotation, rownames = "Variables")
+origin.tbl <- as_tibble(pca.obj$rotation - pca.obj$rotation, rownames = "Variables") %>% 
+  bind_rows(loading.tbl)
+ggplot(loading.tbl, aes(x = PC1, y = PC2)) +
+  geom_point() +
+  geom_text(aes(label = Variables), nudge_y = 0.05) +
+  geom_line(aes(group = Variables), data = origin.tbl, color = "maroon2")
+```
+
+Well, a loading plot with this many standardized variables quickly
+becomes a mess! Since all variables now have standard deviation 1.0,
+they tend to be on a circle/ellipsoide around the origin. In such cases
+a loading-plot is of little help to explore our data!
+
+In fact, for data like this it makes no sense to standardize. The point
+is that all variables are measured on the same scale (read-counts), and
+the information lies mostly in that some organisms are more or less
+abundant, i.e. have larger or smaller values. By standardizing we
+eliminate much of this information! It is almost remarkable that the
+score-plot still separates polluted from natural environments.
+
+</details>
+
+<br>

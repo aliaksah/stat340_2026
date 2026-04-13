@@ -1,0 +1,637 @@
+---
+title: "GLM - Part I: Logistic Regression"
+author: "Aliaksandr Hubin"
+date: "Spring 2026"
+output: 
+   ioslides_presentation: default
+   beamer_presentation: default
+   slidy_presentation: default
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+## Book chapters
+
+-   **An Introduction to Statistical Learning (ISLR)**: Chapter 4
+    (Classification). Key sections:
+    -   **4.2** Why Not Linear Regression?
+    -   **4.3** Logistic Regression (The Logistic Model, Estimating
+        coefficients, Making Predictions, Multiple Logistic Regression)
+-   **The R Book (Crawley)**: Chapter 13 (Generalized Linear Models).
+    Key sections:
+    -   **Introduction to GLMs** (Error structures, Linear Predictors,
+        and Link functions)
+    -   **Proportion Data** (Binomial Errors for grouped data)
+    -   **Binary Response Variables** (Modeling individual 0/1 outcomes)
+
+## GLM's - What for?
+
+-   A bigger class of linear models
+
+-   Most single-response linear models are GLM's
+
+-   Allows non-normally distributed response
+
+    -   Binary response
+    -   Proportion response
+    -   Count response
+    -   Multinomial response
+    -   And more...
+
+## Today's topics
+
+-   Motivating examples: why linear regression fails for binary data
+-   Logistic regression (binary or proportion response)
+-   Estimation of parameters and Inference
+-   Application to data examples
+-   Binary classification revisited
+
+## Recall linear regression
+
+From our earlier lectures, we have observed data with a continuous
+response $y_i$ and predictors $x_{i1}, \dots, x_{ip}$.
+
+The multiple linear regression model is:
+$$ \mu(\boldsymbol{x}_i) = E(y_i) = \beta_0 + \beta_1 x_{i1} + \dots + \beta_p x_{ip} $$
+
+where the observations $y_i$ are typically assumed to be normally
+distributed around the mean $\mu(\boldsymbol{x}_i)$ with some variance
+$\sigma^2$: $$ y_i \sim N(\mu(\boldsymbol{x}_i), \sigma^2) $$
+
+What happens if the response variable $y_i$ is **binary**, meaning it
+can only take values 0 or 1?
+
+## What if the response is binary?
+
+Imagine we want to predict if a client will default on a loan (
+$y \in \{0,1\}$) based on their account Balance ($x\in R$).
+
+If we fit a simple linear regression model:
+$$ E(y_i) = \beta_0 + \beta_1 x_{i1} $$
+
+We want the expected value $E(y_i)$ to represent the **probability**
+$P(y_i = 1)$, right? However, a straight line can predict probabilities
+less than 0 or greater than 1, which is not possible!
+
+## What if the response is binary? (Plot)
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.height=4.5, fig.width=8}
+# Require ISLR for the Default dataset
+if(!require(ISLR)) install.packages("ISLR", repos="http://cran.us.r-project.org")
+library(ISLR)
+default_num <- ifelse(Default$default == "Yes", 1, 0)
+par(mfrow=c(1,2))
+plot(Default$balance, default_num, pch="|", col="orange", ylab="Probability of Default", xlab="Balance", main="Linear Regression")
+abline(lm(default_num ~ balance, data=Default), col="blue", lwd=2)
+plot(Default$balance, default_num, pch="|", col="orange", ylab="Probability of Default", xlab="Balance", main="Logistic Regression")
+curve(predict(glm(default_num ~ balance, data=Default, family=binomial), data.frame(balance=x), type="response"), add=TRUE, col="blue", lwd=2)
+```
+
+## Modeling the Response
+
+In Linear Regression, we assumed the continuous response $y_i$ followed
+a **Normal Distribution** centered around its mean $\mu_i$:
+$$ y_i \sim N(\mu_i, \sigma^2) $$
+
+For a binary response, the data can only be $0$ or $1$. This perfectly
+matches the **Bernoulli Distribution**!
+
+The Bernoulli distribution describes a single trial that results in a
+"success" ($y=1$) with probability $p_i$, or "failure" ($y=0$) with
+probability $1-p_i$: $$ y_i \sim \text{Bernoulli}(p_i) $$
+
+Our "mean" prediction is now simply the probability: $E(y_i) = p_i$.
+
+## Normal vs Bernoulli Distribution
+
+```{r, echo=FALSE, fig.height=4.5, fig.width=8}
+par(mfrow=c(1,2), mar=c(4,4,3,1))
+
+# Normal (Continuous)
+x_norm <- seq(-3.5, 3.5, length=100)
+y_norm <- dnorm(x_norm, mean=0, sd=1)
+plot(x_norm, y_norm, type="l", lwd=3, col="blue", ylab="Density", xlab="y", main="Normal Distribution\n(Continuous y)", xaxt="n")
+axis(1, at=0, labels=expression(mu))
+polygon(c(x_norm, rev(x_norm)), c(rep(0, length(x_norm)), rev(y_norm)), col=rgb(0,0,1,0.2), border=NA)
+abline(v=0, col="black", lty=2)
+
+# Bernoulli (Binary)
+y_bern <- c(0, 1)
+prob_bern <- c(0.4, 0.6) # Example with p=0.6
+plot(y_bern, prob_bern, type="h", lwd=15, col="red", ylab="Probability", xlab="y", main="Bernoulli Distribution\n(Binary y)", ylim=c(0, 1), xaxt="n", xlim=c(-0.5, 1.5))
+axis(1, at=c(0,1), labels=c("0", "1"))
+points(y_bern, prob_bern, pch=15, cex=3, col="red")
+```
+
+## Solution: Logistic regression
+
+In logistic regression, we model the probability
+$p_i = p(\boldsymbol{x}_i) = P(y_i = 1|\boldsymbol{x}_i)$ directly,
+ensuring it stays between 0 and 1.
+
+Instead of a straight line, we use the **logistic function** (or sigmoid
+function):
+
+$$ p(\boldsymbol{x}_i) = \frac{e^{ \beta_0 + \beta_1 x_{i1} + \dots + \beta_p x_{ip} }}{1 + e^{ \beta_0 + \beta_1 x_{i1} + \dots + \beta_p x_{ip} }} $$
+
+This ensures that no matter what values the predictors $x$ take, the
+predicted probability $p_i$ is always theoretically constrained:
+$0 \leq p(\boldsymbol{x}_i) \leq 1$.
+
+## The Logistic Function Shape
+
+```{r, echo=FALSE, fig.height=4, fig.width=6}
+x <- seq(-10, 10, by=0.1)
+plot(x, exp(x)/(1+exp(x)), type="l", col="blue", lwd=2, ylab="p(x)", xlab="x", main="Standard Logistic Function")
+lines(x, exp(0.5*x)/(1+exp(0.5*x)), col="red", lwd=2, lty=2)
+lines(x, exp(2*x)/(1+exp(2*x)), col="green", lwd=2, lty=3)
+legend("topleft", legend=c("Beta = 1", "Beta = 0.5", "Beta = 2"), col=c("blue", "red", "green"), lty=c(1,2,3), lwd=2)
+```
+
+Notice how it "squashes" the predictions to stay within 0 and 1.
+
+## Log-odds (Logit) connection
+
+How does logistic regression connect to linear regression?
+
+If we rearrange the logistic formula, we find that the **log-odds** is
+modeled linearly!
+
+$$ \text{Odds} = \frac{p(\boldsymbol{x}_i)}{1 - p(\boldsymbol{x}_i)} = \frac{P(y_i=1|\boldsymbol{x}_i)}{P(y_i=0|\boldsymbol{x}_i)} $$
+
+The logarithm of the odds is called the **logit** function:
+$$ \log\left(\frac{p(\boldsymbol{x}_i)}{1 - p(\boldsymbol{x}_i)}\right) = \beta_0 + \beta_1 x_{i1} + \dots + \beta_p x_{ip} $$
+
+So, a generalized representation uses a *link function* — here, the
+logit link connects the mean (probability $p(\boldsymbol{x}_i)$) to the
+linear predictor: $\beta_0 + \beta_1 x_{i1} + \dots + \beta_p x_{ip}$
+
+## Interpretation of Logistic Coefficients
+
+In a linear regression model, a coefficient $\beta_1$ means an increase
+of 1 in $x_1$ leads to a $\beta_1$ increase in $E(y)$.
+
+**What does** $\beta_1$ mean in Logistic regression?
+
+Looking at the log-odds equation:
+$$ \log(\text{Odds}) = \beta_0 + \beta_1 x_{1} $$
+
+If we increase $x_1$ by one unit ($x_1 + 1$):
+
+\- The **log-odds** increases by $\beta_1$.
+
+\- The **odds** are multiplied by $e^{\beta_1}$.
+
+$e^{\beta_1}$ is called the **Odds Ratio**.
+
+## Parameter Estimation: Maximum Likelihood
+
+In linear regression, we used the Least Squares method (which is
+equivalent to Maximum Likelihood for normally distributed errors) to
+find the best $\beta$ coefficients.
+
+For Logistic Regression, there is no analytical "formula" (like the
+least squares equations) for the coefficients.
+
+Instead, the computer uses numerical algorithms to iteratively find the
+$\beta$ values that maximize the **Likelihood function**.
+$$ L(\boldsymbol{\beta}) \rightarrow \text{max} $$
+
+Maximizing the likelihood means finding the parameter values that make
+our observed binary data *most probable*.
+
+## Likelihood Factorization
+
+Since observations are independent, the total probability (Likelihood)
+of seeing our data is the product of individual probabilities.
+
+For a Binomial/Bernoulli outcome $y_i \in \{0, 1\}$, the probability is
+$p_i$ if $y_i=1$, and $(1-p_i)$ if $y_i=0$.
+
+We can write this elegantly as:
+$$ L(\boldsymbol{\beta}) = \prod_{i=1}^n p_i^{y_i} (1 - p_i)^{1 - y_i} $$
+
+We want to find $\boldsymbol\beta$ that maximizes this product (or its
+sum of logs!).
+
+## How the computer finds the Maximum
+
+Instead of a set formula, the computer takes "steps" uphill on the
+Log-Likelihood curve to find the peak!
+
+```{r, echo=FALSE, fig.height=5, fig.width=6}
+beta_vals <- seq(-3, 3, 0.1)
+ll_vals <- -beta_vals^2 # Simple parabola mimicking log-likelihood
+plot(beta_vals, ll_vals, type="l", lwd=2, ylab="Log-Likelihood", xlab=expression(beta), main="Newton-Raphson Intuition", ylim=c(-10, 2))
+points(-1.5, -2.25, pch=16, col="blue", cex=1.5)
+points(0, 0, pch=17, col="darkgreen", cex=2)
+text(0, 1.2, "Maximum Likelihood Estimate (MLE)", col="darkgreen")
+```
+
+## The Wald Test
+
+Just like linear regression, the maximum likelihood estimates
+$\widehat{\beta}_j$ have standard errors, $SE(\widehat{\beta}_j)$.
+
+For large sample sizes, $\widehat{\beta}_j$ approximately follows a
+normal distribution.
+
+We can test the hypothesis for individual coefficients
+($H_0: \beta_j = 0$ vs $H_A: \beta_j \neq 0$) using the **Wald test**:
+$$ z = \frac{\widehat{\beta}_j - 0}{SE(\widehat{\beta}_j)} $$
+
+This statistic $z$ follows a Standard Normal distribution $N(0,1)$.
+Software (like R) will output these $z$-values and corresponding
+p-values.
+
+## Standard Errors from MLE Theory
+
+How does the computer know the Standard Error ($SE$) of the estimates?
+
+It uses the **curvature** of the log-likelihood peak!
+
+-   **Sharp peak:** We are very confident in the estimate. $SE$ is
+    small.
+-   **Flat peak:** There is a lot of uncertainty. $SE$ is large.
+
+The mathematical term is the **Fisher Information** ($I$), which
+measures the steepness (second derivative) of the peak.
+
+$$ SE(\widehat{\beta}) = \sqrt{\frac{1}{I(\widehat{\beta})}} $$
+
+So, sharp curvature = large Information = small Standard Error!
+
+**The Motivation:** We want our proposed predictors to significantly
+reduce the Lack of Fit. Therefore, we want the **Residual Deviance** to
+be much smaller than the **Null Deviance**!
+
+## Likelihood Ratio Test (Deviance)
+
+To test if a subset of predictors as a whole is useful, we compare
+nested models using the **Likelihood Ratio Test (LRT)**.
+
+This is analogous to comparing the Sum of Squared Errors (SSE) in ANOVA
+for linear models. Instead of SSE, we use **Deviance:**
+$-2\log L(\boldsymbol{\beta})$.
+
+-   The Null Model contains only the intercept $\beta_0$.
+-   The Proposed Model contains the predictors.
+
+The test compares the Deviance of the models, and the difference in
+Deviances follows a $\chi^2$ (Chi-square) distribution based on the
+number of additional predictors. In R, apply the `anova()` function with
+`test="LR"` or `test="Chisq"` to see this.
+
+## Likelihood Ratio Test (Intuition)
+
+The Deviance compares the lack of fit of two models. If the Proposed
+Model is **much better**, its deviance is much lower, making the
+difference $\Delta \text{Deviance}$ large!
+
+-   **Small difference:** The extra predictors don't do much.
+-   **Large difference:** Pushes into the right tail (Rejection Region).
+    The predictors are useful!
+
+```{r, echo=FALSE, fig.height=3.5, fig.width=6}
+x <- seq(0, 15, 0.1)
+y <- dchisq(x, df=2)
+plot(x, y, type="l", lwd=2, col="blue", ylab="Density", xlab=expression(Delta ~ Deviance ~ (chi^2)), main="LRT Statistic under the Null")
+crit <- qchisq(0.95, df=2)
+polygon(c(x[x>=crit], max(x), crit), c(y[x>=crit], 0, 0), col="red", border=NA)
+abline(v=crit, col="black", lty=2, lwd=2)
+text(8, 0.05, "Rejection Region\n(Significant predictors)", col="red", pos=4)
+text(2, 0.15, "Do Not Reject\n(Small diff)", col="blue")
+```
+
+## Assumptions of Logistic Regression
+
+Like linear models, GLMs have underlying assumptions we must check:
+
+1.  **Independence:** Observations $y_i$ are independent of each other.
+2.  **Linearity in the Logit:** The log-odds (logit) relates *linearly*
+    to the continuous predictors.
+3.  **No Multicollinearity:** Predictors shouldn't be too perfectly
+    correlated.
+4.  **No Extreme Outliers:** No single observation should unilaterally
+    drive the model.
+5.  **No Overdispersion** (for proportion data): The observed variance
+    shouldn't be higher than what the Binomial theory assumes.
+
+## Example 1: Bird species on islands
+
+Let's test this in R! We look at the probability of a bird species being
+present on an island.
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+library(BIAS.data)
+data(island)
+head(island)
+```
+
+-   incidence = 1 if the species is present, 0 if absent
+-   area = Area of the island ($km^2$)
+-   isolation = Distance to the mainland ($km$)
+
+Question: How does the probability of presence depend on the area?
+
+## Fitting the Logistic Model in R
+
+We use the `glm()` function, specifying `family=binomial(logit)` for
+logistic regression. `mixlm` package is used over the standard base R
+because it provides specific expanded summaries and visualizations in
+the context of the course, or we can just use the base `glm`.
+
+```{r, echo=TRUE, eval=FALSE}
+library(mixlm)
+GLM.1 <- glm(incidence ~ area, family=binomial(logit), data=island)
+summary(GLM.1)
+```
+
+## The output
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+library(mixlm)
+GLM.1 <- glm(incidence ~ area, family=binomial(logit), data=island)
+summary(GLM.1)
+```
+
+## Interpreting the output
+
+-   Intercept $\widehat{\beta}_0 = -2.16$
+-   Area coefficient $\widehat{\beta}_{\text{area}} = 0.63$. The
+    positive coefficient means larger area increases the odds of bird
+    presence!
+-   The **p-value** is $<0.001$, found using the Wald test (z value =
+    $3.370$). The coefficient is significantly different from 0.
+-   **Odds ratio**: $e^{0.63} \approx 1.872$. For every 1 $km^2$
+    increase in area, the odds of the species being present on the
+    island increase by about $87.2\%$.
+
+## Graphical Representation of the Fit
+
+```{r, echo=TRUE, fig.height=4, fig.width=6}
+xv <- seq(0,9,0.01)
+yv <- predict(GLM.1, list(area=xv), type="response")
+plot(island$area, island$incidence, ylab="Probability of presence", xlab="Island Area")
+lines(xv, yv, col="red", lwd=2)
+```
+
+## Goodness of fit (LRT)
+
+We compare the model with the Area against the `Null`
+
+```{r, echo=TRUE, eval=TRUE}
+anova(GLM.1, test='LR')
+```
+
+## Goodness of fit (LRT) cont.
+
+The Likelihood Ratio test from the previous output shows a significant
+result: p-value\<$0.05$.
+
+This indicates that adding the `area` predictor significantly improves
+the fit of the model compared to a simple baseline model with just the
+intercept.
+
+## Expanding the model
+
+What if we also include isolation?
+
+```{r, echo=FALSE}
+GLM.2 <- glm(incidence ~ area + isolation, family=binomial(logit), data=island)
+summary(GLM.2)
+```
+
+Isolation has a negative coefficient: larger distance from mainland
+decreases the probability of the species being present!
+
+## Goodness of fit (LRT)
+
+Comparing the models progressively:
+
+```{r, echo=FALSE}
+anova(GLM.2, test='LR')
+```
+
+Both variables give significant drops in deviance.
+
+## Comparing Models: The AIC
+
+The **Akaike's Information Criterion (AIC)** is commonly used to compare
+models. It is defined as:
+
+$$-2 \times \log L(\boldsymbol{\beta}) + 2 \times p$$
+
+where $\log L(\boldsymbol{\beta})$ is the log-likelihood of the model
+and $p$ is the number of estimated parameters. It penalizes complex
+models. **Smaller is better**.
+
+## Comparing Models: The AIC (Results)
+
+```{r, echo=TRUE}
+AIC(GLM.1) # Area only
+AIC(GLM.2) # Area + Isolation
+```
+
+Adding isolation improves the model significantly, leading to a lower
+AIC!
+
+## Comparing Models: BIC
+
+Along with AIC, we also use the **Bayesian Information Criterion
+(BIC)**: $$ -2 \times \log L(\boldsymbol{\beta}) + \log(n) \times p $$
+BIC penalizes complex models even more harshly than AIC because
+$\log(n)$ is usually greater than $2$. Again, **smaller is better**.
+
+```{r, echo=TRUE}
+BIC(GLM.1) # Area only
+BIC(GLM.2) # Area + Isolation
+```
+
+Both AIC and BIC agree: adding isolation improves the model!
+
+## Checking the Bird Model (Diagnostics)
+
+Let's verify our assumptions by generating all standard diagnostic plots
+for `GLM.2`:
+
+```{r, echo=TRUE, fig.height=4, fig.width=8, message=FALSE, warning=FALSE}
+par(mfrow=c(2,2), mar=c(4,4,2,1))
+plot(GLM.2)
+```
+
+## Binomial response
+
+Sometimes, rather than tracking individual 0s and 1s, we have binomial
+data.
+
+$$ y_i \text{ successes out of } n_i \text{ trials}$$ For
+$i = 1,\ldots, n$ where $y_i$ is the number of 'successes' among $n_i$
+total experiments in group $i$.
+
+We assume $y_i \sim \text{Binomial}(n_i, p_i)$.
+
+## Binomial response (cont.)
+
+Theory tells us: $$ E(y_i) = p_i $$
+$$ Var(y_i) = \frac{p_i(1-p_i)}{n_i} $$
+
+We can use logistic regression to model $p_i$ using predictors,
+functioning precisely the same way!
+
+## Example 2: The insect sex data
+
+The sex counts in insects (proportion males) depending on population
+density:
+
+```{r, echo=FALSE}
+load("sexratio.Rdata")
+print(numbers)
+```
+
+## Binomial regression in R
+
+In RStudio, the response for Binomial grouped data must be an array of
+`successes` and `failures`.
+
+In the model specification, use `cbind(succesess, failures)` as the
+response variable.
+
+```{r, echo=TRUE}
+GLM.4 <- glm(cbind(males, females) ~ log(density), 
+             family=binomial(logit), data=numbers)
+```
+
+## Insect sex-ratio model summary
+
+```{r, echo=FALSE}
+summary(GLM.4)
+```
+
+## Insect sex-ratio plot
+
+```{r, echo=FALSE, fig.height=4, fig.width=6}
+attach(numbers)
+p <- males/(males+females)
+xv<-seq(0,6,0.1)
+plot(log(density), p, ylab="Proportion male")
+lines(xv, predict(GLM.4, list(density=exp(xv)), type="response"), col="red", lwd=2)
+detach(numbers)
+```
+
+## Binary classification revisited
+
+Remember from Multivariate Analysis: Assume we have two groups
+(classes), $c_1$ and $c_2$. By Bayes rule, the posterior probability of
+class 2 given observed variables is:
+
+$$ P(c_2 | x_1,\dots, x_k) \propto f(x_1,\dots, x_k | c_2) P(c_2) $$
+
+Logistic regression gives an alternative, **direct** method to estimate
+this posterior probability!
+
+Define $y=1$ for $c_2$ and $y=0$ for $c_1$. Then logistic regression
+directly estimates:
+$$ P(c_2 | x_1,\dots, x_k) = P(y=1 | x_1,\dots, x_k) = \frac{e^{ \beta_0 + \beta_1 x_1 + \dots}}{1 + e^{ \beta_0 + \beta_1 x_1 + \dots}} $$
+
+We classify to class 2 if the estimated $P(y=1 | x_1,\dots, x_k) > 0.5$.
+
+## Example 3: Lizards
+
+Can we discriminate the Sex of Lizards based on Mass? Let $y=1$ if
+female, $y=0$ if male.
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+data(Lizard)
+y <- ifelse(Lizard$Sex=="m", 0, 1)
+model <- glm(y ~ Mass, family=binomial, data=Lizard)
+summary(model)$coef
+```
+
+For every 1 unit increase in Mass, the log-odds of being female changes
+by $-0.89$. Thus heavier lizards are more likely to be male!
+
+## Lizards: Fitted line plot
+
+```{r,echo=FALSE, fig.height=4, fig.width=6}
+plot(Lizard$Mass, y, ylab="Probability of Female", xlab="Mass", pch=16)
+x <- seq(2,16, 0.05)
+ypred <- predict(model, list(Mass=x), type="response")
+lines(x, ypred, col="red", lwd=2)
+abline(h=0.5, lty=3)
+```
+
+## Classify a new lizard
+
+Assume we have measured a new lizard with mass 5g. What is the most
+probable gender for this lizard given our estimated model?
+
+```{r,echo=TRUE}
+new_lizard_data <- data.frame(Mass = 5)
+ypred <- predict(model, new_lizard_data, type="response")
+ypred
+```
+
+This returns the fitted estimated probability of being female ($y=1$).
+
+Since $0.957 > 0.5$, we classify the lizard to the female class. Hence,
+a lizard of Mass 5g is most probably a female.
+
+## Lizards: Variable Selection
+
+Let's include all predictors (`Mass`, `SVL` - Snout-vent length, `HLS` -
+Hind limb span) and perform stepwise selection!
+
+```{r, echo=TRUE, message=FALSE, warning=FALSE}
+full_model <- glm(y ~ Mass + SVL + HLS, family=binomial, data=Lizard)
+selected_model <- step(full_model, direction="both", trace=0,k = 2)
+summary(selected_model)$coef
+```
+
+The stepwise method selected only `HLS` as the best predictor (lowest
+AIC).
+
+## Lizards: Out of sample evaluation
+
+Let's measure how well our model really works by splitting data into a
+**training set** and a **test set**.
+
+```{r, echo=TRUE,warning=FALSE}
+set.seed(42)
+train_idx <- sample(1:nrow(Lizard), size = 0.6 * nrow(Lizard))
+train_data <- Lizard[train_idx, ]
+test_data <- Lizard[-train_idx, ]
+
+# Fit on training data
+train_model <- glm(ifelse(Sex=="m", 0, 1) ~ HLS, 
+                   family=binomial, data=train_data)
+```
+
+## Lizards: Training sample accuracy
+
+First, let's evaluate the model on the **training data**:
+
+```{r, echo=TRUE}
+train_probs <- predict(train_model, train_data, type="response")
+train_preds <- ifelse(train_probs > 0.5, 1, 0)
+train_actuals <- ifelse(train_data$Sex=="m", 0, 1)
+
+# Training Confusion Matrix
+table(Predicted = train_preds, Actual = train_actuals)
+```
+
+Training Accuracy: `r mean(train_preds == train_actuals)`
+
+## Lizards: Testing sample accuracy
+
+```{r, echo=TRUE}
+test_probs <- predict(train_model, test_data, type="response")
+test_preds <- ifelse(test_probs > 0.5, 1, 0)
+test_actuals <- ifelse(test_data$Sex=="m", 0, 1)
+
+# Test Confusion Matrix
+table(Predicted = test_preds, Actual = test_actuals)
+```
+
+Test Accuracy: `r mean(test_preds == test_actuals)`

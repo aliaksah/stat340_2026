@@ -53,7 +53,9 @@ See dendrogram in b).
 Here's how to check your answers in a):
 
 ```{r, include=FALSE}
-load("data\\WinterBirds4.RData")
+library(BIAS.data)
+data(Birds)
+Birds4 <- Birds4
 edistBirds4 <- dist(Birds4, method = "euclidean")     # calculating an Euclidean distance matrix
 clustBirds4 <- hclust(edistBirds4, method = "single") # hierachical clustering with single linkage
 ```
@@ -71,7 +73,6 @@ round(clustBirds4$height, digits = 1)
     d)  Load the file `WinterBirds.RData` containing data for 25 bird species. Compute a Euclidean distance matrix and compare different linkage methods.
 
 ```{r dist2, eval = TRUE, echo = FALSE, message=FALSE, warning=FALSE, indent = "   ", fig.align = "center"}
-load("data\\WinterBirds.RData")
 library(ggdendro)
 library(tidyverse)
 edistBirds <- dist(Birds, method = "euclidean")

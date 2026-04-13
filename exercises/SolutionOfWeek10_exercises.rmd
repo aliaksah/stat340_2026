@@ -1,0 +1,161 @@
+---
+title: "Exercises STAT340 - GLM1"
+params:
+  vis.forslag: false
+output:
+  html_document:
+    toc: true
+    theme: yeti
+    code_folding: hide
+    number_sections: true
+editor_options: 
+  chunk_output_type: console
+---
+<style>
+.main-container, .main-content { max-width: 100%; }
+.info { background-color:aliceblue; }
+.task { background-color:lightpink; }
+</style>
+
+```{r forslag, include = FALSE}
+vis.forslag <- params$vis.forslag
+```
+
+```{r forklar forslag, echo = FALSE, results = "asis", include = vis.forslag}
+cat('
+<mark>
+**LØSNINGSFORSLAG!**
+
+Disse vises nedenfor på ulike måter:
+<mark>Gulmerking</mark> av tekstforslag til løsning, eller kommentarer om alternative løsninger.
+* Noe <button>Code</button> som var skjult i øvingsdokumentet.
+<details>
+<summary>
+<mark>
+Noen løsningsforslag er skjult inni hint.
+</mark>
+</summary>
+Da må du utvide hintene for å se løsningsforslagene.  
+
+</details>
+')
+```
+
+<br>
+<br>
+<br>
+<br>
+
+You will need the following packages to run the code in this document.
+
+```{r, echo=TRUE, message=FALSE}
+library(BIAS.data)
+data(iris.train)
+data(iris.test)
+library(car)
+library(mixlm)
+```
+
+
+# Logistic regression
+
+a. We will consider the Species variable of the `iris.train` set as a binary response variable in these exercises. You may use the `Species` variable directly as response in the models. R will recode "versicolor" as 0 and "virginica" as 1. Hence, we will model the probability of a plant being "virginica" as a function of the predictor variable(s). Fit a logistic regression model for Species using Petal.Length as predictor. Report the estimated coefficients of the linear predictor. Is the Petal.Length variable a significant predictor for the probability of "virginica" at 5% test level?
+
+<details>
+<summary>
+<mark>
+Solution
+</mark>
+</summary>
+
+```{r, echo=TRUE}
+mod.glm1 <- glm(Species ~ Petal.Length, family=binomial(logit), data=iris.train)
+summary(mod.glm1)
+anova(mod.glm1,test='LR')
+```
+
+The estimated linear predictor is $\hat{\eta} = -52.543 + 10.802\cdot x$ where $x$ is the `Petal.Length`. The `Petal.length` is according to the Wald test significant at all test levels larger than `r round(summary(mod.glm1)$coef[2, 4], 5)`. Also the deviance test finds the `Petal.Length` variable significant at all reasonable test levels. The p-value is very small and we can conclude that the `Petal.Length` variable is a significant predictor for the probability of "virginica".
+
+</details>
+
+b. What is the estimated probability of a plant having `Petal.Length` equal to 5 to be a "virginica"?
+
+<details>
+<summary>
+<mark>
+Solution
+</mark>
+</summary>
+
+```{r, echo=TRUE}
+predict(mod.glm1, new = list(Petal.Length = 5), type = "response")
+```
+
+In terms of classification this is now the posterior probability (estimated) for class "virginica" given the `Petal.Length` of 5. We may write $P(virginica|Petal.Length=5) = 0.81$. This also means that $P(versicolor|Petal.Length=5) = 1- 0.81 = 0.19$, which is the estimated posterior probability of the plant with Petal.length of 5 being "versicolor".
+
+</details>
+
+c. Before solving this exercise, take a look at the short youtube video from a lecture in 2016 where the
+Akaike's Information Criterion (AIC) is discussed: https://youtu.be/aisJxQdXpWc. The AIC is a goodness-of-fit measure frequently used for model comparison and model selection, and it is reported in the end of the summary of a glm model. Find the AIC for the model with Petal.Length as predictor, and fit models with the three other variables as sole predictors and find the AIC for each model. Which model is preferable from the AIC point of view?
+
+<details>
+<summary>
+<mark>
+Solution
+</mark>
+</summary>
+
+```{r, echo=TRUE}
+mod.glm2 <- glm(Species ~ Petal.Width, family = binomial, data = iris.train)
+mod.glm3 <- glm(Species ~ Sepal.Width, family = binomial, data = iris.train)
+mod.glm4 <- glm(Species ~ Sepal.Length, family = binomial, data = iris.train)
+#Try the AIC-function to get the AIC:
+# AIC(mod.glm1)
+```
+
+```{r, echo=FALSE}
+cat("The AIC-value for a logistic model with Petal.Length as predictor is:\n")
+AIC(mod.glm1)
+cat("The AIC-value for a logistic model with Petal.Width as predictor is:\n")
+AIC(mod.glm2)
+cat("The AIC-value for a logistic model with Sepal.Width as predictor is:\n")
+AIC(mod.glm3)
+cat("The AIC-value for a logistic model with Sepal.Length as predictor is:\n")
+AIC(mod.glm4)
+```
+
+The `Petal.Length` variable gives the smallest AIC when used as predictor. It is marginally better than `Petal.Width` as predictor. Model selection could of course be expanded to also consider multiple predictors and interactions like we did in regression analysis and ANOVA.
+
+</details>
+
+
+e. Use a logistic model of your choice (perhaps the same predictors as you used in your best choice classifier of exercise c.) to estimate the posterior probabilities of "virginica" for the samples of the `iris.test` set. Allocate the samples to the most probable species class and use the `confusion()` function to evaluate the classification performance. You may use the code below to predict all test samples at once. Report the accuracy and APER of the classificator you used.
+
+
+```{r, eval=FALSE}
+#Here is the R code for the logistic model with Petal.Length as predictor. The same model may of course
+#be fitted from the R Commander menu. Just name it "mymodel" in order to use the code below. You may use
+#whatever model you want as "mymodel".
+mymod <- glm(Species ~ Petal.Length, family = binomial, data = iris.train)
+postprob <- predict(mymod, new = iris.test, type = "response")
+predicted <- factor(ifelse(postprob > 0.5,"virginica","versicolor"))
+confusion(iris.test$Species, predicted)
+```
+
+<details>
+<summary>
+<mark>
+Solution
+</mark>
+</summary>
+
+```{r, echo=FALSE}
+mymod2 <- glm(Species ~ Petal.Length, family = binomial, data = iris.train)
+postprob <- predict(mymod2, new = iris.test, type = "response")
+predicted <- factor(ifelse(postprob > 0.5,"virginica","versicolor"))
+confusion(iris.test$Species, predicted)
+```
+
+With my chosen model I got two mis-classification, which corresponds to an accuracy of 0.9 and an apparent error rate APER = 0.1. Can you find a better logistic model classifier?
+
+</details>

@@ -22,7 +22,7 @@ editor_options:
     Key sections:
     -   **Introduction to GLMs** (Error structures, Linear Predictors,
         and Link functions)
-    -   **Proportion Data** (Binomial Errors for grouped data)
+    -   **Binomial Data** (Binomial Errors for grouped data)
     -   **Binary Response Variables** (Modeling individual 0/1 outcomes)
 
 ## GLM's - What for?
@@ -34,15 +34,16 @@ editor_options:
 -   Allows non-normally distributed response
 
     -   Binary response
-    -   Proportion response
+    -   Binomial response
     -   Count response
+    -   Skewed data - Gamma response
     -   Multinomial response
     -   And more...
 
 ## Today's topics
 
 -   Motivating examples: why linear regression fails for binary data
--   Logistic regression (binary or proportion response)
+-   Logistic regression (binary or Binomial response)
 -   Estimation of parameters and Inference
 -   Application to data examples
 -   Binary classification revisited
@@ -74,12 +75,18 @@ We want the expected value $E(y_i)$ to represent the **probability**
 $P(y_i = 1)$, right? However, a straight line can predict probabilities
 less than 0 or greater than 1, which is not possible!
 
-## What if the response is binary? (Plot)
+## What if the response is binary? (Data)
 
-```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.height=4.5, fig.width=8}
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
 # Require ISLR for the Default dataset
 if(!require(ISLR)) install.packages("ISLR", repos="http://cran.us.r-project.org")
 library(ISLR)
+head(Default)
+```
+
+## What if the response is binary? (Plot)
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.height=4.5, fig.width=8}
 default_num <- ifelse(Default$default == "Yes", 1, 0)
 par(mfrow=c(1,2))
 plot(Default$balance, default_num, pch="|", col="orange", ylab="Probability of Default", xlab="Balance", main="Linear Regression")
@@ -167,6 +174,10 @@ So, a generalized representation uses a *link function* — here, the
 logit link connects the mean (probability $p(\boldsymbol{x}_i)$) to the
 linear predictor: $\beta_0 + \beta_1 x_{i1} + \dots + \beta_p x_{ip}$
 
+## Derivation of log odds from $p(\boldsymbol{x}_i)$
+
+$$ \log\left(\frac{p(\boldsymbol{x}_i)}{1 - p(\boldsymbol{x}_i)}\right) = \beta_0 + \beta_1 x_{i1}$$
+
 ## Interpretation of Logistic Coefficients
 
 In a linear regression model, a coefficient $\beta_1$ means an increase
@@ -177,13 +188,20 @@ of 1 in $x_1$ leads to a $\beta_1$ increase in $E(y)$.
 Looking at the log-odds equation:
 $$ \log(\text{Odds}) = \beta_0 + \beta_1 x_{1} $$
 
-If we increase $x_1$ by one unit ($x_1 + 1$):
+If we increase $x_1$ by one unit:
 
 \- The **log-odds** increases by $\beta_1$.
 
 \- The **odds** are multiplied by $e^{\beta_1}$.
 
 $e^{\beta_1}$ is called the **Odds Ratio**.
+
+## Derivation of Interpretations
+
+Looking at the log-odds equation:
+$$ \log(\text{Odds}) = \beta_0 + \beta_1 x_{1} $$
+
+If we increase $x_1$ by one unit:
 
 ## Parameter Estimation: Maximum Likelihood
 
@@ -220,13 +238,19 @@ sum of logs!).
 Instead of a set formula, the computer takes "steps" uphill on the
 Log-Likelihood curve to find the peak!
 
-```{r, echo=FALSE, fig.height=5, fig.width=6}
+```{r, echo=FALSE, fig.height=4.5, fig.width=6}
 beta_vals <- seq(-3, 3, 0.1)
 ll_vals <- -beta_vals^2 # Simple parabola mimicking log-likelihood
-plot(beta_vals, ll_vals, type="l", lwd=2, ylab="Log-Likelihood", xlab=expression(beta), main="Newton-Raphson Intuition", ylim=c(-10, 2))
-points(-1.5, -2.25, pch=16, col="blue", cex=1.5)
+plot(beta_vals, ll_vals, type="l", lwd=2, col="gray", ylab="Log-Likelihood", xlab=expression(beta), main="Optimization Steps (Intuition)", ylim=c(-10, 2))
+points(-2.5, -6.25, pch=16, col="red", cex=1.5)
+arrows(-2.5, -6.25, -1.2, -1.44, col="blue", length=0.1, lwd=2)
+points(-1.2, -1.44, pch=16, col="blue", cex=1.5)
+arrows(-1.2, -1.44, -0.3, -0.09, col="purple", length=0.1, lwd=2)
+points(-0.3, -0.09, pch=16, col="purple", cex=1.5)
+arrows(-0.3, -0.09, 0, 0, col="darkgreen", length=0.1, lwd=2)
 points(0, 0, pch=17, col="darkgreen", cex=2)
-text(0, 1.2, "Maximum Likelihood Estimate (MLE)", col="darkgreen")
+text(1, 1.2, "MLE (Converged)", col="darkgreen")
+legend("bottomright", legend=c("Start", "Step 1", "Step 2", "MLE"), col=c("red", "blue", "purple", "darkgreen"), pch=c(16, 16, 16, 17))
 ```
 
 ## The Wald Test
@@ -244,6 +268,22 @@ $$ z = \frac{\widehat{\beta}_j - 0}{SE(\widehat{\beta}_j)} $$
 This statistic $z$ follows a Standard Normal distribution $N(0,1)$.
 Software (like R) will output these $z$-values and corresponding
 p-values.
+
+## Wald Test Decision Boundaries
+
+```{r, echo=FALSE, fig.height=4.5, fig.width=7}
+x <- seq(-4, 4, 0.01)
+y <- dnorm(x)
+plot(x, y, type="l", lwd=2, col="blue", ylab="Density", xlab="z-statistic", main="Standard Normal Distribution")
+crit_l <- qnorm(0.025)
+crit_u <- qnorm(0.975)
+polygon(c(x[x<=crit_l], crit_l, -4), c(y[x<=crit_l], 0, 0), col="red", border=NA)
+polygon(c(x[x>=crit_u], 4, crit_u), c(y[x>=crit_u], 0, 0), col="red", border=NA)
+abline(v=c(crit_l, crit_u), col="black", lty=2, lwd=2)
+text(-3, 0.05, "Reject H0", col="red")
+text(3, 0.05, "Reject H0", col="red")
+text(0, 0.15, "Do Not Reject H0\n(Fail to Reject)", col="blue")
+```
 
 ## Standard Errors from MLE Theory
 
@@ -279,9 +319,11 @@ $-2\log L(\boldsymbol{\beta})$.
 -   The Proposed Model contains the predictors.
 
 The test compares the Deviance of the models, and the difference in
-Deviances follows a $\chi^2$ (Chi-square) distribution based on the
-number of additional predictors. In R, apply the `anova()` function with
-`test="LR"` or `test="Chisq"` to see this.
+Deviances ($\Delta \text{Deviance}$) follows a $\chi^2$ (Chi-square)
+distribution based on the number of additional predictors. Its degrees
+of freedom ($df$) is:
+
+$$ df = (\text{parameters in Proposed}) - (\text{parameters in Null}) $$
 
 ## Likelihood Ratio Test (Intuition)
 
@@ -315,7 +357,7 @@ Like linear models, GLMs have underlying assumptions we must check:
     correlated.
 4.  **No Extreme Outliers:** No single observation should unilaterally
     drive the model.
-5.  **No Overdispersion** (for proportion data): The observed variance
+5.  **No Overdispersion** (for Binomial data): The observed variance
     shouldn't be higher than what the Binomial theory assumes.
 
 ## Example 1: Bird species on islands
@@ -377,9 +419,9 @@ plot(island$area, island$incidence, ylab="Probability of presence", xlab="Island
 lines(xv, yv, col="red", lwd=2)
 ```
 
-## Goodness of fit (LRT)
+## Goodness of fit (LRT): Area against the `Null`
 
-We compare the model with the Area against the `Null`
+`anova()` function with `test="LR"` or `test="Chisq"`.
 
 ```{r, echo=TRUE, eval=TRUE}
 anova(GLM.1, test='LR')
@@ -410,7 +452,7 @@ decreases the probability of the species being present!
 
 Comparing the models progressively:
 
-```{r, echo=FALSE}
+```{r, echo=TRUE}
 anova(GLM.2, test='LR')
 ```
 

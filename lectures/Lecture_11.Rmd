@@ -1,0 +1,601 @@
+---
+title: "GLM - Part II"
+author: "Aliaksandr Hubin"
+date: "April 21 2026"
+output: 
+   ioslides_presentation: default
+   beamer_presentation: default
+   slidy_presentation: default
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+## Today's topics
+
+-   Count data
+-   Example and theory
+-   Overdispersion and quasi-likelihood
+-   Gamma regression
+-   Multinomial regression
+
+## Example - Student arrivals
+
+Number of students coming in the last minute before the lecture so far
+in the course:
+
+```{r, echo=TRUE}
+students <- c(2, 1, 1, 2, 1, 5, 3, 1)
+```
+
+```{r, echo=FALSE, fig.height=4, fig.width=6}
+barplot(table(factor(students, levels=0:max(students))), 
+        ylab="Frequency", xlab="Number of students", main="Histogram of student arrivals",
+        col="lightgray")
+```
+
+## Count response
+
+$$
+y_i \in [0,1,\ldots \infty )
+$$ for $i = 1,\ldots, n$
+
+We assume
+
+$$y_i \sim Poisson(\lambda_i)$$
+
+Further, theory says:
+
+$$\mu_i = E(y_i) = \lambda_i>0$$ $$\sigma_i^2 = Var(y_i) = \lambda_i>0$$
+
+## Poisson probability model
+
+The probability mass function mapping the probability of exactly $k$
+events is given by:
+
+$$ P(y_i = k) = \frac{\lambda_i^k \exp(-\lambda_i)}{k!} $$
+
+## Estimating the Poisson parameter
+
+For the student arrivals data, we can estimate the parameter $\lambda$
+using the maximum likelihood estimate (MLE), which is the sample mean.
+
+```{r, echo=TRUE}
+# MLE of Poisson parameter lambda is the sample mean
+lambda_hat <- mean(students)
+lambda_hat
+```
+
+**So for students** $\lambda_i = 2$:
+
+\- No-one late ($k=0$):
+$P(y_i=0) = \frac{2^0 \exp(-2)}{0!} = e^{-2} \approx 0.135$
+
+\- Two late ($k=2$):
+$P(y_i=2) = \frac{2^2 \exp(-2)}{2!} = 2e^{-2} \approx 0.271$
+
+## Shapes of the Poisson distribution
+
+The shape of the Poisson PMF changes directly with $\lambda$. Here we
+also overlay $\lambda=2$ representing our student arrivals data.
+
+```{r, echo=FALSE, fig.height=4, fig.width=6}
+x_vals <- 0:15
+plot(x_vals, dpois(x_vals, 1), type="b", col="red", pch=16, 
+     ylab="Probability", xlab="y", main="Poisson PMF for different lambda")
+lines(x_vals, dpois(x_vals, 2), type="b", col="black", pch=15, lwd=2)
+lines(x_vals, dpois(x_vals, 4), type="b", col="blue", pch=17)
+lines(x_vals, dpois(x_vals, 10), type="b", col="green3", pch=18)
+legend("topright", legend=c(expression(lambda==1), expression(lambda==2~" (Students)"), expression(lambda==4), expression(lambda==10)), 
+       col=c("red", "black", "blue", "green3"), pch=c(16, 15, 17, 18), lty=1, lwd=c(1, 2, 1, 1))
+```
+
+## The log-link function
+
+The canonical link function for Poisson distributed response is the
+`log`-link.
+
+Hence we assume that the linear predictor
+
+$\eta_i = \beta_0 + \beta_1 x_{1i} + \cdots + \beta_p x_{pi}$ is related
+to the mean through the link function:
+
+$$g(\lambda_i) = \log(\lambda_i)$$
+
+by:
+
+$$\log(\lambda_i) = \beta_0 + \beta_1 x_{1i} + \cdots + \beta_p x_{pi}$$
+
+Since we want:
+
+$${\lambda}_i = \exp({\beta}_0 + {\beta}_1 x_{1i} + \cdots + {\beta}_p x_{pi}) > 0$$
+
+## The inverse link-function
+
+The inverse link function $\exp()$ provides the estimates of the mean
+from estimated regression coefficients:
+
+$$\widehat{\lambda}_i = \exp(\widehat{\beta}_0 + \widehat{\beta}_1 x_{1i} + \cdots + \widehat{\beta}_p x_{pi})$$
+
+## Example - Plant Species
+
+Number of plant species in plots of different biomass and pH.
+
+```{r, echo=TRUE, eval=TRUE, warning=FALSE, message=FALSE}
+library(BIAS.data)
+data(species)
+head(species, 4)
+```
+
+## Example - Plant Species (Cont.)
+
+Number of plant species in plots of different biomass and pH.
+
+```{r, echo=FALSE, message=FALSE}
+library(BIAS.data)
+data(species)
+attach(species)
+plot(Biomass,Species,type="n")
+spp<-split(Species,pH)
+bio<-split(Biomass,pH)
+points(bio[[1]],spp[[1]],pch=16, col="red")
+points(bio[[2]],spp[[2]],pch=16,col="green")
+points(bio[[3]],spp[[3]],pch=16,col="blue")
+legend(x="topright", legend=c("high", "medium", "low"), pch=16,
+       col=c("red", "blue", "green"), title="pH")
+```
+
+## Species count as function of biomass
+
+A Poisson regression with `Biomass` as predictor:
+
+```{r, echo=TRUE, eval=FALSE}
+mod1.glm <- glm(Species ~ Biomass, family=poisson(log), data=species)
+summary(mod1.glm)
+```
+
+## Output {.smaller}
+
+A Poisson regression with `Biomass` as predictor:
+
+```{r, echo=FALSE}
+mod1.glm <- glm(Species ~ Biomass, family=poisson(log), data=species)
+summary(mod1.glm)
+```
+
+## Deviance test for the effect of biomass
+
+```{r, echo=TRUE, eval=FALSE}
+library(mixlm)
+anova(mod1.glm,test='LR')
+```
+
+## Output
+
+```{r, echo=FALSE, message=FALSE}
+library(mixlm)
+anova(mod1.glm,test='LR')
+```
+
+Conclusion: Biomass is highly significant with a negative effect on
+species count.
+
+## Delta unit interpretation
+
+Using a log-link makes the interpretation of the slope
+**multiplicative**. This is easy to derive:
+
+$$ \color{blue}{\log(\mu_{\text{new}})} - \color{blue}{\log(\mu_{\text{old}})} = (\beta_0 + \beta_1(x+1)) - (\beta_0 + \beta_1 x) = \color{red}{\beta_1} $$
+$$ \implies \log\left(\frac{\mu_{\text{new}}}{\mu_{\text{old}}}\right) = \color{red}{\beta_1} \implies \mu_{\text{new}} = \mu_{\text{old}} \color{red}{\exp(\beta_1)} $$
+
+Taking a 1-unit delta (increase) in predictor $x_j$ **multiplies** the
+expected **mean** response **by** $\exp(\beta_j)$.
+
+For example, $\widehat{\beta}_{\text{Biomass}} = -0.0644$. A 1-unit
+increase in `Biomass` multiplies the expected species count by
+$\exp(-0.0644) \approx 0.938$, which corresponds to a decrease of
+$6.2\%$.
+
+## Prediction
+
+What is the predicted species count for a plot with biomass equal to 4?
+
+```{r, echo=TRUE, eval=FALSE}
+new <- data.frame(Biomass=4)
+    link <- predict(mod1.glm, new, type = "link", se.fit = TRUE)
+    response <- predict(mod1.glm, new, type = "response", se.fit = TRUE)
+    LS <- cbind(link$fit, link$se.fit, response$fit, response$se.fit)
+    colnames(LS) <- c("link", "se.link", "response", "se.response")
+    LS
+```
+
+## Output
+
+```{r, echo=FALSE}
+new <- data.frame(Biomass=4)
+    link <- predict(mod1.glm, new, type = "link", se.fit = TRUE)
+    response <- predict(mod1.glm, new, type = "response", se.fit = TRUE)
+    LS <- cbind(link$fit, link$se.fit, response$fit, response$se.fit)
+    colnames(LS) <- c("link", "se.link", "response", "se.response")
+    LS
+```
+
+This was found by letting $x^{*} = 4$ and
+
+$$\widehat{\eta}^{*} = 3.184 - 0.0644\cdot x^{*} = 2.926$$
+
+$$\widehat{y}^{*} = \widehat{\lambda}^{*} = \exp(\widehat{\eta}^{*}) = \exp(2.926) = 18.66$$
+
+## Expanding the model
+
+From the plot we saw that `pH` may have large influence.
+
+```{r, echo=TRUE, eval=FALSE}
+mod2.glm <- glm(Species ~ Biomass + pH, family=poisson, data=species)
+summary(mod2.glm)
+```
+
+## Output (Expanded model) {.smaller}
+
+From the plot we saw that `pH` may have large influence.
+
+```{r, echo=FALSE}
+mod2.glm <- glm(Species ~ Biomass + pH, family=poisson, data=species)
+summary(mod2.glm)
+```
+
+## Deviance tests
+
+```{r, echo=TRUE}
+anova(mod2.glm,test='LR')
+```
+
+## Over/under-dispersion
+
+$Var(y)$ depends on the mean $\mu$ in specific ways for the binomial and
+the Poisson distribution (and others).
+
+Sometimes data vary more (over-dispersion) or less (under-dispersion)
+than expected.
+
+Over-dispersion is very common in biological data
+
+Usually this is due to some (unknown) factor influencing the data.
+
+## The quasi-likelihood
+
+The quasi-likelihood method relaxes the variance assumption by including
+a `scale`-parameter.
+
+Over-dispersion corresponds to `scale > 1`
+
+Under-dispersion corresponds to `scale < 1`
+
+We can estimate the scale-parameter using the `family = quasi-`
+distributions
+
+## If pH was "unknown"...
+
+Assume `pH` was not measured (back to the first model...)
+
+Let's fit a `quasi-poisson` model and look at the estimates. No change!
+
+```{r, echo=TRUE, eval=FALSE}
+mod1q.glm <- glm(Species ~ Biomass, family=quasipoisson, data=species)
+sumfit <- summary(mod1q.glm)
+sumfit$coefficients
+```
+
+## Quasi-Poisson Output {.smaller}
+
+```{r, echo=FALSE}
+mod1q.glm <- glm(Species ~ Biomass, family=quasipoisson, data=species)
+summary(mod1q.glm)
+```
+
+Compare with the model assuming poisson distribution:
+
+```{r, echo=FALSE}
+sumfit1 <- summary(mod1.glm)
+sumfit1$coefficients
+```
+
+But note the increased standard errors!
+
+## Estimated over/under-dispersion
+
+The estimated dispersion parameter is:
+
+```{r, echo=TRUE}
+summary(mod1q.glm)$dispersion
+```
+
+The standard errors of the estimated regression coefficients have
+increased by a factor of $\sqrt{4.376}= 2.091$
+
+There exist formal tests for over/under-dispersion:
+
+-   Parametric Pearson residuals test
+
+-   Nonparametric Pearson residuals test
+
+-   Simulation-based residual variance test
+
+-   Etc.
+
+## Gamma regression
+
+For continuous variables that are strictly positive and often
+right-skewed, we can use the **Gamma distribution**.
+
+Its probability density function is:
+$$f(y) = \frac{1}{\Gamma(\nu)} \left( \frac{\nu}{\mu} \right)^\nu y^{\nu - 1} \exp\left( - \frac{\nu y}{\mu} \right)$$
+for $y > 0$, where $\mu > 0$ is the mean and $\nu > 0$ is the shape
+parameter.
+
+The variance of a Gamma distributed variable is proportional to the
+square of its mean, $Var(y) = \mu^2 / \nu$, making it ideal when larger
+responses have higher variance.
+
+To ensure that the predicted mean $\mu$ is always positive, we typically
+use the **log-link**:
+$$g(\mu) = \log(\mu) = \beta_0 + \beta_1 x_{1} + \cdots + \beta_p x_{p}$$
+
+## Shapes of the Gamma distribution
+
+The Gamma PDF is highly flexible based on the shape ($\nu$) and mean
+($\mu$).
+
+```{r, echo=FALSE, fig.height=4, fig.width=6}
+y_vals <- seq(0, 15, length.out=200)
+plot(y_vals, dgamma(y_vals, shape=1, rate=1/2), type="l", col="red", lwd=2,
+     ylab="Density", xlab="y", main="Gamma density for different shape and mean")
+lines(y_vals, dgamma(y_vals, shape=2, rate=2/4), col="blue", lwd=2)
+lines(y_vals, dgamma(y_vals, shape=5, rate=5/8), col="green3", lwd=2)
+legend("topright", legend=c(expression(paste(nu, "=1, ", mu, "=2")), 
+                            expression(paste(nu, "=2, ", mu, "=4")), 
+                            expression(paste(nu, "=5, ", mu, "=8"))),
+       col=c("red", "blue", "green3"), lwd=2)
+```
+
+## Gamma regression example
+
+Consider the `Auto` dataset from the `ISLR` package. We want to predict
+the continuous and strictly positive `mpg` (miles per gallon) based on
+vehicle `weight` and `horsepower`.
+
+```{r, echo=TRUE, message=FALSE, warning=FALSE}
+library(ISLR)
+data(Auto)
+head(Auto[, c("mpg", "weight", "horsepower")], 3)
+```
+
+## Why not Gaussian?
+
+If we look at the distribution of `mpg`, it is strictly positive and
+right-skewed. A standard Gaussian regression assumes symmetric errors
+with constant variance, which is not suitable here.
+
+```{r, echo=FALSE, fig.height=3.5, fig.width=5}
+hist(Auto$mpg, breaks=15, main="Histogram of mpg", xlab="mpg", col="lightblue")
+```
+
+## Gamma regression fit {.smaller}
+
+```{r, echo=TRUE}
+mod.gamma <- glm(mpg ~ weight + horsepower, 
+                 family=Gamma(link="log"), data=Auto)
+```
+
+```{r, echo=FALSE}
+summary(mod.gamma)
+```
+
+## Gamma Interpretation
+
+Both predictors have a significant negative effect on the expected
+`mpg`. The variance assumption of the Gamma model naturally handles the
+heteroscedasticity common in this type of data.
+
+Because we use the **log-link**, a 1-unit increase in the predictor
+$x_j$ multiplies the expected mean response by
+$\color{red}{\exp(\beta_j)}$. For instance, since
+$\widehat{\beta}_{\text{weight}} = -0.00025$, an increase of 1000 units
+in `weight` multiplies the expected `mpg` by
+$\color{red}{\exp(-0.25) \approx 0.78}$.
+
+## The Multinomial Distribution
+
+Consider $N$ **independent trials**, each resulting in exactly one of
+$t$ **categories** (bins) with fixed probabilities
+$\mathbf{p} = (p_1, p_2, \ldots, p_t)$, where $\sum_{j=1}^t p_j = 1$.
+
+Let $Y_j$ = number of trials falling in category $j$. Then the vector
+$(Y_1, Y_2, \ldots, Y_t)$ follows a **Multinomial distribution**:
+
+$$\mathbf{Y} \sim \text{Multinomial}(N,\, \mathbf{p})$$
+
+with joint probability mass function:
+
+$$P(Y_1 = k_1, \ldots, Y_t = k_t) = \frac{n!}{k_1!\, k_2!\, \cdots\, k_t!}\; p_1^{k_1}\, p_2^{k_2}\, \cdots\, p_t^{k_t}$$
+
+where $k_1 + k_2 + \cdots + k_t = N$ and for each $j$: $E(Y_j) = N p_j$,
+$\quad Var(Y_j) = N p_j (1-p_j)$.
+
+**Note:** When $t=2$ this reduces to the familiar **Binomial**
+distribution.
+
+## Multinomial: Bins & Trials Illustration
+
+$n = 20$ trials distributed across $t = 4$ categories:
+
+```{r, echo=FALSE, fig.height=4, fig.width=6.5}
+set.seed(42)
+probs  <- c(0.40, 0.25, 0.20, 0.15)
+labels <- c("Cat 1\n[p=0.40]", "Cat 2\n[p=0.25]",
+            "Cat 3\n[p=0.20]", "Cat 4\n[p=0.15]")
+cols   <- c("#E41A1C", "#377EB8", "#4DAF4A", "#FF7F00")
+n_trials <- 20
+counts <- as.vector(rmultinom(1, size=n_trials, prob=probs))
+
+bp <- barplot(counts, names.arg=labels, col=cols,
+              ylim=c(0, max(counts) + 3),
+              ylab="Count (number of trials)",
+              main=paste0("Multinomial sample: N = ", n_trials,
+                          " trials, t = 4 categories"),
+              cex.names=0.85)
+# overlay expected counts
+expected <- n_trials * probs
+points(bp, expected, pch=18, cex=1.8, col="black")
+segments(bp, expected - 0, bp, expected, lwd=2, col="black")
+legend("topright",
+       legend=c("Observed counts", "Expected  (N · pj)"),
+       fill=c("gray70", NA), pch=c(NA, 18), pt.cex=1.5,
+       col=c(NA, "black"), border=c("black", NA), bty="n")
+text(bp, counts + 0.8, labels=counts, font=2, cex=1.1)
+```
+
+Each bar = one **bin** (category); bar height = how many trials landed
+there.
+
+## Categorical Distribution when $N=1$
+
+When we perform only **one trial** ($N = 1$), each $Y_j \in \{0,1\}$ and
+exactly one $Y_j = 1$. This is the **Categorical distribution**:
+
+$$Y \sim \text{Categorical}(\mathbf{p}), \quad
+P(Y_j = 1) = p_j, \quad j = 1,\ldots,t$$
+
+Think of it as a single **roll of a weighted** $t$-sided die.
+
+**Connection to regression:** In multinomial regression each observation
+$i$ is modelled as one Categorical trial with class-probabilities
+$p_{ij}$ driven by covariates $\mathbf{x}_i$.
+
+## Example - Iris Species
+
+We want to predict `Species` (setosa, versicolor, virginica) of iris
+flowers based on their `Sepal.Length`.
+
+Let $i$ denote a flower, and we have categorical outcome $j=1$ (setosa),
+$j=2$ (versicolor), $j=3$ (virginica).
+
+![](images/clipboard-1305837794.png){width="236"}
+
+```{r, echo=FALSE}
+data(iris)
+head(iris[, c("Sepal.Length", "Species")], 1)
+```
+
+## Multinomial model assumptions
+
+Given a flower-specific linear predictor $\eta_{ij}$ for flower $i$ and
+species $j$, the probability of outcome $j$ is modelled as:
+
+$$p_{ij} = \frac{\exp(\eta_{ij})}{\sum_k \exp(\eta_{ik})} \text{; known as softmax function}$$
+
+where
+$\eta_{ij} = \beta_{0j} + \beta_{1j} \cdot \text{Sepal.Length}_i + \beta_{2j} \cdot \text{Sepal.Width}_i$.
+
+We use baseline response parameterization (default in R) where the first
+category (setosa) is the reference, so we set $\eta_{i1} = 0$. This
+gives a simplification for $j=1$:
+
+$$p_{i1} = 1 - p_{i2} - p_{i3}$$
+
+## R code (Baseline parameterization) {.smaller}
+
+Let's use the `nnet` package to fit the model.
+
+```{r,echo=TRUE, message=FALSE, warning=FALSE}
+MLM.iris <- nnet::multinom(Species ~ Sepal.Length + Sepal.Width,
+                            data=iris, trace=FALSE)
+summary(MLM.iris)
+```
+
+Here `setosa` is the baseline response. The model estimates two sets of
+coefficients: one for `versicolor` vs `setosa` and one for `virginica`
+vs `setosa`.
+
+## Calculating Probabilities
+
+For a given flower with `Sepal.Length = 6` cm and `Sepal.Width = 3` cm,
+the linear predictors are computed from the estimated coefficients
+(Remember $\widehat{\eta}_{1} = 0$):
+
+```{r, echo=TRUE}
+new_data <- data.frame(Sepal.Length=6, Sepal.Width=3)
+round(predict(MLM.iris, newdata=new_data, type="probs"), 4)
+```
+
+## Classification Accuracy (Linear Model)
+
+We can evaluate the model's classification accuracy over the entire
+dataset:
+
+```{r, echo=TRUE}
+predicted_classes <- predict(MLM.iris, newdata=iris, type="class")
+accuracy <- mean(predicted_classes == iris$Species)
+round(accuracy, 3)
+table(Predicted = predicted_classes, Actual = iris$Species)
+```
+
+## Linear Decision Boundary in 2D
+
+**Another** model: `Species ~ Sepal.Length + Sepal.Width`.\
+Background colours show the predicted class region; points are true
+species.
+
+```{r, echo=FALSE, fig.height=4, fig.width=6.5}
+# Build grid
+sl_range <- seq(min(iris$Sepal.Length) - 0.2, max(iris$Sepal.Length) + 0.2, length.out=200)
+sw_range <- seq(min(iris$Sepal.Width)  - 0.2, max(iris$Sepal.Width)  + 0.2, length.out=200)
+grid     <- expand.grid(Sepal.Length = sl_range, Sepal.Width = sw_range)
+grid$pred <- predict(MLM.iris, newdata=grid, type="class")
+
+# Pastel region colours
+region_cols <- c(setosa="#FFAAAA", versicolor="#AADDAA", virginica="#AAAAFF")
+point_cols  <- c(setosa="#CC0000",  versicolor="#006600",  virginica="#0000CC")
+
+image(sl_range, sw_range,
+      matrix(as.numeric(factor(grid$pred, levels=levels(iris$Species))),
+             nrow=length(sl_range)),
+      col=c("#FFAAAA", "#AADDAA", "#AAAAFF"),
+      xlab="Sepal Length (cm)", ylab="Sepal Width (cm)",
+      main="Linear multinomial: decision boundaries")
+
+points(iris$Sepal.Length, iris$Sepal.Width,
+       pch=21, bg=point_cols[as.character(iris$Species)], cex=1.1, lwd=0.5)
+
+legend("topright", legend=levels(iris$Species),
+       pt.bg=point_cols, pch=21, pt.cex=1.3, bty="n")
+```
+
+## Cubic Decision Boundary in 2D
+
+Model: `Species ~ poly(Sepal.Length, 3) + poly(Sepal.Width, 3)`.\
+Polynomial terms allow curved, non-linear class boundaries.
+
+```{r, echo=FALSE, fig.height=4, fig.width=6.5, message=FALSE, warning=FALSE}
+MLM.iris.q <- nnet::multinom(
+  Species ~ poly(Sepal.Length, 3) + poly(Sepal.Width, 3),
+  data=iris, trace=FALSE)
+
+grid$pred_q <- predict(MLM.iris.q, newdata=grid, type="class")
+
+acc_q <- mean(predict(MLM.iris.q, newdata=iris, type="class") == iris$Species)
+
+image(sl_range, sw_range,
+      matrix(as.numeric(factor(grid$pred_q, levels=levels(iris$Species))),
+             nrow=length(sl_range)),
+      col=c("#FFAAAA", "#AADDAA", "#AAAAFF"),
+      xlab="Sepal Length (cm)", ylab="Sepal Width (cm)",
+      main=paste0("Quadratic multinomial: decision boundaries  (accuracy = ",
+                  round(acc_q, 3), ")"))
+
+points(iris$Sepal.Length, iris$Sepal.Width,
+       pch=21, bg=point_cols[as.character(iris$Species)], cex=1.1, lwd=0.5)
+
+legend("topright", legend=levels(iris$Species),
+       pt.bg=point_cols, pch=21, pt.cex=1.3, bty="n")
+```

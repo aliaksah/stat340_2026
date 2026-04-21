@@ -523,8 +523,7 @@ summary(MLM.iris)
 ```
 
 Here `setosa` is the baseline response. The model estimates two sets of
-coefficients: one for `versicolor` vs `setosa` and one for `virginica`
-vs `setosa`.
+coefficients: one for `versicolor` and one for `virginica`.
 
 ## Calculating Probabilities
 

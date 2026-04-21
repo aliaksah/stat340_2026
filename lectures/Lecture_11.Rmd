@@ -37,23 +37,23 @@ barplot(table(factor(students, levels=0:max(students))),
 ## Count response
 
 $$
-y_i \in [0,1,\ldots \infty )
+Y \in [0,1,\ldots \infty )
 $$ for $i = 1,\ldots, n$
 
 We assume
 
-$$y_i \sim Poisson(\lambda_i)$$
+$$Y \sim Poisson(\lambda)$$
 
 Further, theory says:
 
-$$\mu_i = E(y_i) = \lambda_i>0$$ $$\sigma_i^2 = Var(y_i) = \lambda_i>0$$
+$$\mu = E(Y) = \lambda>0$$ $$\sigma^2 = Var(Y) = \lambda >0$$
 
 ## Poisson probability model
 
 The probability mass function mapping the probability of exactly $k$
 events is given by:
 
-$$ P(y_i = k) = \frac{\lambda_i^k \exp(-\lambda_i)}{k!} $$
+$$ P(Y = k) = \frac{\lambda^k \exp(-\lambda)}{k!} $$
 
 ## Estimating the Poisson parameter
 
@@ -66,13 +66,13 @@ lambda_hat <- mean(students)
 lambda_hat
 ```
 
-**So for students** $\lambda_i = 2$:
+**So for students** $\lambda = 2$:
 
 \- No-one late ($k=0$):
-$P(y_i=0) = \frac{2^0 \exp(-2)}{0!} = e^{-2} \approx 0.135$
+$P(Y=0) = \frac{2^0 \exp(-2)}{0!} = e^{-2} \approx 0.135$
 
 \- Two late ($k=2$):
-$P(y_i=2) = \frac{2^2 \exp(-2)}{2!} = 2e^{-2} \approx 0.271$
+$P(Y=2) = \frac{2^2 \exp(-2)}{2!} = 2e^{-2} \approx 0.271$
 
 ## Shapes of the Poisson distribution
 

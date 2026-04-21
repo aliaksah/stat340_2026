@@ -3228,22 +3228,22 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; }
 </article></slide><slide class=""><hgroup><h2>Count response</h2></hgroup><article  id="count-response">
 
 <p>\[
-y_i \in [0,1,\ldots \infty )
+Y \in [0,1,\ldots \infty )
 \] for \(i = 1,\ldots, n\)</p>
 
 <p>We assume</p>
 
-<p>\[y_i \sim Poisson(\lambda_i)\]</p>
+<p>\[Y \sim Poisson(\lambda)\]</p>
 
 <p>Further, theory says:</p>
 
-<p>\[\mu_i = E(y_i) = \lambda_i&gt;0\] \[\sigma_i^2 = Var(y_i) = \lambda_i&gt;0\]</p>
+<p>\[\mu = E(Y) = \lambda&gt;0\] \[\sigma^2 = Var(Y) = \lambda &gt;0\]</p>
 
 </article></slide><slide class=""><hgroup><h2>Poisson probability model</h2></hgroup><article  id="poisson-probability-model">
 
 <p>The probability mass function mapping the probability of exactly \(k\) events is given by:</p>
 
-<p>\[ P(y_i = k) = \frac{\lambda_i^k \exp(-\lambda_i)}{k!} \]</p>
+<p>\[ P(Y = k) = \frac{\lambda^k \exp(-\lambda)}{k!} \]</p>
 
 </article></slide><slide class=""><hgroup><h2>Estimating the Poisson parameter</h2></hgroup><article  id="estimating-the-poisson-parameter">
 
@@ -3255,11 +3255,11 @@ lambda_hat</pre>
 
 <pre >## [1] 2</pre>
 
-<p><strong>So for students</strong> \(\lambda_i = 2\):</p>
+<p><strong>So for students</strong> \(\lambda = 2\):</p>
 
-<p>- No-one late (\(k=0\)): \(P(y_i=0) = \frac{2^0 \exp(-2)}{0!} = e^{-2} \approx 0.135\)</p>
+<p>- No-one late (\(k=0\)): \(P(Y=0) = \frac{2^0 \exp(-2)}{0!} = e^{-2} \approx 0.135\)</p>
 
-<p>- Two late (\(k=2\)): \(P(y_i=2) = \frac{2^2 \exp(-2)}{2!} = 2e^{-2} \approx 0.271\)</p>
+<p>- Two late (\(k=2\)): \(P(Y=2) = \frac{2^2 \exp(-2)}{2!} = 2e^{-2} \approx 0.271\)</p>
 
 </article></slide><slide class=""><hgroup><h2>Shapes of the Poisson distribution</h2></hgroup><article  id="shapes-of-the-poisson-distribution">
 

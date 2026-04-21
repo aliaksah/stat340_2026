@@ -19,6 +19,20 @@ editor_options:
 -   Gamma regression
 -   Multinomial regression
 
+## Book chapters
+
+-   **An Introduction to Statistical Learning (ISLR)**: Chapter 4
+    (Classification). Key sections:
+    -   **4.3.5** Multinomial Logistic Regression
+-   **An Introduction to Statistical Learning (ISLR)**: Appendix (Brief
+    Introduction to R) and Chapter 3 for background on GLMs.
+-   **The R Book (Crawley)**: Chapter 13 (Generalized Linear Models).
+    Key sections:
+    -   **Poisson** (Count data, log-link, over/under-dispersion)
+    -   **Quasi-likelihood** (Handling overdispersion)
+    -   **Gamma** (Continuous positive, right-skewed responses)
+    -   **Multinomial** (Categorical response with $>2$ classes)
+
 ## Example - Student arrivals
 
 Number of students coming in the last minute before the lecture so far
@@ -38,7 +52,7 @@ barplot(table(factor(students, levels=0:max(students))),
 
 $$
 Y \in [0,1,\ldots \infty )
-$$ for $i = 1,\ldots, n$
+$$
 
 We assume
 
@@ -163,38 +177,30 @@ mod1.glm <- glm(Species ~ Biomass, family=poisson(log), data=species)
 summary(mod1.glm)
 ```
 
-## Deviance test for the effect of biomass
-
-```{r, echo=TRUE, eval=FALSE}
-library(mixlm)
-anova(mod1.glm,test='LR')
-```
-
-## Output
-
-```{r, echo=FALSE, message=FALSE}
-library(mixlm)
-anova(mod1.glm,test='LR')
-```
-
-Conclusion: Biomass is highly significant with a negative effect on
-species count.
-
 ## Delta unit interpretation
 
 Using a log-link makes the interpretation of the slope
 **multiplicative**. This is easy to derive:
 
-$$ \color{blue}{\log(\mu_{\text{new}})} - \color{blue}{\log(\mu_{\text{old}})} = (\beta_0 + \beta_1(x+1)) - (\beta_0 + \beta_1 x) = \color{red}{\beta_1} $$
-$$ \implies \log\left(\frac{\mu_{\text{new}}}{\mu_{\text{old}}}\right) = \color{red}{\beta_1} \implies \mu_{\text{new}} = \mu_{\text{old}} \color{red}{\exp(\beta_1)} $$
+$$ \color{blue}{\log(\mu_{\text{new}})} - \color{blue}{\log(\mu_{\text{old}})} = (\beta_0 + \beta_1(x+\Delta)) - (\beta_0 + \beta_1 x) = \color{red}{\Delta\beta_1} $$
+$$ \implies \log\left(\frac{\mu_{\text{new}}}{\mu_{\text{old}}}\right) = \color{red}{\Delta\beta_1} \implies \mu_{\text{new}} = \mu_{\text{old}} \color{red}{\exp(\Delta\beta_1)} $$
 
-Taking a 1-unit delta (increase) in predictor $x_j$ **multiplies** the
-expected **mean** response **by** $\exp(\beta_j)$.
+Taking a $\Delta$-unit delta (increase) in predictor $x_j$
+**multiplies** the expected **mean** response **by**
+$\exp(\Delta\beta_j)$.
 
-For example, $\widehat{\beta}_{\text{Biomass}} = -0.0644$. A 1-unit
+For example, $\widehat{\beta}_{\text{Biomass}} = -0.0644$. A **1**-unit
 increase in `Biomass` multiplies the expected species count by
 $\exp(-0.0644) \approx 0.938$, which corresponds to a decrease of
 $6.2\%$.
+
+## Deviance test for the effect of biomass
+
+```{r, echo=TRUE, message=FALSE}
+anova(mod1.glm,test='LR')
+```
+
+Conclusion: Biomass is highly significant with a negative effect.
 
 ## Prediction
 
@@ -427,7 +433,7 @@ distribution.
 
 ## Multinomial: Bins & Trials Illustration
 
-$n = 20$ trials distributed across $t = 4$ categories:
+$N = 20$ trials distributed across $t = 4$ categories:
 
 ```{r, echo=FALSE, fig.height=4, fig.width=6.5}
 set.seed(42)
@@ -472,10 +478,13 @@ Think of it as a single **roll of a weighted** $t$-sided die.
 $i$ is modelled as one Categorical trial with class-probabilities
 $p_{ij}$ driven by covariates $\mathbf{x}_i$.
 
+**Note:** When $t=2$ this reduces to the familiar **Bernoulli**
+distribution.
+
 ## Example - Iris Species
 
 We want to predict `Species` (setosa, versicolor, virginica) of iris
-flowers based on their `Sepal.Length`.
+flowers based on their `Sepal.Length` and `Sepal.Width`
 
 Let $i$ denote a flower, and we have categorical outcome $j=1$ (setosa),
 $j=2$ (versicolor), $j=3$ (virginica).
@@ -519,12 +528,11 @@ vs `setosa`.
 
 ## Calculating Probabilities
 
-For a given flower with `Sepal.Length = 6` cm and `Sepal.Width = 3` cm,
-the linear predictors are computed from the estimated coefficients
-(Remember $\widehat{\eta}_{1} = 0$):
+For a given flower with `Sepal.Length = 5` cm and `Sepal.Width = 3` cm,
+the linear predictors are computed from the estimated coefficients:
 
 ```{r, echo=TRUE}
-new_data <- data.frame(Sepal.Length=6, Sepal.Width=3)
+new_data <- data.frame(Sepal.Length=5, Sepal.Width=3)
 round(predict(MLM.iris, newdata=new_data, type="probs"), 4)
 ```
 

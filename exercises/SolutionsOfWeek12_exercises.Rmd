@@ -1,0 +1,881 @@
+---
+title: "Exercises STAT340 - Mixed Effects Models"
+params:
+  vis.forslag: false
+output:
+  html_document:
+    toc: true
+    theme: yeti
+    code_folding: hide
+    number_sections: true
+editor_options: 
+  chunk_output_type: console
+  markdown: 
+    wrap: 72
+---
+
+```{=html}
+<style>
+.main-container, .main-content { max-width: 100%; }
+.info { background-color:aliceblue; }
+.task { background-color:lightpink; }
+</style>
+```
+
+```{r forslag, include = FALSE}
+vis.forslag <- params$vis.forslag
+```
+
+```{r forklar forslag, echo = FALSE, results = "asis", include = vis.forslag}
+cat('
+<mark>
+**LØSNINGSFORSLAG!**
+
+Disse vises nedenfor på ulike måter:
+<mark>Gulmerking</mark> av tekstforslag til løsning, eller kommentarer om alternative løsninger.
+* Noe <button>Code</button> som var skjult i øvingsdokumentet.
+<details>
+<summary>
+<mark>
+Noen løsningsforslag er skjult inni hint.
+</mark>
+</summary>
+Da må du utvide hintene for å se løsningsforslagene.  
+
+</details>
+')
+```
+
+<br> <br> <br> <br>
+
+You will need these libraries and datasets for these exercises:
+
+```{r, echo = TRUE, message=FALSE, warning=FALSE}
+library(BIAS.data)
+library(nlme)
+library(lme4)
+library(ggplot2)
+data(rats)
+data(Orthodont)
+data(cbpp)
+```
+
+# Ex-1: Random Intercept Model — `rats` data
+
+The `rats` dataset from the `BIAS.data` package contains measurements of
+`Glycogen` content in rat livers. Each rat (`Rat`) was measured across
+three different liver sections (`Treatment`).
+
+a.  Visualise the `Glycogen` content by `Rat` using a boxplot. What does
+    the plot tell you about the variance *between* rats versus the
+    variance *within* rats?
+
+<details>
+
+<summary><mark> Solution </mark></summary>
+
+```{r, echo=TRUE}
+boxplot(Glycogen ~ Rat, data = rats, col = "lightblue",
+        ylab = "Glycogen Content", xlab = "Rat ID",
+        main = "Glycogen by Rat")
+```
+
+The boxplot shows that different rats have systematically different
+median glycogen values. Some (one of the two in our case) rats are
+consistently high, others (the other one one of the two in our case)
+consistently low. This means the **between-rat variance** is substantial
+— measurements from the same rat are more similar to each other than
+measurements from different rats. This is exactly the kind of dependency
+that mixed models are designed to handle.
+
+</details>
+
+b.  Write down the mathematical formulation of a **random intercept
+    model** for the `rats` data, explaining clearly what each term
+    represents.
+
+<details>
+
+<summary><mark> Solution </mark></summary>
+
+Let $y_{ij}$ be the Glycogen measurement for the $j$-th section of the
+$i$-th rat. The random intercept model is:
+
+$$y_{ij} = \beta_0 + b_i + \epsilon_{ij}$$
+
+where:
+
+-   $\beta_0$ is the global mean glycogen content (fixed intercept),
+-   $b_i \sim N(0, \sigma^2_b)$ is the rat-specific random deviation
+    from the global mean,
+-   $\epsilon_{ij} \sim N(0, \sigma^2)$ is the residual measurement
+    error.
+
+The $b_i$ and $\epsilon_{ij}$ are assumed independent.
+
+</details>
+
+c.  Fit the random intercept model using `lme()` from the `nlme`
+    package, with `Glycogen` as the response and `Rat` as the random
+    effect grouping. Report the estimated variance components
+    $\widehat\sigma_b$ and $\widehat\sigma$.
+
+<details>
+
+<summary><mark> Solution </mark></summary>
+
+```{r, echo=TRUE}
+rat_model <- lme(fixed = Glycogen ~ 1,
+                 random = ~ 1 | Rat,
+                 data = rats)
+summary(rat_model)
+```
+
+From the output, the estimated standard deviations are approximately:
+
+-   Between-rat (random intercept): $\widehat\sigma_b \approx 4.27$
+-   Residual (within-rat): $\widehat\sigma \approx 9.26$
+
+</details>
+
+d.  Calculate the **Intraclass Correlation Coefficient (ICC)** using the
+    variance components from part c. Interpret what the ICC means in
+    this context.
+
+<details>
+
+<summary><mark> Solution </mark></summary>
+
+The ICC formula is:
+
+$$\text{ICC} = \frac{\sigma^2_b}{\sigma^2_b + \sigma^2}$$
+
+Using the estimates above:
+
+$$\sigma^2_b = 4.27^2 \approx 18.23, \quad \sigma^2 = 9.26^2 \approx 85.75$$
+
+$$\text{ICC} = \frac{18.23}{18.23 + 85.75} \approx 0.175$$
+
+```{r, echo=TRUE}
+vc <- as.numeric(VarCorr(rat_model)[, "Variance"])
+sigma2_b <- vc[1]
+sigma2   <- vc[2]
+icc <- sigma2_b / (sigma2_b + sigma2)
+round(icc, 3)
+```
+
+**Interpretation:** About 17.5% of the total variation in Glycogen
+content is explained purely by which rat the measurement came from. In
+other words, two measurements from the **same** rat are expected to
+correlate at $r \approx 0.175$, even before we account for treatment.
+
+</details>
+
+e.  Why would it be **wrong** to use a standard linear model (ignoring
+    `Rat`) here? What problems would arise?
+
+<details>
+
+<summary><mark> Solution </mark></summary>
+
+If we ignore the `Rat` grouping structure and fit
+`lm(Glycogen ~ 1, data = rats)`, we assume all 36 observations are
+independent. But measurements within the same rat are positively
+correlated. This means:
+
+1.  We **overestimate** the effective sample size (we have 6 rats, not
+    36 independent units).
+2.  Standard errors for the intercept will be **underestimated**.
+3.  Any p-values will be **too small** — we inflate Type I error (false
+    positives).
+4.  The model's i.i.d. assumption is violated, so maximum likelihood
+    inference is not valid.
+
+</details>
+
+f.  The `rats` dataset also records which liver `Treatment` section (1,
+    2, or 3) each measurement came from. Extend the model by adding
+    `Treatment` as a **nested random effect within `Rat`** — i.e., fit a
+    model with a random intercept for `Rat` and an additional random
+    intercept for `Treatment` nested within `Rat`. Write down the
+    extended mathematical model and fit it in R. Does adding this nested
+    level change the variance components substantially?
+
+<details>
+
+<summary><mark> Solution </mark></summary>
+
+The extended nested model is:
+
+$$y_{ijk} = \beta_0 + b_i + c_{j(i)} + \epsilon_{ijk}$$
+
+where:
+
+-   $b_i \sim N(0, \sigma^2_b)$: random intercept for rat $i$,
+-   $c_{j(i)} \sim N(0, \sigma^2_c)$: random intercept for liver section
+    $j$ **nested within** rat $i$ (each rat has its own section-level
+    deviations),
+-   $\epsilon_{ijk} \sim N(0, \sigma^2)$: residual error.
+
+In `nlme`, nesting is expressed with the `/` operator in the `random`
+argument:
+
+```{r, echo=TRUE, message=FALSE, warning=FALSE}
+rat_nested <- lme(fixed = Glycogen ~ 1,
+                  random = ~ 1 | Rat/Treatment,
+                  data = rats)
+summary(rat_nested)
+```
+
+The output now shows **three** variance components:
+
+-   Between-rat variance ($\sigma^2_b$): how much rats differ on
+    average.
+-   Between-section-within-rat variance ($\sigma^2_c$): how much the
+    three liver sections differ systematically within the same rat.
+-   Residual variance ($\sigma^2$): pure measurement noise.
+
+Comparing to the simpler model, $\widehat\sigma_c$ is small relative to
+$\widehat\sigma_b$, so the treatment sections within a rat are not very
+different from each other and the simpler model suffices. If
+$\widehat\sigma_c$ was substantial, the nested structure would have been
+important to capture.
+
+</details>
+
+------------------------------------------------------------------------
+
+# Ex-2: Random Intercept + Random Slope — `fertilizer` data
+
+The `fertilizer` dataset from `BIAS.data` tracks the root length of
+individual plants over several weeks. Plants are assigned to either a
+`fertilizer` or `control` treatment group.
+
+a.  Plot the individual plant trajectories (root length over weeks)
+    coloured by treatment group. Do plants appear to grow at different
+    rates (slopes), or do they just start at different lengths
+    (intercepts)?
+
+<details>
+
+<summary><mark> Solution </mark></summary>
+
+```{r, echo=TRUE, message=FALSE, warning=FALSE}
+data(fertilizer)
+ggplot(fertilizer, aes(x = week, y = root, color = treatment)) +
+  geom_line(aes(group = plant), alpha = 0.6) +
+  geom_point(size = 2) +
+  theme_minimal() +
+  labs(title = "Root length trajectories by plant",
+       x = "Week", y = "Root length")
+```
+
+The plot reveals that plants differ in both their **starting length**
+(intercepts vary) and their **rate of growth** (slopes vary). This
+motivates a model with both random intercepts and random slopes.
+
+</details>
+
+b.  Write down the mathematical model that allows both the intercept and
+    the slope over `week` to vary randomly by `plant`. Explain each
+    component.
+
+<details>
+
+<summary><mark> Solution </mark></summary>
+
+Let $y_{ij}$ be the root length of the $i$-th plant at week $x_{ij}$:
+
+$$y_{ij} = (\beta_0 + b_{0i}) + (\beta_1 + b_{1i})\,x_{ij} + \epsilon_{ij}$$
+
+where:
+
+-   $\beta_0$: global average starting length (fixed intercept),
+-   $\beta_1$: global average growth rate per week (fixed slope),
+-   $b_{0i}$: plant-specific deviation from the average intercept,
+-   $b_{1i}$: plant-specific deviation from the average slope,
+-   $\epsilon_{ij} \sim N(0, \sigma^2)$: residual error.
+
+The random effects $(b_{0i}, b_{1i})$ are assumed to follow a bivariate
+normal distribution.
+
+</details>
+
+c.  Fit the random intercept + random slope model in R using `lme()`.
+    Include `treatment` as a fixed effect and allow both the intercept
+    and `week` slope to vary randomly by `plant`. Report the estimated
+    fixed effects and interpret the `treatmentfertilizer` coefficient.
+
+<details>
+
+<summary><mark> Solution </mark></summary>
+
+```{r, echo=TRUE, message=FALSE, warning=FALSE}
+data(fertilizer)
+res1 <- lme(fixed = root ~ treatment,
+            random = ~ week | plant,
+            data = fertilizer)
+round(summary(res1)$tTable, 4)
+```
+
+**Interpretation:**
+
+-   `(Intercept)` ≈ baseline root length for the control group.
+-   `treatmentfertilizer` ≈ 1.04: On average, plants receiving
+    fertilizer are **1.04 units longer** than control plants. This
+    effect is highly significant ($p = 0.0005$).
+-   Note that `week` is modelled as a **random slope**, so there is no
+    single fixed-effect estimate for it; each plant gets its own slope.
+
+</details>
+
+d.  Examine the residual diagnostic plots (fitted vs residuals and QQ
+    plot of standardised residuals). Do the model assumptions appear to
+    be satisfied?
+
+<details>
+
+<summary><mark> Solution </mark></summary>
+
+```{r, echo=TRUE, fig.height=3.5, fig.width=7}
+par(mfrow = c(1, 2))
+plot(fitted(res1), resid(res1, type = "p"),
+     main = "Fitted vs Residuals", ylab = "Std. Residuals", xlab = "Fitted")
+abline(h = 0, lty = 2)
+qqnorm(resid(res1, type = "p"))
+qqline(resid(res1, type = "p"))
+par(mfrow = c(1, 1))
+```
+
+The residuals appear randomly scattered around zero with no clear
+pattern, and the QQ plot follows the diagonal line well. The model
+assumptions of homoscedasticity and normality seem reasonably satisfied.
+
+</details>
+
+e.  Calculate the ICC **at week 0** using the random effects standard
+    deviations from the model summary. Interpret the result.
+
+<details>
+
+<summary><mark> Solution </mark></summary>
+
+From the `summary(res1)` output:
+
+-   $\widehat\sigma_{b0} \approx 2.86$ (random intercept SD)
+-   $\widehat\sigma \approx 0.50$ (residual SD)
+
+At week 0, the between-plant variance equals only the intercept
+variance:
+
+$$\text{ICC}_{week=0} = \frac{\sigma^2_{b0}}{\sigma^2_{b0} + \sigma^2} = \frac{2.86^2}{2.86^2 + 0.50^2} = \frac{8.18}{8.18 + 0.25} \approx 0.97$$
+
+```{r, echo=TRUE}
+sigma_b0 <- as.numeric(VarCorr(res1)["(Intercept)", "StdDev"])
+sigma_res <- as.numeric(VarCorr(res1)["Residual",   "StdDev"])
+icc_week0 <- sigma_b0^2 / (sigma_b0^2 + sigma_res^2)
+round(icc_week0, 3)
+```
+
+**Interpretation:** At the start of the experiment (week 0), almost
+**97% of the variation** in root length is due to which plant we are
+measuring — i.e., the plant's individual genetics/seed quality. As time
+progresses and the random slopes diverge, this proportion changes.
+
+</details>
+
+f.  Using the model from part c. (`res1`, with `treatment` as a fixed
+    effect and `week` as a random slope by `plant`), produce predictions
+    at two levels:
+
+    (i) **Population-level** (`level = 0`): the average expected root
+        length for a **control** plant and a **fertilizer** plant over
+        weeks 1–5, using only the fixed effects.
+    (ii) **Individual-level** (`level = 1`): the predicted root length
+         for two specific plants from the dataset over the same weeks,
+         using their estimated random effects.
+
+    Comment on the difference between the two types of predictions.
+
+<details>
+
+<summary><mark> Solution </mark></summary>
+
+We refit `res1` as in part c. and use `predict()` with `level = 0`
+(population) and `level = 1` (individual).
+
+```{r, echo=TRUE, message=FALSE, warning=FALSE}
+data(fertilizer)
+res1 <- lme(fixed = root ~ treatment,
+            random = ~ week | plant,
+            data = fertilizer)
+
+# (i) Population-level: same prediction for any plant of that treatment
+new_pop <- data.frame(
+  plant     = rep(unique(fertilizer$plant)[1], 10), # id needed but ignored
+  week      = rep(1:5, 2),
+  treatment = rep(c("control", "fertilizer"), each = 5)
+)
+new_pop$pred_pop <- predict(res1, newdata = new_pop, level = 0)
+print(new_pop)
+```
+
+```{r, echo=TRUE}
+# (ii) Individual-level: predictions for two specific plants
+plants_used <- unique(fertilizer$plant)[c(1, 5)]
+new_ind <- data.frame(
+  plant     = rep(plants_used, each = 5),
+  week      = rep(1:5, 2),
+  treatment = rep(
+    fertilizer$treatment[match(plants_used, fertilizer$plant)],
+    each = 5
+  )
+)
+new_ind$pred_ind <- predict(res1, newdata = new_ind, level = 1)
+print(new_ind)
+```
+
+**Key difference:**
+
+-   **Level 0 (population)** uses only the fixed effect
+    $\widehat\beta_0 + \widehat\beta_\text{treatment}$. The prediction
+    is identical for every plant of that treatment group — it is the
+    model's best guess for a **new, unseen** plant.
+-   **Level 1 (individual)** adds the plant's estimated random intercept
+    $\widehat b_{0i}$ and random slope $\widehat b_{1i}$, giving the
+    best prediction *for that specific plant* based on its observed
+    data. Individual predictions vary across plants and are closer to
+    the actual observed values.
+
+</details>
+
+------------------------------------------------------------------------
+
+# Ex-3: Hierarchical Nested Design — `Orthodont` data
+
+The `Orthodont` dataset (available via `nlme`) tracks the pituitary
+`distance` (mm) in children at ages 8, 10, 12, and 14. Children
+(`Subject`) are nested within `Sex`.
+
+a.  Produce a spaghetti plot of `distance` over `age`, coloured by
+    `Sex`, with one line per subject. Describe the key features you
+    observe.
+
+<details>
+
+<summary><mark> Solution </mark></summary>
+
+```{r, echo=TRUE, message=FALSE, fig.height=4.5, fig.width=7}
+data(Orthodont)
+ggplot(Orthodont, aes(x = age, y = distance, color = Sex)) +
+  geom_line(aes(group = Subject), alpha = 0.6) +
+  geom_point(size = 2) +
+  theme_minimal() +
+  labs(title = "Pituitary distance by age and sex",
+       x = "Age (years)", y = "Distance (mm)")
+```
+
+Key observations:
+
+-   Both boys and girls show **increasing distance** with age.
+-   Males tend to have **higher** baseline distances than females.
+-   There is substantial **between-child variability** in both starting
+    distance and rate of growth.
+
+</details>
+
+b.  Fit a **random intercept** model with `age` and `Sex` as fixed
+    effects and `Subject` as the random grouping factor. Write the
+    mathematical model first, then fit it in R using `lme()`.
+
+<details>
+
+<summary><mark> Solution </mark></summary>
+
+Let $y_{ijk}$ be the distance for subject $i$ of sex $k$ at age
+$x_{ijk}$:
+
+$$y_{ijk} = \beta_0 + \beta_1 \text{Age}_{ijk} + \beta_2 \text{Sex}_k + b_{i(k)} + \epsilon_{ijk}$$
+
+where $b_{i(k)} \sim N(0, \sigma^2_b)$ is the random intercept for
+subject $i$ nested within sex $k$.
+
+```{r, echo=TRUE, message=FALSE, warning=FALSE}
+res3 <- lme(fixed = distance ~ age + Sex,
+            random = ~ 1 | Subject,
+            data = Orthodont)
+summary(res3)
+```
+
+</details>
+
+c.  Interpret the fixed effect coefficients for `age` and `SexFemale`.
+    Are both significant?
+
+<details>
+
+<summary><mark> Solution </mark></summary>
+
+From the fixed effects table:
+
+-   **`age`** ≈ 0.66: For each additional year of age, the pituitary
+    distance increases by about **0.66 mm** on average. This is highly
+    significant ($p < 0.001$).
+
+-   **`SexFemale`** ≈ −2.32: Females have a baseline distance that is
+    about **2.32 mm lower** than males. This is also highly significant
+    ($p < 0.001$).
+
+Because this is a **random intercept** model, the growth rate of 0.66
+mm/year is assumed to be the **same for all children** — only their
+baseline distances differ.
+
+</details>
+
+d.  Calculate the ICC for the `Orthodont` random intercept model and
+    interpret it.
+
+<details>
+
+<summary><mark> Solution </mark></summary>
+
+```{r, echo=TRUE}
+vc3 <- as.numeric(VarCorr(res3)[, "Variance"])
+sigma2_b3  <- vc3[1]
+sigma2_res3 <- vc3[2]
+icc3 <- sigma2_b3 / (sigma2_b3 + sigma2_res3)
+round(icc3, 3)
+```
+
+Using $\widehat\sigma_b \approx 1.807$ and
+$\widehat\sigma \approx 1.432$:
+
+$$\text{ICC} = \frac{1.807^2}{1.807^2 + 1.432^2} = \frac{3.265}{3.265 + 2.051} \approx 0.614$$
+
+**Interpretation:** About **61.4%** of the remaining variation in
+pituitary distance (after accounting for age and sex) is due to
+permanent biological differences between individual children. The four
+measurements within the same child are highly correlated.
+
+</details>
+
+e.  Now extend the model by adding a **random slope** for `age` (in
+    addition to the random intercept) by `Subject`. Fit this extended
+    model and compare the random effects standard deviations to the
+    random-intercept-only model. What does adding a random slope
+    capture?
+
+<details>
+
+<summary><mark> Solution </mark></summary>
+
+```{r, echo=TRUE, message=FALSE, warning=FALSE}
+res4 <- lme(fixed = distance ~ age + Sex,
+            random = ~ age | Subject,
+            data = Orthodont)
+summary(res4)
+```
+
+The extended model now estimates:
+
+-   A standard deviation for the **random intercept** (between-child
+    baseline differences).
+-   A standard deviation for the **random slope on age** (between-child
+    differences in growth rate).
+
+Adding a random slope for `age` allows each child to have their own
+individual growth trajectory — some children grow faster, some slower —
+rather than forcing everyone to grow at the global average rate of
+\~0.66 mm/year.
+
+</details>
+
+f.  Compare the random-intercept-only model (`res3`) and the
+    random-intercept + random-slope model (`res4`) using **AIC** and
+    **BIC**. Refit both models with **ML** (not REML) before comparing,
+    since the two models differ only in their random effects structure.
+    Which model does each criterion prefer, and does the conclusion
+    differ between AIC and BIC? Explain why BIC tends to be more
+    conservative (prefers simpler models) than AIC.
+
+<details>
+
+<summary><mark> Solution </mark></summary>
+
+When comparing models with **different random effects**, we must use ML
+(not REML), because REML likelihoods are not comparable across models
+with different random-effects structures.
+
+```{r, echo=TRUE, message=FALSE, warning=FALSE}
+res3_ml <- lme(fixed = distance ~ age + Sex,
+               random = ~ 1 | Subject,
+               data = Orthodont,
+               method = "ML")
+res4_ml <- lme(fixed = distance ~ age + Sex,
+               random = ~ age | Subject,
+               data = Orthodont,
+               method = "ML",
+               control = lmeControl(maxIter = 200, msMaxIter = 200))
+
+data.frame(
+  Model = c("Random intercept only", "Random intercept + slope"),
+  df    = c(attr(logLik(res3_ml), "df"), attr(logLik(res4_ml), "df")),
+  AIC   = round(c(AIC(res3_ml), AIC(res4_ml)), 2),
+  BIC   = round(c(BIC(res3_ml), BIC(res4_ml)), 2)
+)
+```
+
+**Conclusion:**
+
+Simpler model is preferred in our cases w.r.t. to both criteria.
+
+</details>
+
+------------------------------------------------------------------------
+
+# Ex-4: Generalized Linear Mixed Model — `cbpp` data
+
+The `cbpp` dataset (from `lme4`) records cases of Contagious Bovine
+Pleuropneumonia (CBPP) across several herds of cattle over four time
+periods.
+
+Variables:
+
+-   `incidence`: Number of sick cows in the herd (successes).
+-   `size`: Total number of cows in the herd (trials).
+-   `period`: Time period (1–4), treated as a fixed effect.
+-   `herd`: The specific herd (random effect — some herds may be in more
+    disease-prone environments).
+
+a.  Why is it important to include `herd` as a **random** rather than a
+    **fixed** effect in this model?
+
+<details>
+
+<summary><mark> Solution </mark></summary>
+
+The herds in the study are a **random sample** from a larger population
+of herds. We are not interested in the specific disease rates of these
+exact 15 herds, but in the general herd-to-herd variation. Treating
+`herd` as a random effect allows us to:
+
+1.  Properly account for the correlation among measurements within the
+    same herd across periods.
+2.  Estimate the **variance component** due to herd-level factors
+    (environment, management, genetics).
+3.  Generalise conclusions beyond the specific herds observed.
+
+If we treated `herd` as fixed, we would consume many degrees of freedom
+and only draw conclusions about those specific 15 herds.
+
+</details>
+
+b.  Write the GLMM formulation for this model. What link function is
+    used, and why?
+
+<details>
+
+<summary><mark> Solution </mark></summary>
+
+Let $y_{ij}$ be the incidence count in herd $i$ during period $j$, with
+$n_{ij}$ total cows. We model:
+
+$$y_{ij} \sim \text{Binomial}(n_{ij},\, \pi_{ij})$$
+
+$$\text{logit}(\pi_{ij}) = \beta_0 + \beta_1 \text{Period}_{ij} + b_i, \quad b_i \sim N(0, \sigma^2_b)$$
+
+The **logit link** is used because the response is a proportion (disease
+incidence rate), and the logit maps probabilities in $(0,1)$ to the
+whole real line, making it compatible with the linear predictor.
+
+</details>
+
+c.  Fit the GLMM using `glmer()` from `lme4` with `period` as a fixed
+    effect and a random intercept for `herd`. Use `family = binomial`.
+    Report the fixed effect estimates.
+
+<details>
+
+<summary><mark> Solution </mark></summary>
+
+```{r, echo=TRUE, warning=FALSE, message=FALSE}
+glmm_mod <- glmer(cbind(incidence, size - incidence) ~
+                    period + (1 | herd),
+                  family = binomial(link = "logit"),
+                  data = cbpp)
+round(summary(glmm_mod)$coefficients, 4)
+```
+
+The estimated fixed effects are on the **log-odds scale**:
+
+-   `(Intercept)`: The log-odds of disease incidence in the reference
+    period (period 1) for an average herd.
+-   `period2`, `period3`, `period4`: The change in log-odds relative to
+    period 1. All are negative, indicating the disease rate is
+    **decreasing over the four periods**.
+
+</details>
+
+d.  Extract the estimated random intercept standard deviation
+    $\widehat\sigma_b$ from the fitted GLMM. What does it tell us about
+    herd-to-herd variability in disease risk?
+
+<details>
+
+<summary><mark> Solution </mark></summary>
+
+```{r, echo=TRUE}
+sigma_b_glmm <- as.data.frame(VarCorr(glmm_mod))$sdcor[1]
+round(sigma_b_glmm, 3)
+```
+
+The estimated $\widehat\sigma_b$ gives the standard deviation of the
+herd-level random intercepts **on the log-odds scale**. A value
+$\widehat\sigma_b \approx 0.6$–$1.0$ (typical for these data) means that
+herds differ noticeably in their baseline disease susceptibility. Herds
+with positive $b_i$ have higher log-odds (higher incidence), while those
+with negative $b_i$ are more resistant. Ignoring this variation would
+lead to incorrect (too narrow) confidence intervals for the period
+effects.
+
+</details>
+
+f.  Suppose we **did not know the herd sizes** (`size`) and only
+    observed the raw incidence counts. Fit a **Poisson GLMM** with
+    `period` as a fixed effect and a random intercept for `herd`.
+    Explain when a Poisson model is an appropriate alternative to the
+    Binomial model for count data, and what the key difference in
+    interpretation is.
+
+<details>
+
+<summary><mark> Solution </mark></summary>
+
+```{r, echo=TRUE, warning=FALSE, message=FALSE}
+glmm_pois <- glmer(incidence ~ period + (1 | herd),
+                   family = poisson(link = "log"),
+                   data = cbpp)
+round(summary(glmm_pois)$coefficients, 4)
+```
+
+**When is the Poisson model appropriate?**
+
+The Binomial model requires knowing the **total number of trials**
+(`size`) so it can model the *proportion* that are successes. The
+Poisson model is appropriate when:
+
+1.  We only observe **raw counts** of events without knowing the
+    denominator (total at risk).
+2.  The counts arise from a process where events are rare and
+    approximately independent (e.g., number of disease cases per time
+    period in an unlimited population).
+3.  The expected count is well below the maximum possible count, so the
+    Binomial approximates a Poisson.
+
+**Difference in interpretation:**
+
+-   **Binomial GLMM**: Fixed effects are on the **log-odds** scale; we
+    model the *probability* of an individual cow being sick given herd
+    size.
+-   **Poisson GLMM**: Fixed effects are on the **log-count** scale; we
+    model the *expected number* of cases per period, ignoring herd size.
+    A one-unit change in a predictor multiplies the expected count by
+    $e^{\widehat\beta}$.
+
+In practice, because we *do* know `size` here, the Binomial model is
+more appropriate — it uses all available information. The Poisson model
+in this context discards the denominator and effectively assumes all
+herds have the same exposure, which is not true.
+
+</details>
+
+------------------------------------------------------------------------
+
+# Ex-5: Temporal Autocorrelation — `Orthodont` with CAR(1)
+
+Instead of treating repeated measurements on children as exchangeable
+(standard random intercept), we can explicitly model the fact that
+measurements closer in time may be more correlated than distant ones.
+
+a.  Fit a model with fixed effects `age` and `Sex`, a random intercept
+    for `Subject`, **and** a continuous-time AR(1) (`corCAR1`)
+    correlation structure across `age`. Report the estimated
+    autocorrelation parameter $\Phi$.
+
+<details>
+
+<summary><mark> Solution </mark></summary>
+
+```{r, echo=TRUE, message=FALSE, warning=FALSE}
+model_car1 <- lme(fixed = distance ~ age + Sex,
+                  random = ~ 1 | Subject,
+                  correlation = corCAR1(form = ~ 1 + age | Subject),
+                  data = Orthodont)
+summary(model_car1)$modelStruct$corStruct
+```
+
+The estimated $\widehat\Phi \approx 0.24$ represents the temporal
+autocorrelation between consecutive age measurements for the same child.
+A value of 0.24 indicates a **moderate positive autocorrelation**: a
+child who is above the expected distance at age 8 tends also to be above
+expected at age 10, but this carry-over decays over time.
+
+</details>
+
+b.  *(Optional — hard)* What does a CAR(1) correlation structure assume
+    about how the correlation between two measurements changes as the
+    time gap between them increases?
+
+<details>
+
+<summary><mark> Solution </mark></summary>
+
+A continuous-time AR(1) (CAR1) structure assumes that the correlation
+between two measurements on the same subject at times $t_1$ and $t_2$
+decays **exponentially** with the time difference:
+
+$$\text{Corr}(y_{t_1}, y_{t_2}) = \Phi^{|t_1 - t_2|}$$
+
+So:
+
+-   Measurements 2 years apart (e.g., age 8 and 10) correlate as
+    $\Phi^2$.
+-   Measurements 4 years apart (e.g., age 8 and 12) correlate as
+    $\Phi^4$.
+-   Measurements 6 years apart (e.g., age 8 and 14) correlate as
+    $\Phi^6$.
+
+As $|t_1 - t_2| \to \infty$, the correlation $\to 0$. This is more
+realistic than assuming all repeated measurements correlate equally
+(compound symmetry / random intercept only).
+
+</details>
+
+c.  Why is it important to use **REML** (the default in `lme()`) rather
+    than standard **ML** when estimating variance components in linear
+    mixed models?
+
+<details>
+
+<summary><mark> Solution </mark></summary>
+
+When we estimate variance components using standard Maximum Likelihood
+(ML), the estimator is **biased downward** — it is too small. This
+happens because ML does not account for the degrees of freedom used up
+by estimating the fixed effects.
+
+**REML (Restricted Maximum Likelihood)** corrects for this by first
+"removing" the fixed effects from the likelihood (working with the
+residuals rather than the raw data), and then estimating the variance
+components. The analogy is the divisor $n-1$ in the sample variance
+formula: we adjust for having estimated the mean.
+
+Key rules:
+
+-   Use **REML** (default) when your goal is accurate variance component
+    estimates.
+-   Use **ML** when you need to compare models with **different fixed
+    effects** via likelihood ratio tests, since REML likelihoods are not
+    comparable across different fixed-effect structures.
+
+</details>

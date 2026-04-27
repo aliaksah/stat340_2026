@@ -1,0 +1,393 @@
+---
+title: "Exercises STAT340 - GLM 2"
+params:
+  vis.forslag: false
+output:
+  html_document:
+    toc: true
+    theme: yeti
+    code_folding: hide
+    number_sections: true
+editor_options: 
+  chunk_output_type: console
+  markdown: 
+    wrap: 72
+---
+
+```{=html}
+<style>
+/* Disable interaction with all details/summary */
+details summary {
+  pointer-events: none;   /* no mouse clicks */
+  user-select: none;      /* cannot select text */
+}
+
+/* Optionally hide the disclosure triangle marker */
+details summary::marker {
+  content: "";
+}
+</style>
+```
+
+```{=html}
+<style>
+.main-container, .main-content { max-width: 100%; }
+.info { background-color:aliceblue; }
+.task { background-color:lightpink; }
+</style>
+```
+
+```{r forslag, include = FALSE}
+vis.forslag <- params$vis.forslag
+```
+
+```{r forklar forslag, echo = FALSE, results = "asis", include = vis.forslag}
+cat('
+<mark>
+**LØSNINGSFORSLAG!**
+
+Disse vises nedenfor på ulike måter:
+<mark>Gulmerking</mark> av tekstforslag til løsning, eller kommentarer om alternative løsninger.
+* Noe <button>Code</button> som var skjult i øvingsdokumentet.
+<details>
+<summary>
+<mark>
+Noen løsningsforslag er skjult inni hint.
+</mark>
+</summary>
+Da må du utvide hintene for å se løsningsforslagene.  
+
+</details>
+')
+```
+
+<br> <br> <br>
+
+
+You will need these libraries and files for these exercises:
+
+```{r, echo = TRUE, message=FALSE}
+library(BIAS.data)
+library(nnet)
+load("taxonomy.Rdata")
+data(species)
+source("summaryMultinom.R") # Can be downloaded from the CANVAS module.
+```
+
+# Ex-1: Count data
+
+Consider the plant species count data `species.Rdata`.
+
+a.  Redo the analysis from the lesson using the `Biomass` and `pH`
+    variables as predictors for species counts in a Poisson regression
+    model. Note that the default parametrization for GLM is "reference
+    level" which here means that the effect of PH=High is set to zero.
+    Find separate expressions for the estimated linear predictors
+    $\widehat{\eta}_j$ for each $j=$ `pH`-levels =
+    "`low`","`medium`","`high`". Also find the estimated expected count
+    for `Biomass = 2` and `pH = high`.
+
+<details>
+
+<summary><mark> Solution </mark></summary>
+
+First we fit the model:
+
+```{r, echo=FALSE}
+options(contrasts=c("contr.treatment", "contr.poly"))
+mod2.glm <- glm(Species ~ Biomass + pH, family=poisson(log), data=species)
+summary(mod2.glm)
+```
+
+Then the estimated linear predictors are:
+
+$$\eta_\text{low} = (3.85 - 1.14) - 0.128\cdot \text{Biomass} = 2.71 - 0.128\cdot \text{Biomass}$$
+$$\eta_\text{medium} = (3.85 - 0.45) - 0.128\cdot \text{Biomass} = 3.4 - 0.128\cdot \text{Biomass}$$
+$$\eta_\text{high} = 3.85 - 0.128\cdot \text{Biomass}$$ For
+`Biomass = 2` and `pH = high` the estimated expected count is:
+
+$$\widehat{\lambda} = \exp(3.85 - 0.128\cdot 2) = 36.4$$
+
+```{r, echo=FALSE}
+    link <- predict(mod2.glm, data.frame('Biomass'=2, 'pH'='high'), type = "link", se.fit = TRUE)
+    response <- predict(mod2.glm, data.frame('Biomass'=2, 'pH'='high'), type = "response", se.fit = TRUE)
+    LS <- cbind(link$fit, link$se.fit, response$fit, response$se.fit)
+    colnames(LS) <- c("link", "se.link", "response", "se.response")
+    LS
+```
+
+If we compute the estimated expected counts (predicted values) for
+different values of Biomass for each of the three pH-levels in a similar
+way, we may obtain fitted curves as shown below. Verify from the plot
+that Biomass=2 for pH='high' gives approximately a fitted value of 36.4.
+
+```{r,echo=FALSE}
+attach(species)
+plot(Biomass, Species, type = "n")
+spp <- split(Species, pH)
+bio <- split(Biomass, pH)
+points(bio[[1]], spp[[1]], pch = 16, col = "red")
+points(bio[[2]], spp[[2]], pch = 16, col = "green")
+points(bio[[3]], spp[[3]], pch = 16, col = "blue")
+
+legend(x = "topright", legend = c("high", "medium", "low"), 
+       pch = 16, col = c("red", "blue", "green"), title = "pH")
+
+curve(exp(3.85 - 0.128 * x), add = T, lwd = 2, col = "red")
+curve(exp(3.4 - 0.128 * x), 
+      add = T, lwd = 2, col = "blue")
+curve(exp(2.71 - 0.128 * x), 
+      add = T, lwd = 2, col = "green")
+detach(species)
+```
+
+</details>
+
+b.  Fit the same model as in a. using the quasipoisson approach. Is
+    there any evidence of overdisperion?
+
+<details>
+
+<summary><mark> Solution </mark></summary>
+
+```{r, echo=FALSE}
+mod2q.glm <- glm(Species ~ Biomass + pH, family = quasipoisson, data = species)
+summary(mod2q.glm)
+```
+
+The dispersion parameter is only marginally larger than 1. We conclude
+that over-disperion is not a big problem here.
+
+</details>
+
+c.  Extend the model from a. by including an interaction between Biomass
+    and pH. Test the significance of the interaction. Is there a
+    significant difference between pH="high" and pH="medium" with regard
+    to the effect of Biomass to the species count?
+
+<details>
+
+<summary><mark> Solution </mark></summary>
+
+First we fit the model with interaction term and get these results:
+
+```{r, echo=FALSE}
+mod3.glm <- glm(Species ~ Biomass * pH, family=poisson(log), data=species)
+summary(mod3.glm)
+```
+
+The approximate normal tests (the z-test/Wald tests) only give
+significance tests for whether individual parameters are equal to zero.
+For instance, the Wald test gave a p-value of 0.167 for the term
+`Biomass:pH(mid)` which really is the contrast between interactions
+`Biomass:pH(high)`and `Biomass:pH(mid)` since `pH(high)` is the
+reference level in this model. The relatively large p-value says that
+there is no evidence that Biomass has different effect on counts for
+these two pH-levels. On the other hand there appears to be a significant
+difference in the effect of Biomass between `pH(high)` and `pH(low)`
+with a p-value of 0.000108. In order to evaluate the *overall*
+significance of the interaction term (Biomass:pH) we can look at the
+deviance tests in the Analysis of Deviance Table:
+
+```{r, echo=FALSE}
+anova(mod3.glm,test='LR')
+logLik(mod3.glm)
+```
+
+Here we can read out that adding the interaction term to a model already
+containing Biomass and pH will reduce the deviance with 16.040 and the
+qhi-square test on this deviance with 2 degrees of freedom returns a
+p-value of 0.00033, hence a highly significant interaction.
+
+We could also get the same result by comparing the interaction model (as
+a full model) with the model from exercises a) (as a reduced model) and
+then use Models \> Hypothesis test \> Compare two models
+
+```{r, echo=FALSE}
+anova(mod2.glm, mod3.glm, test="Chisq")
+```
+
+The interaction term is again highly significant with a p-value of
+0.00033.
+
+A corresponding plot as made in a) including interaction effect yields:
+
+```{r,echo=FALSE}
+attach(species)
+plot(Biomass, Species, type = "n")
+spp <- split(Species, pH)
+bio <- split(Biomass, pH)
+points(bio[[1]], spp[[1]], pch = 16, col = "red")
+points(bio[[2]], spp[[2]], pch = 16, col = "green")
+points(bio[[3]], spp[[3]], pch = 16, col = "blue")
+
+legend(x = "topright", legend = c("high", "medium", "low"), 
+       pch = 16, col = c("red", "blue", "green"), title = "pH")
+
+curve(exp(3.76812 - 0.10713 * x), add = T, lwd = 2, col = "red")
+curve(exp(3.76812 - 0.33146 - (0.10713 + 0.03189) * x), 
+      add = T, lwd = 2, col = "blue")
+curve(exp(3.76812 - 0.81557 - (0.10713 + 0.155028) * x), 
+      add = T, lwd = 2, col = "green")
+detach(species)
+```
+
+Note now how the curves differ from those found in a). That change is
+the interaction effect.
+
+</details>
+
+# Ex-2: Multinomial data
+
+We return to the taxonomy data used in the lecture on cluster analysis.
+In the file `taxonomy.Rdata` you find seven variables measured on plants
+from four different taxa.
+
+a.  Fit a multinomial regression with `Taxon` as the multinomial
+    categorical response variable and `Sepal` as predictor. Is the
+    effect of `Sepal` on the probabilities of the various taxons
+    sifnificant at a 5% test level? Download the "summaryMultinom.R"
+    file from the CANVAS-module and source it in R. This file contains
+    code to summarize the multinomial regression model through the
+    summaryMultinom() function which can be applied to the fitted
+    multinomial model. The function will give you the estimated
+    regression coefficients, the standard errors, the z-values and the
+    p-values for each of the regression coefficients.
+
+<details>
+
+<summary><mark> Solution </mark></summary>
+
+```{r}
+library(nnet, pos=22)
+source("summaryMultinom.R")
+mod1.multi <- multinom(Taxon ~ Sepal, data=taxonomy, trace=FALSE)
+summaryMultinom(mod1.multi)
+```
+
+The Deviance test gives a p-value much smaller than 0.05, and `Sepal` is
+found to influence the probability of taxons significantly.
+
+</details>
+
+b.  What are the estimated linear predictors $\widehat{\eta}_j$ for each
+    of the four taxa, $j=1,2,3,4$?
+
+<details>
+
+<summary><mark> Solution </mark></summary>
+
+First we extract the estimated regression coefficients. Remember that
+for the reference level taxon (`taxon=1`) the regression coefficients
+are assumed equal to zero. We may sum up the estimated coefficients like
+this:
+
+```{r}
+summod1.multi <- summary(mod1.multi)
+co <- summod1.multi$coefficients
+co <- rbind(c(0,0),co)
+rownames(co)[1] <- "I"
+co
+```
+
+This gives the following linear predictors:
+$$\widehat{\eta}_1 = 0 + 0\cdot \text{Sepal} = 0$$
+$$\widehat{\eta}_2 = 1.49 - 0.593\cdot \text{Sepal}$$
+$$\widehat{\eta}_3 = 2.86 - 1.15\cdot \text{Sepal}$$
+$$\widehat{\eta}_4 = -48.0 + 13.7\cdot \text{Sepal}$$
+
+</details>
+
+c.  What is the most probable taxon according to this model for a plant
+    with `Sepal=3`? (Hint: First insert `Sepal=3` in the linear
+    predictors you just found to obtain the actual value of this. Then
+    use the expression for the probability of a outcome $j$:
+
+$$\widehat{p}_j=\frac{e^{\widehat{\eta}_j}}{\sum_k e^{\widehat{\eta}_k}}= \frac{e^{\widehat{\eta}_j}}{ e^{\widehat{\eta}_1}+e^{\widehat{\eta}_2}+e^{\widehat{\eta}_3}+e^{\widehat{\eta}_4}}$$
+
+<details>
+
+<summary><mark> Solution </mark></summary>
+
+This should give the estimated probabilities:
+
+```{r, echo=FALSE}
+x <- 3
+probs <- exp(co[ ,1] + co[ ,2] * x) / sum(exp(co[ ,1] + co[ ,2] * x))
+probs
+```
+
+We see that taxon I is the most probable with a probability equal to
+`0.43`.
+
+Extra: The following figure shows the probabilities of each taxon for
+various values of `Sepal`. Remember that these probabilities are the
+posterior probability estimates for the class in a classification
+terminology. We classify to the most probable class given the observed
+predictor values.
+
+```{r, echo=FALSE}
+xvector <- seq(0,7, by = 0.05)
+probfunc <- function(x){
+  exp(co[ ,1] + co[ ,2] * x) / sum(exp(co[ ,1] + co[ ,2] * x))
+  }
+probmat <- t(sapply(xvector, probfunc))
+matplot(xvector, probmat, lty = 1, type = "l", lwd = 2, 
+        main = "Posterior probabilities for taxa", 
+        xlab = "Sepal", ylab = "Estimated posterior probability")
+legend(6, 0.8, legend = c("I", "II", "III", "IV"), lty = 1, col = 1:4, lwd = 2)
+```
+
+We observe that taxon III is the most probable for `Sepal<2.5`, taxon I
+for `2.5 < Sepal < 3.5` and taxon IV for `Sepal >= 3.5`. Taxon 2 is the
+most probable taxon only for `Sepal` $\approx$ `2.5`.
+
+</details>
+
+d.  Create a Boxplot of `Sepal` from the Graph menu and choose to plot
+    by groups identified by the taxon levels. Can you see why Sepal
+    appears to be informative with regard to taxon?
+
+<details>
+
+<summary><mark> Solution </mark></summary>
+
+```{r}
+plot(Sepal ~ Taxon, data = taxonomy)
+```
+
+We see that taxon 4 has quite different Sepal values than the other
+taxons, hence Sepal is a good variable to separate taxon 4 from the
+other 3 taxons.
+
+</details>
+
+e.  Use similar plots like in d. to identify other variables which are
+    promising with regard to separating taxa I, II and III (Sepal is
+    already a good variable to distinguish taxon IV from the others).
+    Fit an extended model with the variables you have chosen.
+
+<details>
+
+<summary><mark> Solution </mark></summary>
+
+I have found two variables which are promising; `Leaf` and `Petiole`, as
+shown in the figures below.
+
+```{r, echo=FALSE}
+plot(Leaf ~ Taxon, data = taxonomy)
+plot(Petiole ~ Taxon, data = taxonomy)
+```
+
+`Leaf` seems to distinguish taxon III from the others, and `Petiole` may
+separate taxa I and II.
+
+I therefore fit a model with `Sepal`, `Leaf` and `Petiole` as predictors
+for taxa:
+
+```{r}
+mod2.multi <- multinom(Taxon ~ Sepal + Leaf + Petiole, data=taxonomy, trace=FALSE)
+summaryMultinom(mod2.multi)
+```
+
+</details>

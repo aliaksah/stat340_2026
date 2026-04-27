@@ -1,0 +1,955 @@
+---
+title: "Mixed effects models"
+subtitle: 'STAT340 - Lecture 12'
+author: "Aliaksandr Hubin"
+date: "April 28 2026"
+output: 
+   ioslides_presentation: default
+   beamer_presentation: default
+   slidy_presentation: default
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+```{=html}
+<style>
+.small-out pre {
+  font-size: 15px !important;
+  line-height: 1.2 !important;
+}
+</style>
+```
+
+## Book chapters
+
+-   **The R Book (Crawley)**: Chapter 19 (Mixed-Effects Models). Key
+    sections:
+
+    -   **Fixed and random effects**
+    -   **Pseudoreplication**
+    -   **Split-plot experiments**
+    -   **Nested designs**
+
+-   **An Introduction to Statistical Learning (ISLR)**:
+
+    -   *Note:* ISLR focuses mostly on standard i.i.d. predictive
+        modeling. Mixed models go beyond the standard linear models
+        discussed in ISLR Chapter 3, handling complex, non-independent
+        data structures!
+
+## Recap: The standard i.i.d. assumption
+
+In standard Linear Regression and Generalized Linear Models (GLMs), a
+core assumption is that observations are **independent and identically
+distributed (i.i.d.)**.
+
+$$ y_i \sim N(\beta_0 + \beta_1 x_i, \sigma^2) $$
+
+-   **Identically distributed**: Every observation $y_i$ shares the same
+    variance $\sigma^2$ and follows the same relationship with $x_i$.
+
+-   **Independent**: Knowing the residual (error) for observation $y_1$
+    tells us absolutely nothing about the residual for observation
+    $y_2$.
+
+## Why do standard i.i.d. models fail?
+
+What if our data points are *grouped* or *structured*?
+
+-   Repeated measurements on the same patients over time.
+-   Plants growing in the same greenhouse.
+-   Students nested within classrooms.
+-   Counties epidemiology data may be spatially correlated.
+-   Time series data may be temporally correlated.
+
+If we measure the same patient 5 times, those 5 measurements are **not
+independent**. If the patient is naturally prone to higher blood
+pressure than average, all 5 of their measurements will have a positive
+residual.
+
+## Why do standard i.i.d. models fail? (Cont.)
+
+If we ignore this grouping structure and use a standard GLM:
+
+1.  The model assumes we have more independent information than we
+    actually do (artificially inflated sample size).
+2.  Standard errors for our coefficients will be **underestimated**.
+3.  We will get **false positives** (p-values that are too small)!
+4.  Our estimates may be biased towards over-represented individuals'
+    measurements.
+5.  i.i.d. does not hold when running the maximum likelihood estimation.
+
+We need a model that explicitly accounts for this correlation structure.
+
+## Mixed effects models
+
+-   Mixed effects models are (generalized) linear models with both
+    **fixed** and **random** effects.
+
+-   Often fixed treatments are studied with *replications* on randomly
+    selected objects/locations.
+
+    -   Replications in time: Repeated measurements.
+    -   Spatial replication: Observations from close locations.
+    -   Spatio-temporal correlations.
+
+-   **Main issue**: Dealing with dependence in data.
+
+-   Mixed effect models account for dependency in data. Ignoring
+    dependence can lead to flawed conclusions!
+
+## Fixed vs Random Effects (Crawley, R Book)
+
+The distinction between fixed and random effects is crucial when
+building these models:
+
+-   **Fixed effects**: The levels of the factor are determined
+    explicitly by the researcher. We are interested in the specific
+    differences between these exact levels.
+
+    -   *Examples*: Drug vs Placebo, Male vs Female, High vs Low
+        Temperature.
+    -   The conclusions drawn apply **only** to these specific levels.
+
+## Fixed vs Random Effects (Cont.)
+
+-   **Random effects**: The levels are a random sample from a much
+    larger population of possible levels. We are not interested in the
+    specific differences between the levels we sampled, but in the
+    general variation they represent.
+
+    -   *Examples*: Individual patient ID, specific plots of land,
+        specific litters of animals.
+
+## The Problem of Pseudoreplication
+
+-   **Repeated measurements** over time on the same «unit»
+    -   «Unit» = individual, group, location...etc.
+    -   Data from the same «unit» are similar to each other (dependent).
+    -   Also known as **longitudinal data**.
+-   Repeated measurements on the same «unit» are **pseudo-replicates**.
+    -   Not «real» replicates!
+-   We are not interested in the difference between each «unit», but
+    rather see them as a **random sample** of a larger population of
+    such «units».
+    -   Then the effects of «unit» are typically **random effects**.
+
+## The Problem of Pseudoreplication: Example
+
+-   **Scenario**: You want to test the effect of a new diet on milk
+    yields in a herd of cows.
+-   You have 10 cows in the herd.
+-   You measure the milk yield of each cow every day for 30 days.
+-   Is your sample size $n=300$?
+-   **NO.** Your true sample size of independent units is $n=10$ (the
+    cows). The 30 daily measurements are **pseudoreplicates**! The daily
+    measurements from "Cow 1" are highly dependent on Cow 1's baseline
+    genetics and health.
+
+## Split-Plot Experiments
+
+Mixed models naturally handle complex experimental designs, such as
+**Split-Plot Designs**:
+
+-   **Main plots**: Large experimental units (e.g., entire fields) where
+    a treatment is applied (e.g., Irrigation).
+
+-   **Sub-plots**: Smaller units within the main plots where another
+    treatment is applied (e.g., Fertilizer type).
+
+-   **Why it matters**: The error variance for the main plot treatment
+    is different (usually larger) than the error variance for the
+    sub-plot treatment.
+
+-   Mixed models estimate variance components at each level of the
+    hierarchy simultaneously!
+
+## Inference in Linear Mixed Models (High Level)
+
+In standard regression, we use Maximum Likelihood Estimation (MLE)
+because we observe all the data. But in mixed models, the random effects
+($b_i$) are **unobserved random variables**.
+
+-   We cannot just treat them as standard fixed parameters, or we'd
+    overfit!
+-   Instead, the math **integrates them out**. We look at the "marginal
+    likelihood" of the data given only the fixed effects and the
+    variance parameters.
+-   For normal (Gaussian) data, this integration has a beautiful, exact
+    mathematical solution.
+
+## MLE vs REML
+
+When we estimate the variances using standard Maximum Likelihood (ML),
+the estimates are slightly biased (too small), because ML doesn't
+account for the degrees of freedom used up by estimating the fixed
+effects.
+
+-   Think of calculating sample variance: we divide by $n-1$, not $n$,
+    to fix the bias!
+-   Mixed models use **REML (Restricted Maximum Likelihood)** instead of
+    ML to get unbiased estimates of the variance components
+    ($\sigma^2_b$ and $\sigma^2$). This is the default in R!
+
+## Random Intercept Only Model
+
+Let's start with the simplest mixed model: The **Random Intercept
+Model**.
+
+This is equivalent to a One-Way ANOVA with random effects. We want to
+measure a continuous response across different random groups, without
+any specific fixed predictors (other than the global mean).
+
+## The `rats` dataset
+
+Let's look at the `rats` dataset from the `BIAS.data` package.
+
+We measure the Glycogen content in three different sections of rat
+livers. The rats themselves are randomly selected from a population.
+
+```{r, echo=TRUE, message=FALSE, warning=FALSE}
+library(BIAS.data)
+data(rats)
+head(rats, 7)
+```
+
+## Structure of the `rats` dataset
+
+-   `Glycogen`: The continuous response variable.
+
+-   `Treatment`: The section of the liver (1, 2, or 3).
+
+-   `Rat`: The specific rat the liver came from. This is our **random
+    effect**!
+
+## Visualising the `rats` data
+
+Let's look at the variance *between* rats versus the variance *within*
+rats.
+
+```{r, echo=FALSE, fig.height=4, fig.width=6}
+boxplot(Glycogen ~ Rat, data=rats, col="lightblue", 
+        ylab="Glycogen Content", xlab="Rat ID",
+        main="Glycogen by Rat")
+```
+
+Some rats naturally have higher baseline glycogen than others!
+
+## The Random Intercept Mathematical Model
+
+To avoid complex matrix math, let's write the model for a single
+observation using **scalar notation**:
+
+Let $y_{ij}$ be the glycogen content for the $j$-th measurement of the
+$i$-th rat.
+
+$$ y_{ij} = \beta_0 + b_i + \epsilon_{ij} $$
+
+Where:
+
+-   $\beta_0$: The global intercept (average glycogen across all rats).
+-   $b_i$: The random effect for rat $i$. It represents how much rat
+    $i$'s average deviates from the global average $\beta_0$.
+-   $\epsilon_{ij}$: The residual error for that specific measurement.
+
+## Model Assumptions
+
+$$ y_{ij} = \beta_0 + b_i + \epsilon_{ij} $$
+
+What do we assume about the random terms?
+
+1.  **Random Effects**: $b_i \sim N(0, \sigma^2_b)$ The rat-specific
+    deviations follow a Normal distribution with variance $\sigma^2_b$.
+2.  **Residuals**: $\epsilon_{ij} \sim N(0, \sigma^2)$ The individual
+    measurement errors follow a Normal distribution with variance
+    $\sigma^2$.
+3.  The random effects $b_i$ and residuals $\epsilon_{ij}$ are
+    completely independent.
+
+## Fitting the Random Intercept Model in R
+
+We use the `lme()` function from the `nlme` package.
+
+```{r, echo=TRUE, message=FALSE, warning=FALSE}
+library(nlme)
+# We fit a random intercept (~ 1) for each Rat
+rat_model <- lme(fixed = Glycogen ~ 1, 
+                 random = ~ 1 | Rat, 
+                 data = rats)
+```
+
+Notice the syntax:
+
+-   `fixed = Glycogen ~ 1`: The only fixed effect is the global
+    intercept.
+-   `random = ~ 1 | Rat`: We allow the intercept (`1`) to vary randomly
+    across each `Rat`.
+
+## Full Summary: `rats` Model
+
+<div>
+
+```{r, echo=FALSE}
+summary(rat_model)
+```
+
+</div>
+
+## Explained Variance: The Intraclass Correlation Coefficient (ICC)
+
+How much of the total variance in Glycogen is simply due to which rat we
+are looking at?
+
+We calculate the **Intraclass Correlation Coefficient (ICC)**:
+
+$$ \text{ICC} = \frac{\text{Variance Between Groups}}{\text{Total Variance}} = \frac{\sigma^2_b}{\sigma^2_b + \sigma^2} $$
+
+The ICC tells us the proportion of total variance that is explained by
+our random grouping factor. It also represents the correlation between
+two measurements taken from the *same* rat!
+
+## ICC Calculation for `rats`
+
+From our output:
+
+-   $\sigma_b = 4.27$
+-   $\sigma = 9.26$
+
+$$ \sigma^2_b = 4.27^2 \approx 18.23 $$
+$$ \sigma^2 = 9.26^2 \approx 85.75 $$
+
+$$ \text{ICC} = \frac{18.23}{18.23 + 85.75} \approx 0.175 $$
+
+Almost 17.5% of the variance in Glycogen is purely driven by biological
+differences between individual rats!
+
+## Moving to Random Slopes: The `fertilizer` dataset
+
+What if a predictor variable (like time) affects different groups
+differently? Let's look at the `fertilizer` dataset.
+
+```{r, echo=TRUE}
+print(fertilizer[c(3:8,48:53),])
+```
+
+## Structure of `fertilizer`
+
+```{r, echo=FALSE, out.width="50%", fig.align='center'}
+knitr::include_graphics("root.png")
+```
+
+We track the `root` length of various `plant`s over several `week`s. The
+plants are either given `fertilizer` or are `control`s.
+
+## Visualising `fertilizer` trajectories
+
+```{r, echo = FALSE, message = FALSE, warning=FALSE, fig.height=4, fig.width=7}
+library(ggplot2)
+ggplot(fertilizer, aes(x=week, y=root, color=treatment)) + 
+  geom_line(aes(group=plant), alpha=0.6) + 
+  geom_point(size=2) +
+  theme_minimal()
+```
+
+Look closely at the individual plants. They don't just start at
+different lengths (different intercepts); their lines may have different
+steepness (different slopes)!
+
+## Random intercept, random slope model
+
+```{r, echo=FALSE, out.width="70%"}
+knitr::include_graphics("interceptSlope.png")
+```
+
+If we only used a random intercept, we would force all lines to be
+parallel. A **Random Slope** model allows each line to have its own
+angle!
+
+## The Random Intercept + Random Slope Mathematical Model
+
+Let $y_{ij}$ be the root length for the $i$-th plant at week $x_{ij}$.
+
+$$ y_{ij} = (\beta_0 + b_{0i}) + (\beta_1 + b_{1i}) x_{ij} + \epsilon_{ij} $$
+
+Where:
+
+-   $\beta_0$: Global average intercept.
+-   $\beta_1$: Global average slope (growth per week).
+-   $b_{0i}$: How much plant $i$'s intercept deviates from the average.
+-   $b_{1i}$: How much plant $i$'s slope deviates from the average.
+
+## Fitting the Random Slope Model in R
+
+```{r, message=FALSE, warning=FALSE, echo=TRUE}
+# Treatment is a fixed effect.
+# Both Intercept and Week slope vary randomly by Plant.
+res1 <- lme(fixed = root ~ treatment, 
+            random = ~ week | plant, 
+            data = fertilizer) 
+```
+
+The syntax `random = ~ week | plant` tells R: "Allow the intercept AND
+the effect of `week` (slope) to vary randomly for each `plant`".
+
+## Full Summary: `fertilizer` Model
+
+::: small-out
+```{r, echo=FALSE}
+summary(res1)
+```
+:::
+
+## `summary(lme)`: Random Effects
+
+Let's examine the random effects standard deviations:
+
+-   `StdDev` for `(Intercept)`: $\sigma_{b0} \approx 2.86$.
+-   `StdDev` for `week`: $\sigma_{b1} \approx 0.94$.
+-   `Residual` standard error: $\sigma \approx 0.50$.
+
+This tells us there is substantial variation between plants in both
+their starting size AND their growth speed.
+
+## ICC Calculation for `fertilizer`
+
+Because we have a **random slope** for `week`, the variance between
+plants *changes over time*. Therefore, the ICC also changes over time!
+
+At week 0 (the starting point), the variance between plants is just the
+variance of the intercept $\sigma_{b0}^2$:
+
+$$ \text{ICC}_{week=0} = \frac{\sigma_{b0}^2}{\sigma_{b0}^2 + \sigma^2} = \frac{2.86^2}{2.86^2 + 0.50^2} \approx 0.97 $$
+
+An ICC of 97% means that at the beginning of the experiment, almost all
+the variation in root length is driven by the specific plant's
+genetics/seed, rather than random noise!
+
+## Residual Diagnostics for `fertilizer`
+
+```{r, echo=FALSE, fig.height=3.5, fig.width=7}
+par(mfrow=c(1,2))
+# Standardized residuals vs fitted values
+plot(fitted(res1), resid(res1, type = "p"), main="Fitted vs Residuals", ylab="Std. Residuals")
+abline(h=0, lty=2)
+# QQ-plot for normality
+qqnorm(resid(res1, type="p"))
+qqline(resid(res1, type="p"))
+par(mfrow=c(1,1))
+```
+
+**What we want to see:** Points randomly scattered around the zero line
+in the left plot, and falling nicely on the diagonal line in the right
+plot.
+
+Looks ok!
+
+## `summary(lme)`: Fixed Effects
+
+Let's examine the fixed effects (the global averages):
+
+```{r, echo=TRUE}
+round(summary(res1)$tTable, 4)
+```
+
+## `summary(lme)`: Fixed Effects Intuition
+
+From the table:
+
+-   `(Intercept)`: The baseline root length for the control group.
+
+-   `treatmentfertilizer` = 1.04: Plants with fertilizer are, on
+    average, 1.04 units longer than control plants. This difference is
+    significant ($p = 0.0005$).
+
+-   Notice that `week` is not in this fixed table because we only
+    included it as a random slope. R estimates an average slope of 0
+    implicitly, but allows each plant to deviate from it.
+
+## Predictions: Population vs Individual
+
+We can predict using our mixed model in two ways: - **Level 0
+(Population):** Uses only Fixed Effects (ignores random deviations).
+What is the average expected response? - **Level 1 (Individual):** Adds
+the specific Random Effects for each unit.
+
+```{r, fig.height=3.5, fig.width=7}
+# Predict for the first 5 observations
+pred_pop <- predict(res1, level = 0)[c(1,10,32,40)]
+pred_ind <- predict(res1, level = 1)[c(1,10,32,40)]
+data.frame(Week = fertilizer$week[c(1,10,32,40)], 
+           Actual=fertilizer$root[c(1,10,32,40)], 
+           Treat = fertilizer$treatment[c(1,10,32,40)], 
+           Pop=round(pred_pop, 2), Ind=round(pred_ind, 2))
+```
+
+## Orthodont data.
+
+![](leek1.png)
+
+## Hierarchical (Nested) Design: Orthodont Data
+
+Sometimes random effects are nested within each other.
+
+```{r, echo=FALSE, out.width="60%"}
+knitr::include_graphics("GrowthDesign.png")
+```
+
+In the `Orthodont` dataset, we measure distance in children over time.
+
+-   `Child` is nested within `gender`.
+-   We have a fixed effect (`Sex`) and a random effect (`Subject`
+    randomly chosen).
+
+## Structure of `Orthodont`
+
+```{r, echo=TRUE}
+data(Orthodont)
+head(Orthodont, 3)
+```
+
+We measure **`distance`** between some key points in the skull at
+different `age`s. `Subject` is the nested random effect.
+
+## Visualising `Orthodont` Data
+
+```{r, echo = FALSE, message = FALSE, fig.height=4.5, fig.width=7}
+library(ggplot2)
+ggplot(Orthodont, aes(x=age, y=distance, color=Sex)) + 
+  geom_line(aes(group=Subject), alpha=0.6) + 
+  geom_point(size=2) +
+  theme_minimal()
+```
+
+Distances differ between girls and boys over time, and variance appears
+to increase slightly.
+
+## `Orthodont` Mathematical Model
+
+Let $y_{ijk}$ be the distance for the $i$-th subject, of the $k$-th sex,
+at the $j$-th age. Let's fit a random intercept model:
+
+$$ y_{ijk} = \beta_0 + \beta_1 \text{Age}_{ijk} + \beta_2 \text{Sex}_{k} + b_{i(k)} + \epsilon_{ijk} $$
+
+-   $\beta_1$ and $\beta_2$ are fixed effects.
+-   $b_{i(k)}$ is the random intercept for subject $i$ nested within sex
+    $k$.
+
+## Fitting `Orthodont` in R
+
+```{r, echo=TRUE, message=FALSE, warning=FALSE}
+res3 <- lme(fixed = distance ~ age + Sex,  
+            random = ~ 1 | Subject,
+            data = Orthodont)
+```
+
+R automatically understands the nesting because each `Subject` has a
+unique ID (e.g., `M01`, `F01`) that maps exclusively to one `Sex`.
+
+## Full Summary: `Orthodont` Model
+
+::: small-out
+```{r, echo=FALSE}
+summary(res3)
+```
+:::
+
+## `Orthodont` Fixed Effects Details
+
+```{r, echo=TRUE}
+round(summary(res3)$tTable, 4)
+```
+
+## `Orthodont` Fixed Effects Intuition
+
+-   `age`: For every year older, distance increases by 0.66 units.
+
+-   `SexFemale`: Females have a baseline distance that is 2.32 units
+    **lower** than males.
+
+-   Both are highly significant.
+
+-   Because this is a random intercept model, the 0.66 growth slope is
+    assumed to be exactly the same for every child. Only their baseline
+    starting intercepts differ!
+
+## ICC Calculation for `Orthodont`
+
+We fit a random intercept model for the `Orthodont` data:
+$$ distance \sim age + Sex + (1|Subject) $$
+
+From the `summary(lme)` output, we extract the variance components: -
+Subject variance (Between-child): $\sigma_b^2 = 1.807^2 \approx 3.267$ -
+Residual variance (Within-child): $\sigma^2 = 1.432^2 \approx 2.049$
+
+$$ \text{ICC} = \frac{\sigma_b^2}{\sigma_b^2 + \sigma^2} = \frac{3.267}{3.267 + 2.049} \approx 0.615 $$
+
+Conclusion: **61.5%** of the variance in pituitary distance (after
+accounting for age and sex) is due to permanent biological differences
+between individual children.
+
+## Adding random slope to `Orthodont` 
+
+```{r, echo=TRUE, message=FALSE, warning=FALSE}
+res4 <- lme(fixed = distance ~ age + Sex,  
+            random = ~ age | Subject,
+            data = Orthodont)
+```
+
+## Full Summary: `Orthodont` Model
+
+::: small-out
+```{r, echo=FALSE}
+summary(res4)
+```
+:::
+
+## Generalized Linear Mixed Models (GLMM) Intro
+
+What if our response variable is **not continuous/normal**? For example,
+what if it's count data (Poisson) or binary data (Binomial), but with
+random effects?
+
+We use **Generalized Linear Mixed Models (GLMM)**! The most popular
+package in R for this is `lme4`, specifically the `glmer()` function.
+
+## Inference in GLMMs (High Level)
+
+With normal data (LMMs), integrating out the random effects has an
+exact, clean mathematical solution.
+
+With non-normal data (like Binomial or Poisson), **the integral has no
+exact mathematical solution!** We cannot just use REML.
+
+We must rely on approximations to calculate the likelihood:
+
+-   **Laplace Approximation**: Very fast, standard default in `lme4`.
+    Uses a quadratic Taylor expansion to approximate the integral.
+-   **Gauss-Hermite Quadrature**: More computationally intensive, but
+    highly accurate numeric integration.
+
+## GLMM - Formulation
+
+Like standard GLMs, responses $y_{ij}$ are assumed to follow a
+distribution parameterized by the mean $\mu_{ij}$ and dispersion $\phi$:
+$$ y_{ij}\sim f(\mu_{ij}, \phi) $$
+
+We model the expected value $\mu_{ij} = E(y_{ij})$ using a link function
+$g(\mu)$ while adding our random effects $b_i$:
+
+$$ g(\mu_{ij}) = \beta_0 + \beta_1 x_{ij} + b_i $$
+
+-   Fixed Effects: $\beta_0$ (Intercept) and $\beta_1$ (Slope)
+-   Random Effects: $b_i \sim N(0, \sigma^2_b)$
+
+## GLMM: Bovine Pleuropneumonia
+
+Let's use the `cbpp` dataset in `lme4`. We want to model the incidence
+of a disease (Binomial) over different periods, accounting for the
+random effect of the specific `herd`.
+
+```{r, echo=TRUE, message=FALSE, warning=FALSE}
+library(lme4)
+data(cbpp)
+head(cbpp, 6)
+```
+
+## `cbpp` dataset structure
+
+-   `incidence`: The number of sick cows (Successes).
+-   `size`: Total cows in the herd (Trials).
+-   `period`: The time period (Fixed effect).
+-   `herd`: The specific herd (Random effect).
+
+Because the incidence rate might be naturally higher in some herds than
+others due to environment, `herd` must be a random effect!
+
+## Fitting the GLMM (`glmer`)
+
+In `lme4`, we combine fixed and random effects in a single formula.
+Random effects are specified in parentheses: `(1 | herd)`.
+
+```{r, echo=TRUE, warning=FALSE, message=FALSE}
+# Response is cbind(successes, failures)
+glmm_mod <- glmer(cbind(incidence, size - incidence) ~ 
+                  period + (1 | herd),
+                  family = binomial(link="logit"), 
+                  data = cbpp)
+```
+
+-   `(1 | herd)`: A random intercept for each herd.
+-   `family = binomial`: Tells R to use Binomial regression and a logit
+    link!
+
+## Full Summary: `glmer` Model
+
+::: small-out
+```{r, echo=FALSE, warning=FALSE}
+summary(glmm_mod)
+```
+:::
+
+## `glmer` Output Detail
+
+```{r, echo=TRUE, warning=FALSE}
+round(summary(glmm_mod)$coefficients, 4)
+```
+
+-   The fixed effects show how the log-odds of incidence change across
+    periods compared to period 1. The disease rate is decreasing over
+    time (negative coefficients).
+
+## Spatiotemporal Correlation Intro
+
+Sometimes, the "random effect" structure isn't just discrete groups
+(like `plant` or `herd`). Observations might be correlated **in
+continuous time** or **across 2D space**.
+
+If measurements are taken sequentially in time, residuals are often
+auto-correlated (an observation is similar to the one immediately before
+it).
+
+In `nlme`, we can add explicit **correlation structures** without
+necessarily using random effects, or in combination with them.
+
+## Fitting Temporal Autocorrelation (AR1)
+
+If we measure the same object over time at equal intervals, we can use
+an AR(1) process for the residuals. Let's fit this to the `Orthodont`
+data.
+
+```{r, eval=TRUE, echo=TRUE}
+# Using lme to add an CAR(1) correlation structure across age
+model_car1 <- lme(fixed = distance ~ age + Sex, 
+                 random = ~ 1 | Subject,
+                 correlation = corCAR1(form = ~ 1 + age | Subject),
+                 data = Orthodont)
+```
+
+## Full Summary: `corCAR1` Model
+
+::: small-out
+```{r, echo=FALSE}
+summary(model_car1)
+```
+:::
+
+## `corAR1` Output Details
+
+Let's look at the correlation structure parameters:
+
+```{r, echo=TRUE}
+summary(model_car1)$modelStruct$corStruct
+```
+
+-   Phi ($\Phi$) is roughly 0.24.
+-   This represents the strength of the temporal correlation between
+    measurements for the same child!
+
+## Spatial Correlation Intro
+
+If data are collected across geographical coordinates $(x, y)$, points
+closer together are usually more similar.
+
+**Intuition:** A measurement of soil pH at one spot is likely very
+similar to a measurement taken just 1 meter away!
+
+We can model this spatial decay using exponential, spherical, or
+Gaussian correlation structures.
+
+```{r, eval=FALSE, echo=TRUE}
+# Example syntax for a spatial model in nlme
+spatial_model <- gls(yield ~ fertilizer + temperature,
+                     correlation = corExp(form = ~ x_coord + y_coord, 
+                                          nugget = TRUE),
+                     data = spatial_data)
+```
+
+## Visualizing Spatial Correlation
+
+```{r, echo=FALSE, fig.height=4, fig.width=6, message=FALSE, warning=FALSE}
+library(ggplot2)
+grid <- expand.grid(x = 1:20, y = 1:20)
+# Create a smooth spatial field with some noise
+set.seed(123)
+grid$z <- sin(grid$x/4) + cos(grid$y/4) + rnorm(400, 0, 0.2)
+ggplot(grid, aes(x=x, y=y, fill=z)) + 
+  geom_tile() + 
+  scale_fill_viridis_c() + 
+  theme_minimal() + 
+  labs(title="Simulated Spatial Field", x="Longitude", y="Latitude", fill="Value")
+```
+
+Values that are close together in 2D space are similar in color. A mixed
+model uses spatial correlation to properly model this!
+
+## Summary
+
+-   Standard i.i.d. models fail when data is grouped or structured
+    (Pseudoreplication).
+-   Mixed models combine Fixed effects (specific treatments) and Random
+    effects (sampled populations).
+-   **Inference**: Uses REML (Linear) or Laplace approximations (GLMMs)
+    because random effects are unobserved.
+-   `nlme::lme()` allows complex random intercepts/slopes and
+    correlation structures (e.g. `corCAR1`).
+
+## STAT340: The Complete Journey
+
+Over the past semester, we have built a powerful, flexible statistical
+toolkit. The course can be divided into distinct statistical domains:
+
+-   **Lectures 1:** Introduction
+-   **Lectures 2-5:** Linear Models & ANOVA (Continuous data)
+-   **Lectures 6-7:** Clustering & classification
+-   **Lectures 8-9:** Dimension Reduction (PCA, PCR, PLSR)
+-   **Lectures 10-11:** Generalized Linear Models (GLM)
+-   **Lecture 12:** Mixed Effects Models (LMM & GLMM)
+-   **Guest Lecture 1:** *Explainable Bayesian Deep Learning through
+    Latent Binary Bayesian Neural Networks*
+-   **Guest Lecture:** *A Smooth Information Criterion for Selection and
+    Fusion of Categorical Predictors*
+
+## Linear Regression (Lectures 1-3)
+
+The core framework: we model a continuous, normally distributed response
+$y$ as a linear combination of predictors $X$.
+
+$$ y_i = \beta_0 + \beta_1 x_{1i} + \dots + \epsilon_i \quad \text{where} \quad \epsilon_i \sim N(0, \sigma^2) $$
+
+```{r, echo=FALSE, fig.height=3, fig.width=5}
+set.seed(1)
+x <- 1:50
+y <- 2 + 0.5*x + rnorm(50, 0, 3)
+plot(x, y, pch=16, col="darkgray", main="Simple Linear Regression")
+abline(lm(y~x), col="blue", lwd=2)
+```
+
+**Key Assumption:** Observations are independent, Gaussian and
+identically distributed (i.i.d.).
+
+## ANOVA & Categorical Predictors (Lectures 4-5)
+
+Linear models seamlessly handle categorical predictors (like Treatments
+or Diets) by converting them into dummy variables.
+
+$$ y_{ij} = \mu + \alpha_j + \epsilon_{ij} $$
+
+```{r, echo=FALSE, fig.height=3.5, fig.width=6}
+set.seed(2)
+group <- factor(rep(c("Control", "Low", "High"), each=20))
+response <- c(rnorm(20, 10, 2), rnorm(20, 15, 2), rnorm(20, 25, 3))
+boxplot(response ~ group, col=c("pink", "lightgreen", "lightblue"), main="ANOVA: Group Differences")
+```
+
+We used F-tests and Tukey HSD to compare means across groups!
+
+## Unsupervised Learning: Clustering (Lecture 6)
+
+-   **K-Means:** Partitioning data into $K$ distinct groups by
+    minimizing within-cluster distance.
+-   **Hierarchical Clustering:** Building a tree of clusters based on
+    distance linkages (Single, Complete, Average).
+
+```{r, echo=FALSE, fig.height=3.5, fig.width=6}
+set.seed(3)
+x_clust <- c(rnorm(30, 2, 0.5), rnorm(30, 5, 0.5))
+y_clust <- c(rnorm(30, 2, 0.5), rnorm(30, 5, 0.5))
+plot(x_clust, y_clust, col=rep(c("red", "blue"), each=30), pch=16, main="K-Means Intuition")
+```
+
+## Classification: KNN (Lecture 7)
+
+**K-Nearest Neighbors (KNN)** is a simple, non-parametric classification
+algorithm.
+
+To predict the class of a new observation, we: 1. Find the $K$ closest
+training points (using Euclidean or Manhattan distance). 2. Take a
+majority vote!
+
+-   **Small** $K$ (e.g., $K=1$): Highly flexible, captures complex
+    boundaries, but prone to over-fitting.
+
+-   **Large** $K$: Smoother boundaries, less sensitive to noise.
+
+    Also
+
+-   **LDA** for linear discrimination
+
+-   **QDA** for quadratic discimination
+
+## Dimension Reduction: PCA (Lecture 8)
+
+When we have many correlated predictors, we face **multicollinearity**.
+**Principal Component Analysis (PCA)** solves this by rotating the data
+into orthogonal (uncorrelated) components.
+
+-   **PC1:** The direction of maximum variance.
+-   **PC2:** The direction of maximum variance orthogonal to PC1.
+
+```{r, echo=FALSE, fig.height=3.5, fig.width=3.5, message=FALSE, warning=FALSE}
+library(MASS)
+set.seed(4)
+dat <- mvrnorm(100, mu=c(0,0), Sigma=matrix(c(1, 0.8, 0.8, 1), 2, 2))
+plot(dat, pch=16, col="darkgray", main="PCA Intuition: Finding Maximum Variance", xlab="X1", ylab="X2")
+abline(a=0, b=1, col="red", lwd=2, lty=2) # PC1 approximation
+abline(a=0, b=-1, col="blue", lwd=2, lty=2) # PC1 approximation
+```
+
+## PCR & PLSR (Lecture 9)
+
+We can use PCA components as predictors in a regression model!
+
+-   **Principal Component Regression (PCR):** Extract PCs from $X$, then
+    run linear regression on $y$.
+    -   *Problem:* PCA ignores $y$! The components with highest variance
+        might not be the most predictive of $y$.
+-   **Partial Least Squares Regression (PLSR):** Extracts components
+    from $X$ that *maximize covariance* with $y$. It is supervised
+    dimension reduction!
+
+## Generalized Linear Models (Lectures 10-11)
+
+What if $y_i$ is **not** continuous and normal? We use a **Link
+Function** $g(\mu)$ to map the expected value $\mu$ to the linear
+predictors!
+
+$$ g(\mu_i) = \beta_0 + \beta_1 x_{1i} + \dots $$
+
+**Common Distributions & Links:**
+
+-   **Normal (Continuous):** Identity link
+-   **Binomial (Binary 0/1):** Logit link
+-   **Poisson (Counts):** Log link
+-   **Gamma (Positive Skewed):** Log link
+
+## Mixed Effects Models (Lecture 12)
+
+-   **Random Intercept:** Lines have different starting points, but
+    parallel angles.
+-   **Random Slope:** Lines have different angles based on group traits.
+
+```{r, echo=FALSE, fig.height=3.5, fig.width=7}
+par(mfrow=c(1,2))
+x <- 1:10
+plot(x, x+2, type="l", col="blue", ylim=c(0, 15), main="Random Intercepts")
+lines(x, x+5, col="red")
+plot(x, x+2, type="l", col="blue", ylim=c(0, 15), main="Random Slopes")
+lines(x, 2*x, col="red")
+par(mfrow=c(1,1))
+```
+
+## The Golden Rule of Modeling
+
+There is no single "correct" model.
+
+1.  **Check the Response:** Is it continuous, binary, or count? (Choose
+    LM vs GLM link).
+2.  **Check the Predictors:** Are there too many correlated predictors?
+    (Use PCA/PLSR/model selection).
+3.  **Check the Structure:** Are observations truly independent, or
+    nested/grouped? (Choose fixed vs mixed effects).
+
+**Thank you for a great semester in STAT340!**
+
+**Good luck at the exam!**

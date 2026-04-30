@@ -235,11 +235,9 @@ The output now shows **three** variance components:
     three liver sections differ systematically within the same rat.
 -   Residual variance ($\sigma^2$): pure measurement noise.
 
-Comparing to the simpler model, $\widehat\sigma_c$ is small relative to
-$\widehat\sigma_b$, so the treatment sections within a rat are not very
-different from each other and the simpler model suffices. If
-$\widehat\sigma_c$ was substantial, the nested structure would have been
-important to capture.
+Comparing to the simpler model, $\widehat\sigma_c$ is large relative to
+$\widehat\sigma_b$, so the treatment sections within a rat are quite
+different from each other and the simpler model suffices.
 
 </details>
 
